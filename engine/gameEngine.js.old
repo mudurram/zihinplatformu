@@ -1,0 +1,127 @@
+// =============================================================
+// 📌 gameEngine.js — Oyun Motoru (Final v6.4 - Kararlı Sürüm)
+// =============================================================
+//
+// Bu motor her oyunda kullanılır:
+//  - Zaman yönetimi
+//  - Trial kaydı
+//  - Tepki süresi hesaplama
+//  - Bileşen çıkarma (componentCalculator)
+//  - Normalizasyon (normalizer)
+//  - Trial etiketleme (trialLabeler)
+//  - Sonuçların localStorage'a yazılması
+//  - Sonuç ekranına yönlendirme
+//
+// =============================================================
+
+import { labelTrials } from "./trialLabeler.js";
+import { calculateComponents } from "./componentCalculator.js";
+import { normalizeComponents } from "./normalizer.js";
+import { saveGameResult } from "../data/gameResultService.js";  // Firestore opsiyonel
+
+console.log("gameEngine.js yüklendi ✔");
+
+// =============================================================
+// 🎮 GAME ENGINE SINIFI
+// =============================================================
+export class GameEngine {
+  constructor({ gameName, timeLimit = 30 }) {
+    this.gameName = gameName;
+    this.timeLimit = timeLimit;
+
+    this.score = 0;
+    this.mistakes = 0;
+    this.trials = [];
+
+    this.timeLeft = timeLimit;
+    this.timerInterval = null;
+
+    this.updateUI = null;
+  }
+
+  // =========================================================
+  // ▶️ Oyunu Başlat
+  // =========================================================
+  start(updateUI) {
+    this.updateUI = updateUI;
+    this.startTimer();
+  }
+
+  // =========================================================
+  // 📝 Her tepkiyi kaydet
+  // =========================================================
+  recordTrial({ correct, reaction_ms }) {
+    this.trials.push({ correct, reaction_ms });
+
+    if (correct) this.score++;
+    else this.mistakes++;
+
+    if (this.updateUI)
+      this.updateUI(this.score, this.mistakes, this.timeLeft);
+  }
+
+  // =========================================================
+  // ⏱ Zamanlayıcı başlatır
+  // =========================================================
+  startTimer() {
+    this.timerInterval = setInterval(() => {
+      this.timeLeft--;
+
+      if (this.updateUI)
+        this.updateUI(this.score, this.mistakes, this.timeLeft);
+
+      if (this.timeLeft <= 0) this.endGame();
+    }, 1000);
+  }
+
+  // =========================================================
+  // 🔚 OYUN BİTİŞİ (ANALİZ + KAYIT + YÖNLENDİRME)
+  // =========================================================
+  async endGame() {
+    clearInterval(this.timerInterval);
+
+    // Trial etiketi (reaction / inhibition / focus)
+    const labeled = labelTrials(this.trials);
+
+    // Ham bileşen hesapları
+    const raw = calculateComponents(labeled);
+
+    // Normalize edilmiş 0–100 arası puanlar
+    const normalized = normalizeComponents(raw);
+
+    // TAM OYUN SONUCU OBJESİ
+    const result = {
+      oyun: this.gameName,
+      dogru: this.score,
+      yanlis: this.mistakes,
+      skorlar: normalized,
+      tarih: new Date().toISOString(),
+      trials: labeled
+    };
+
+    // ========================================
+    // 📌 LocalStorage KAYDI
+    // ========================================
+    let history = JSON.parse(localStorage.getItem("oyunGecmisi")) || [];
+    history.push(result);
+
+    localStorage.setItem("oyunGecmisi", JSON.stringify(history));
+    localStorage.setItem("sonOyun", this.gameName);
+    localStorage.setItem("sonOyunSonuc", JSON.stringify(result));
+
+    // ========================================
+    // 📌 Firestore'a KAYIT (opsiyonel)
+    // ========================================
+    await saveGameResult({
+      game: this.gameName,
+      score: this.score,
+      mistakes: this.mistakes,
+      components: normalized
+    });
+
+    // ========================================
+    // 📌 PLATFORM SONUÇ SAYFASINA YÖNLENDİR
+    // ========================================
+    window.location.href = "../../platform/sonuc.html";
+  }
+}

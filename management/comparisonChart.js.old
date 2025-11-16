@@ -1,0 +1,87 @@
+// =============================================================
+// 📌 comparisonChart.js — Zihin Platformu (v6.4 Final)
+// Son oyun vs genel ortalama radar grafiği (Kırılmayacak Sürüm)
+// =============================================================
+
+// Güvenli sayı okuma
+function safe(v) {
+  return typeof v === "number" && !isNaN(v) ? v : 0;
+}
+
+export function drawComparisonChart(canvas, son, ortalama) {
+  if (!canvas || !son || !ortalama) {
+    console.warn("comparisonChart: Eksik veri veya canvas bulunamadı.");
+    return;
+  }
+
+  const ctx = canvas.getContext("2d");
+
+  // GÜVENLİ VERİ HAZIRLAMA (kırılmayı tamamen engeller)
+  const last = {
+    r: safe(son.reaction_speed),
+    i: safe(son.inhibitory_control),
+    s: safe(son.sustained_attention)
+  };
+
+  const avg = {
+    r: safe(ortalama.reaction_speed),
+    i: safe(ortalama.inhibitory_control),
+    s: safe(ortalama.sustained_attention)
+  };
+
+  // Chart.js radar grafiği
+  new Chart(ctx, {
+    type: "radar",
+    data: {
+      labels: ["Tepki Hızı", "İnhibisyon", "Dikkat Sürekliliği"],
+      datasets: [
+        {
+          label: "Son Oyun",
+          data: [last.r, last.i, last.s],
+          borderColor: "#1E88E5",
+          backgroundColor: "rgba(30,136,229,0.22)",
+          borderWidth: 3,
+          pointRadius: 5,
+          pointBackgroundColor: "#1E88E5",
+          fill: true
+        },
+        {
+          label: "Genel Ortalama",
+          data: [avg.r, avg.i, avg.s],
+          borderColor: "#8e24aa",
+          backgroundColor: "rgba(142,36,170,0.22)",
+          borderWidth: 3,
+          pointRadius: 5,
+          pointBackgroundColor: "#8e24aa",
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top",
+          labels: { font: { size: 14 } }
+        }
+      },
+      scales: {
+        r: {
+          min: 0,
+          max: 100,
+          ticks: {
+            stepSize: 20,
+            backdropColor: "transparent"
+          },
+          grid: {
+            circular: true
+          },
+          pointLabels: {
+            font: { size: 14 }
+          }
+        }
+      }
+    }
+  });
+}

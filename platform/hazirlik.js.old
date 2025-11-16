@@ -1,0 +1,88 @@
+// =============================================================
+// 📌 hazirlik.js — Oyun Hazırlık Ekranı (Final, Stabil, GLOBAL Uyumlu)
+// =============================================================
+
+import { GLOBAL } from "./globalConfig.js";
+import { ROLES } from "./router.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  // ---------------------------------------------------------
+  // 1) ROL KONTROLÜ
+  // ---------------------------------------------------------
+  const role = localStorage.getItem("role");
+  const aktifOgrenciId = localStorage.getItem("aktifOgrenciId");
+
+  // Öğretmense → öğrenci seçmiş olmalı
+  if (role === ROLES.OGRETMEN && !aktifOgrenciId) {
+    alert("ℹ Oyunu başlatmadan önce bir öğrenci seçmelisiniz.");
+    window.location.href = "teacher_panel.html";
+    return;
+  }
+
+  // Admin / Editor oyuna giremez
+  if (role === ROLES.ADMIN || role === ROLES.EDITOR) {
+    alert("⛔ Bu ekran admin/editor hesabı için kullanılabilir değildir.");
+    window.location.href = "index.html";
+    return;
+  }
+
+  // ---------------------------------------------------------
+  // 2) OYUN KODU AL
+  // ---------------------------------------------------------
+  const oyunKodu =
+    localStorage.getItem("secilenOyunKodu") ||
+    localStorage.getItem("secilenOyun") ||
+    localStorage.getItem("seciliOyun");
+
+  if (!oyunKodu) {
+    console.warn("⚠ Oyun kodu bulunamadı.");
+    yazdir("Oyun Bulunamadı", "Lütfen ana menüden bir oyun seçiniz.");
+    return;
+  }
+
+  // ---------------------------------------------------------
+  // 3) GLOBAL ÜZERİNDEN OYUN ADI + YOLU
+  // ---------------------------------------------------------
+  const oyunYolu = GLOBAL.OYUN_YOLLARI[oyunKodu];
+  const oyunAdi =
+    GLOBAL.OYUN_ADLARI[oyunKodu] ||
+    oyunKodu.replace("_", " ").toUpperCase();
+
+  if (!oyunYolu) {
+    console.warn("⚠ GLOBAL.OYUN_YOLLARI içinde oyun tanımı bulunamadı:", oyunKodu);
+    yazdir("Tanımlanamayan Oyun", "Bu oyun sistemde kayıtlı değil.");
+    return;
+  }
+
+  // ---------------------------------------------------------
+  // 4) EKRANA YAZ
+  // ---------------------------------------------------------
+  const aciklama =
+    "Bu oyun Zihin Platformu dikkat modüllerinden biridir. Başlamak için hazırlanın.";
+
+  yazdir(oyunAdi, aciklama);
+
+  // ---------------------------------------------------------
+  // 5) BAŞLAT BUTONU
+  // ---------------------------------------------------------
+  const baslaBtn = document.getElementById("baslaBtn");
+
+  if (baslaBtn) {
+    baslaBtn.onclick = () => {
+      window.location.href = oyunYolu;
+    };
+  }
+
+  // ---------------------------------------------------------
+  // 6) YAZDIRMA FONKSİYONU
+  // ---------------------------------------------------------
+  function yazdir(baslik, aciklama) {
+    const baslikEl = document.getElementById("hazirlikBaslik");
+    const acikEl = document.getElementById("hazirlikMetni");
+
+    if (baslikEl) baslikEl.textContent = baslik;
+    if (acikEl) acikEl.innerHTML = aciklama;
+  }
+
+});

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oyun Sonucu | Zihin Platformu</title>
+
+  <!-- Ortak Stil -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Sonuç Motoru -->
+  <script type="module" src="sonuc.js" defer></script>
+
+  <style>
+    .sonuc-kutu {
+      width: 90%;
+      max-width: 700px;
+      background: #ffffffcc;
+      margin: 25px auto;
+      padding: 25px;
+      border-radius: 18px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      text-align: center;
+    }
+
+    .sonuc-baslik {
+      font-size: 28px;
+      font-weight: 700;
+      color: #243447;
+      margin-bottom: 20px;
+    }
+
+    .sonuc-kart {
+      background: white;
+      padding: 18px;
+      border-radius: 14px;
+      margin: 15px 0;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.10);
+    }
+
+    .bilesen-grup {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .bilesen {
+      flex: 1;
+      background: #fafafa;
+      padding: 12px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .bilesen h4 {
+      margin: 0 0 5px 0;
+      font-size: 15px;
+      color: #444;
+    }
+
+    .bilesenDeger {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e88e5;
+    }
+
+    .grafik-kutu {
+      margin-top: 20px;
+    }
+
+    .yorum-alani {
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    #ogretmenYorumMetin {
+      width: 100%;
+      min-height: 100px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      padding: 8px;
+      background: #f3f3f3;
+      resize: vertical;
+      font-size: 14px;
+    }
+
+    /* Üst Menü */
+    .ust-panel {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px;
+      background: #ffffffdd;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .geri-btn {
+      padding: 8px 12px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .geri-btn:hover {
+      background: #3578c6;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ÜST GEZİNME -->
+  <header class="ust-panel">
+    <button class="geri-btn" onclick="window.location.href='index.html'">🏠 Ana Menü</button>
+    <button class="geri-btn" onclick="window.location.href='analiz.html'">📊 Genel Analiz</button>
+  </header>
+
+  <!-- ANA SONUÇ ALANI -->
+  <div class="sonuc-kutu">
+
+    <h2 id="oyunBaslik" class="sonuc-baslik">Oyun Sonucu</h2>
+
+    <!-- SKOR BİLGİLERİ -->
+    <div class="sonuc-kart">
+      <p><strong>Doğru:</strong> <span id="dogru">-</span></p>
+      <p><strong>Yanlış:</strong> <span id="yanlis">-</span></p>
+      <p><strong>Tarih:</strong> <span id="tarih">-</span></p>
+    </div>
+
+    <!-- 3 BİLİŞSEL BİLEŞEN -->
+    <div class="bilesen-grup">
+      <div class="bilesen">
+        <h4>Tepki Hızı</h4>
+        <p id="reactionSpeed" class="bilesenDeger">-</p>
+      </div>
+
+      <div class="bilesen">
+        <h4>İnhibisyon</h4>
+        <p id="inhibControl" class="bilesenDeger">-</p>
+      </div>
+
+      <div class="bilesen">
+        <h4>Dikkat Sürekliliği</h4>
+        <p id="sustainedAttention" class="bilesenDeger">-</p>
+      </div>
+    </div>
+
+    <!-- SKOR ÇUBUK GRAFİĞİ -->
+    <div class="grafik-kutu">
+      <h3>Skor Dağılımı</h3>
+      <canvas id="skorGrafik"></canvas>
+    </div>
+
+    <!-- RADAR GRAFİĞİ -->
+    <div class="grafik-kutu">
+      <h3>Bilişsel Profil Haritası</h3>
+      <canvas id="radarGrafik"></canvas>
+    </div>
+
+    <!-- ÖĞRETMEN YORUMU -->
+    <div class="yorum-alani">
+      <h3>👨‍🏫 Öğretmen Yorumu</h3>
+      <textarea id="ogretmenYorumMetin" readonly></textarea>
+    </div>
+
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,63 @@
+// =============================================================
+// 📌 firebaseConfig.js — Zihin Platformu v6.4
+// Firebase Authentication + Firestore + App Init
+// =============================================================
+//
+// Tüm platformda ortak kullanılan tek Firebase yapı dosyasıdır.
+// Hiçbir yerde tekrar Firebase initialize edilmez.
+// =============================================================
+
+console.log("firebaseConfig.js yüklendi ⚡");
+
+// =============================================================
+// 1) Firebase SDK Modülleri
+// =============================================================
+
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+  getAuth
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
+  getFirestore
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// =============================================================
+// 2) Firebase Proje Ayarları — SENİN GERÇEK DEĞERLERİN
+// =============================================================
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDKtNt3U3KMIMVyixuE5mOXs8F0h6RwvHg",
+  authDomain: "zihin-platformu.firebaseapp.com",
+  projectId: "zihin-platformu",
+  storageBucket: "zihin-platformu.firebasestorage.app",
+  messagingSenderId: "328349672879",
+  appId: "1:328349672879:web:836a416a63a818d4553b5a"
+};
+
+// =============================================================
+// 3) Uygulama Tek Sefer Initialize Edilir
+// =============================================================
+
+const app = getApps().length === 0
+  ? initializeApp(firebaseConfig)
+  : getApps()[0];
+
+console.log("Firebase başlatıldı:", app.name);
+
+// =============================================================
+// 4) Servisler: Auth + Firestore
+// =============================================================
+
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+console.log("Auth ve Firestore hazır (v6.4)");
+
+// =============================================================
+// Bu dosya platformun TÜM modülleriyle uyumludur.
+// =============================================================
+//
+// import { auth, db } from "../data/firebaseConfig.js";
+// =============================================================

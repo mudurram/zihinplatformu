@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zihin Platformu — Ana Menü</title>
+
+  <!-- GLOBAL CSS -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- ANA MENÜ SCRIPTLERİ -->
+  <script type="module" src="main.js"></script>
+  <script type="module" src="router.js"></script>
+
+  <script type="module">
+    import { ROLES } from "./router.js";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const email = localStorage.getItem("loggedUser") || "-";
+      const role = localStorage.getItem("role") || ROLES.OGRENCI;
+
+      // Kullanıcı bilgilerini yaz
+      document.getElementById("kullaniciAdi").textContent = "Kullanıcı: " + email;
+
+      const rolYazi = {
+        ogrenci: "Öğrenci",
+        ogretmen: "Öğretmen",
+        admin: "Admin",
+        editor: "Editör"
+      };
+
+      document.getElementById("kullaniciRol").textContent =
+        "Rol: " + (rolYazi[role] || role);
+
+      // Rol bazlı görünürlük
+      if (role !== ROLES.OGRETMEN) {
+        const btn = document.getElementById("ogretmenPanelBtn");
+        if (btn) btn.style.display = "none";
+      }
+
+      if (role !== ROLES.ADMIN) {
+        const btn = document.getElementById("adminPanelBtn");
+        if (btn) btn.style.display = "none";
+      }
+
+      if (role !== ROLES.EDITOR) {
+        const btn = document.getElementById("editorPanelBtn");
+        if (btn) btn.style.display = "none";
+      }
+    });
+
+    // Menü geçiş fonksiyonu
+    window.menuGit = function (sayfa) {
+      window.location.href = sayfa;
+    };
+
+    // Çıkış
+    window.cikisYap = function () {
+      localStorage.clear();
+      window.location.href = "login.html";
+    };
+  </script>
+</head>
+
+<body>
+
+  <!-- ========================= -->
+  <!-- 🔷 ÜST KULLANICI PANELİ -->
+  <!-- ========================= -->
+  <header class="ust-panel">
+    <div class="kullanici-bilgi">
+      <span id="kullaniciAdi">Kullanıcı: -</span>
+      <span id="kullaniciRol">Rol: -</span>
+    </div>
+    <button class="cikis-btn" onclick="cikisYap()">Çıkış Yap</button>
+  </header>
+
+  <!-- ========================= -->
+  <!-- 🔶 ANA MENÜ BAŞLIK -->
+  <!-- ========================= -->
+  <h1 class="ana-baslik">🧠 Zihin Platformu</h1>
+  <h3 class="alt-baslik">Bilişsel Gelişim Modülleri</h3>
+
+  <!-- ========================= -->
+  <!-- 🔵 ANA MENÜ MODÜL KARTLARI -->
+  <!-- ========================= -->
+  <div class="menu-grid">
+
+    <!-- DİKKAT -->
+    <div class="menu-kart" onclick="menuGit('dikkat_menu.html')">
+      <h2>🎯 Dikkat</h2>
+      <p>Odaklanma, hız, inhibisyon oyunları</p>
+    </div>
+
+    <!-- HAFIZA -->
+    <div class="menu-kart pasif">
+      <h2>🧩 Hafıza</h2>
+      <p>(Yakında eklenecek)</p>
+    </div>
+
+    <!-- ALGILAMA -->
+    <div class="menu-kart pasif">
+      <h2>👁️ Algısal İşleme</h2>
+      <p>(Yakında eklenecek)</p>
+    </div>
+
+    <!-- YÜRÜTÜCÜ İŞLEVLAR -->
+    <div class="menu-kart pasif">
+      <h2>🧠 Yürütücü İşlevler</h2>
+      <p>(Yakında eklenecek)</p>
+    </div>
+
+    <!-- MATEMATİK -->
+    <div class="menu-kart pasif">
+      <h2>🔢 Matematiksel İşlem</h2>
+      <p>(Yakında eklenecek)</p>
+    </div>
+
+    <!-- OKUMA & DİL -->
+    <div class="menu-kart pasif">
+      <h2>📚 Okuma & Dil</h2>
+      <p>(Yakında eklenecek)</p>
+    </div>
+
+  </div>
+
+  <!-- ========================= -->
+  <!-- 🟩 ÖĞRETMEN PANELİ BUTONU -->
+  <!-- ========================= -->
+  <div class="menu-grid" id="ogretmenPanelBtn">
+    <div class="menu-kart" onclick="menuGit('teacher_panel.html')">
+      <h2>👩‍🏫 Öğretmen Paneli</h2>
+      <p>Öğrenci seçimi, analiz, raporlama</p>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- 🟥 ADMIN PANELİ (SADECE ADMIN) -->
+  <!-- ========================= -->
+  <div class="menu-grid" id="adminPanelBtn">
+    <div class="menu-kart" onclick="menuGit('admin_panel.html')">
+      <h2>🛠 Admin Paneli</h2>
+      <p>Kullanıcı yönetimi, rol atama</p>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- 🟦 EDITÖR PANELİ (SADECE EDITOR) -->
+  <!-- ========================= -->
+  <div class="menu-grid" id="editorPanelBtn">
+    <div class="menu-kart" onclick="menuGit('editor_panel.html')">
+      <h2>📝 Editör Paneli</h2>
+      <p>Oyun içerik düzenleme</p>
+    </div>
+  </div>
+
+</body>
+</html>

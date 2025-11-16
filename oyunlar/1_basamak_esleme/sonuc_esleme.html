@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>1. Basamak — Renk Kelime Eşleme</title>
+
+  <link rel="stylesheet" href="esleme.css">
+  <script type="module" src="esleme.js" defer></script>
+</head>
+
+<body class="eslemeOyun">
+
+  <!-- ÜST MENÜ -->
+  <div class="topBar">
+    <button onclick="window.location.href='../../platform/index.html'">Ana Sayfa</button>
+    <button onclick="window.location.href='../../platform/dikkat_menu.html'">Dikkat</button>
+    <button id="seviyeAcBtn">Seviye</button>
+    <button id="bitirBtn" style="background:#e04545;">Bitir</button>
+
+    <span>Süre: <span id="sure">30</span></span>
+    <span>Doğru: <span id="skor">0</span></span>
+    <span>Yanlış: <span id="yanlis">0</span></span>
+  </div>
+
+  <h2 class="oyun-baslik">Zihinsel Beceriler → Dikkat → Eşleme Becerisi</h2>
+  <h3 class="yönerge">Yazılı renkle aynı rengi seç.</h3>
+
+  <h1 id="hedefKelime" class="renkKelime">RENK</h1>
+
+  <div id="secenekAlani" class="secenek-container"></div>
+
+  <!-- SEVİYE POPUP -->
+  <div id="seviyePopup" class="popup show">
+    <div class="popup-content">
+      <h3>Seviye Seç</h3>
+      <button class="seviyeBtn" data-seviye="2">Kolay (2 seçenek)</button>
+      <button class="seviyeBtn" data-seviye="3">Orta (3 seçenek)</button>
+      <button class="seviyeBtn" data-seviye="4">Zor (4 seçenek)</button>
+    </div>
+  </div>
+
+</body>
+</html>

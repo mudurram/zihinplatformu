@@ -1,0 +1,98 @@
+// =============================================================
+// 📌 componentCalculator.js — Bilişsel Bileşen Hesaplayıcı (Final v6.4)
+// =============================================================
+//
+// Gelen trial verilerini analiz eder ve şu 3 bileşenin HAM skorunu üretir:
+//   • reaction_speed
+//   • inhibitory_control
+//   • sustained_attention
+//
+// Bu değerler SONRA normalizer.js ile 0–100'e normalize edilir.
+// =============================================================
+
+
+// -------------------------------------------------------------
+// 🧮 Güvenli ortalama
+// -------------------------------------------------------------
+function avg(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) return 0;
+  return arr.reduce((a, b) => a + b, 0) / arr.length;
+}
+
+
+// -------------------------------------------------------------
+// 🎯 Hesaplama Motoru
+// -------------------------------------------------------------
+export function calculateComponents(trials) {
+  if (!Array.isArray(trials) || trials.length === 0) {
+    return {
+      reaction_speed: 0,
+      inhibitory_control: 0,
+      sustained_attention: 0
+    };
+  }
+
+  // -----------------------------------------------------------
+  // 1) Reaction Speed (ms cinsinden ortalama)
+  // -----------------------------------------------------------
+  const reactionArr = trials
+    .filter(t => t.correct === true && typeof t.reaction_ms === "number")
+    .map(t => t.reaction_ms);
+
+  const reaction_speed = avg(reactionArr) || 0;
+
+
+  // -----------------------------------------------------------
+  // 2) Inhibitory Control (hata oranı)
+  // -----------------------------------------------------------
+  const totalTrials = trials.length;
+  const errors = trials.filter(t => t.correct === false).length;
+
+  // Hata oranı → daha az hata = daha iyi kontrol
+  // Bu ham değer normalize edilecek
+  const inhibitory_control = totalTrials > 0
+    ? 100 - (errors / totalTrials) * 100   // 100 = hiç hata yok
+    : 0;
+
+
+  // -----------------------------------------------------------
+  // 3) Sustained Attention (ikinci yarıdaki bozulma)
+  // -----------------------------------------------------------
+  const mid = Math.floor(trials.length / 2);
+
+  const firstHalf = trials.slice(0, mid);
+  const secondHalf = trials.slice(mid);
+
+  const fErr = firstHalf.filter(t => t.correct === false).length;
+  const sErr = secondHalf.filter(t => t.correct === false).length;
+
+  // Dikkat kayması = ikinci yarıdaki hata artışı
+  const dikkatKayıp = sErr - fErr;
+
+  // Pozitif ise dikkat düşmüş demektir → daha düşük skor
+  let sustained_attention = 100 - (dikkatKayıp * 15); 
+  sustained_attention = Math.max(0, Math.min(100, sustained_attention));
+
+
+  // -----------------------------------------------------------
+  // Eğer sadece tek trial oynandıysa fallback
+  // -----------------------------------------------------------
+  if (trials.length < 2) {
+    return {
+      reaction_speed: reaction_speed || 0,
+      inhibitory_control: inhibitory_control || 0,
+      sustained_attention: 80 // en az 2 trial yoksa nötr değer
+    };
+  }
+
+  // -----------------------------------------------------------
+  // TAM ÇIKTI
+  // -----------------------------------------------------------
+  return {
+    reaction_speed,
+    inhibitory_control,
+    sustained_attention
+  };
+}
+
+console.log("📘 componentCalculator.js yüklendi (Final v6.4)");

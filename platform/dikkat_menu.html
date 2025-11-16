@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dikkat Alanı — Zihin Platformu</title>
+
+  <!-- Ortak Stil -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Global yönlendirme -->
+  <script type="module" src="main.js"></script>
+</head>
+
+<body>
+
+  <!-- Üst Panel -->
+  <header class="ust-panel">
+    <div class="kullanici-bilgi">
+      <span id="kullaniciAdi">Kullanıcı: -</span>
+      <span id="kullaniciRol">Rol: -</span>
+    </div>
+
+    <button class="cikis-btn" onclick="cikisYap()">Çıkış Yap</button>
+  </header>
+
+  <!-- BAŞLIK -->
+  <h1 class="ana-baslik">🎯 Dikkat Gelişim Modülleri</h1>
+  <h3 class="alt-baslik">Temel dikkat, hız, inhibisyon ve odaklanma oyunları</h3>
+
+  <!-- Menü Grid (ID düzeltildi) -->
+  <div id="dikkatGrid" class="menu-grid">
+
+    <!-- 1. Basamak — Renk Kelime Eşleme -->
+    <div
+      class="menu-kart"
+      onclick="menuGit('../oyunlar/1_basamak_esleme/esleme.html')">
+      <h2>1️⃣ Renk – Kelime Eşleme</h2>
+      <p>Renk–kelime uyuşmazlığına göre doğru rengi bul.</p>
+    </div>
+
+    <!-- 2. Basamak — Renk Ayırt Etme -->
+    <div
+      class="menu-kart"
+      onclick="menuGit('../oyunlar/2_basamak_ayirt_etme/ayirtetme.html')">
+      <h2>2️⃣ Renk Ayırt Etme</h2>
+      <p>Zemin rengi ve kelimeye göre doğru rengi seç.</p>
+    </div>
+
+    <!-- 3. Basamak — Yakında -->
+    <div class="menu-kart pasif">
+      <h2>3️⃣ Hızlı Göz Taraması</h2>
+      <p>(Yakında eklenecek)</p>
+    </div>
+
+    <!-- 4. Basamak — Yakında -->
+    <div class="menu-kart pasif">
+      <h2>4️⃣ Seçici Dikkat</h2>
+      <p>(Yakında eklenecek)</p>
+    </div>
+
+    <!-- 5. Basamak — Yakında -->
+    <div class="menu-kart pasif">
+      <h2>5️⃣ Dikkat Hız Testi</h2>
+      <p>(Yakında eklenecek)</p>
+    </div>
+
+  </div>
+
+  <!-- Ana Menü Butonu -->
+  <div class="alt-menu">
+    <button class="geri-btn" onclick="menuGit('index.html')">
+      ⬅ Ana Menüye Dön
+    </button>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor Paneli | Zihin Platformu</title>
+
+  <!-- Ortak Stil -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Editor Panel Script -->
+  <script type="module" src="editor_panel.js"></script>
+
+  <style>
+    .panel-wrapper {
+      width: 95%;
+      max-width: 950px;
+      margin: 25px auto;
+      background: #ffffffcc;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
+    .oyun-kart {
+      padding: 14px;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      background: #f3f7ff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    textarea {
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 10px;
+      padding: 10px;
+      resize: vertical;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    .btn-kaydet {
+      padding: 8px 12px;
+      margin-top: 10px;
+      background: #4a90e2;
+      color: white;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-kaydet:hover {
+      background: #3578c6;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- ÜST PANEL -->
+  <header class="ust-panel">
+    <div class="kullanici-bilgi">
+      <strong>Editor Paneli</strong>
+    </div>
+    <button class="cikis-btn" onclick="cikisYap()">Çıkış Yap</button>
+  </header>
+
+  <div class="panel-wrapper">
+    <h2>🛠 Oyun Yapılandırma Paneli</h2>
+
+    <p>Bu panelden oyun açıklamalarını, seviye sayılarını ve yönergelerini düzenleyebilirsiniz.</p>
+
+    <!-- Oyun listesi JS tarafından doldurulur -->
+    <div id="oyunListesi"></div>
+  </div>
+
+</body>
+</html>

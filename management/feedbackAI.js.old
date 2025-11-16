@@ -1,0 +1,54 @@
+// ============================================================================
+// 📌 feedbackAI.js — Öğrenci İçin Otomatik Kısa Geri Bildirim (Final v6.4)
+// ============================================================================
+// Bu modül analiz sonucunda oluşan reaction_speed, inhibition ve
+// sustained_attention skorlarını özetleyerek kısa bir değerlendirme üretir.
+// ============================================================================
+
+console.log("🤖 feedbackAI.js yüklendi (Final v6.4)");
+
+// Güvenli değer okuma fonksiyonu (kırılmayı tamamen engeller)
+function safe(v) {
+  return typeof v === "number" && !isNaN(v) ? v : 0;
+}
+
+// ============================================================================
+// 🧠 1) Kısa geri bildirim üretme fonksiyonu
+// ============================================================================
+export function generateQuickFeedback(scores) {
+  if (!scores || typeof scores !== "object") {
+    console.warn("feedbackAI: skor verisi bulunamadı.");
+    return "Veri bulunamadı.";
+  }
+
+  // Güvenli skor değerleri
+  const r = safe(scores.reaction_speed);
+  const a = safe(scores.sustained_attention);
+  const i = safe(scores.inhibitory_control);
+
+  let msg = "📌 <strong>Kısa Performans Özeti</strong>\n\n";
+
+  // Tepki Hızı değerlendirme
+  if (r < 40) msg += "⚡ Tepki hızı düşük. Daha hızlı karar gerektiren çalışmalar faydalı olur.\n";
+  else if (r < 70) msg += "⚡ Tepki hızı ortalama seviyede.\n";
+  else msg += "⚡ Tepki hızı güçlü.\n";
+
+  // Dikkat Sürekliliği değerlendirme
+  if (a < 40) msg += "🎯 Dikkat sürdürülebilirliği düşük, odak kaybı gözleniyor.\n";
+  else if (a < 70) msg += "🎯 Dikkat kontrolü yeterli fakat geliştirilebilir.\n";
+  else msg += "🎯 Dikkat kontrolü iyi.\n";
+
+  // İnhibisyon değerlendirme
+  if (i < 40) msg += "🛑 Engelleme kontrolü zayıf, acelecilik ve hataya yatkınlık var.\n";
+  else if (i < 70) msg += "🛑 Hata kontrolü yeterli ama daha kararlı hale gelebilir.\n";
+  else msg += "🛑 Hata kontrolü başarılı.\n";
+
+  return msg;
+}
+
+// ============================================================================
+// 🌟 Default Export
+// ============================================================================
+export default {
+  generateQuickFeedback
+};

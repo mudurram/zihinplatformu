@@ -1,0 +1,84 @@
+// =============================================================
+// 📌 trendAI.js — Trend Analiz Motoru (Final v6.4)
+// =============================================================
+//
+// Bu dosya:
+// - oyun geçmişinden trend verisi çıkarır
+// - line chart çizimi yapar
+//
+// Tüm oyunlara uyumludur.
+// =============================================================
+
+
+// -------------------------------------------------------------
+// 🎯 1) Trend Veri Hazırlama
+// -------------------------------------------------------------
+export function getTrendData(history) {
+  if (!Array.isArray(history) || history.length === 0) return null;
+
+  return {
+    labels: history.map((_, i) => `Oyun ${i + 1}`),
+
+    dogru: history.map(h => h.dogru ?? 0),
+    yanlis: history.map(h => h.yanlis ?? 0),
+
+    reaction: history.map(h => h.skorlar?.reaction_speed ?? 0),
+    attention: history.map(h => h.skorlar?.sustained_attention ?? 0),
+    inhibition: history.map(h => h.skorlar?.inhibitory_control ?? 0)
+  };
+}
+
+
+// -------------------------------------------------------------
+// 📊 2) Trend Çizgi Grafiği
+// -------------------------------------------------------------
+export function drawTrendLines(canvas, history) {
+  if (!canvas || !Array.isArray(history) || history.length === 0) return;
+
+  const d = getTrendData(history);
+  if (!d) return;
+
+  new Chart(canvas, {
+    type: "line",
+    data: {
+      labels: d.labels,
+      datasets: [
+        {
+          label: "Tepki Hızı",
+          data: d.reaction,
+          borderColor: "#0066ff",
+          backgroundColor: "rgba(0,102,255,0.15)",
+          borderWidth: 3,
+          tension: 0.35
+        },
+        {
+          label: "Dikkat Sürekliliği",
+          data: d.attention,
+          borderColor: "#fbc02d",
+          backgroundColor: "rgba(251,192,45,0.18)",
+          borderWidth: 3,
+          tension: 0.35
+        },
+        {
+          label: "Engel Baskılama",
+          data: d.inhibition,
+          borderColor: "#e53935",
+          backgroundColor: "rgba(229,57,53,0.18)",
+          borderWidth: 3,
+          tension: 0.35
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { 
+        legend: { position: "top" } 
+      },
+      scales: {
+        y: { beginAtZero: true, max: 100 }
+      }
+    }
+  });
+}
+
+console.log("📘 trendAI.js yüklendi (Final v6.4)");

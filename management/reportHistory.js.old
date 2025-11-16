@@ -1,0 +1,135 @@
+// ==========================================================================
+// 📘 reportHistory.js — Öğrenci Tüm Geçmiş Rapor Listesi (Final v6.4)
+// ==========================================================================
+
+console.log("📘 reportHistory.js yüklendi");
+
+// --------------------------------------------------------------------------
+// 🔗 Firebase
+// --------------------------------------------------------------------------
+import { db } from "../data/firebaseConfig.js";
+import {
+  collection,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// --------------------------------------------------------------------------
+// 🔗 GLOBAL OYUN ADLARI (isimleri düzgün göstermek için)
+// --------------------------------------------------------------------------
+import { GLOBAL } from "../platform/globalConfig.js";
+
+// --------------------------------------------------------------------------
+// 🔍 1) Aktif Öğrenciyi Yerelden Yükle
+// --------------------------------------------------------------------------
+const aktifAd = localStorage.getItem("aktifOgrenci") || "-";
+const aktifId = localStorage.getItem("aktifOgrenciId");
+
+document.getElementById("historyTitle").textContent =
+  `${aktifAd} — Geçmiş Oyun Kayıtları`;
+
+if (!aktifId) {
+  alert("⚠️ Öğrenci seçili değil!");
+  throw new Error("aktifOgrenciId bulunamadı");
+}
+
+// --------------------------------------------------------------------------
+// 🟦 2) Firestore’dan geçmiş sonuçları çek
+// --------------------------------------------------------------------------
+async function loadHistory() {
+  try {
+    const ref = collection(db, "profiles", aktifId, "results");
+    const snap = await getDocs(ref);
+
+    let kayitlar = [];
+
+    snap.forEach(docu => {
+      const d = docu.data();
+
+      kayitlar.push({
+        oyun: d.oyun || "-",
+        dogru: d.dogru ?? 0,
+        yanlis: d.yanlis ?? 0,
+        seviye: d.level ?? "-",
+        sure: d.sure ?? "-",
+        skorlar: d.skorlar || {},
+        tarih: d.tarih ? new Date(d.tarih) : new Date()
+      });
+    });
+
+    // Tarihe göre yeni → eski sırala
+    kayitlar.sort((a, b) => b.tarih - a.tarih);
+
+    tabloyuDoldur(kayitlar);
+
+  } catch (err) {
+    console.error("❌ Geçmiş verileri yüklenemedi:", err);
+  }
+}
+
+// --------------------------------------------------------------------------
+// 🟩 3) Tabloyu HTML'e yaz
+// --------------------------------------------------------------------------
+function tabloyuDoldur(list) {
+  const tbody = document.getElementById("historyBody");
+  tbody.innerHTML = "";
+
+  if (list.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center; opacity:0.6;">
+          Kayıt bulunamadı.
+        </td>
+      </tr>`;
+    return;
+  }
+
+  list.forEach(k => {
+    const oyunAdi =
+      GLOBAL.OYUN_ADLARI?.[k.oyun] ||
+      k.oyun.replace("_", " ").toUpperCase();
+
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${oyunAdi}</td>
+      <td>${k.seviye}</td>
+      <td>${k.dogru}</td>
+      <td>${k.yanlis}</td>
+      <td>${k.sure}</td>
+      <td>${k.tarih.toLocaleString("tr-TR")}</td>
+      <td>
+        <button class="inceleBtn" data-oyun="${k.oyun}">
+          İncele
+        </button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+
+  incelemeButonlariniHazirla();
+}
+
+// --------------------------------------------------------------------------
+// 🟧 4) İncele → platform/sonuc.html yönlendirme
+// --------------------------------------------------------------------------
+function incelemeButonlariniHazirla() {
+  document.querySelectorAll(".inceleBtn").forEach(btn => {
+
+    btn.addEventListener("click", () => {
+      const oyun = btn.dataset.oyun;
+
+      // Son incelenen oyun kodu
+      localStorage.setItem("sonOyun", oyun);
+
+      // Seçilen oyun geçmişteki kayıtlardan biri → sonuç ekranı açılır
+      window.location.href = "../platform/sonuc.html";
+    });
+
+  });
+}
+
+// --------------------------------------------------------------------------
+// ✔ Sayfayı başlat
+// --------------------------------------------------------------------------
+loadHistory();

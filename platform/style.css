@@ -1,0 +1,347 @@
+/* ============================================================
+   ZİHİN PLATFORMU GENEL STİL — FINAL v6.8
+   Tüm ekranlar: login, index, menu, hazırlık, oyunlar, sonuç,
+   analiz, admin, teacher, editor
+   Responsive + pastel UI tasarım
+============================================================ */
+
+/* ------------------------------------------------------------
+   GENEL BODY
+------------------------------------------------------------ */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  color: #333;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------------------------------------------------
+   GENEL BAŞLIKLAR
+------------------------------------------------------------ */
+h1, h2, h3, h4 {
+  margin: 10px 0;
+  font-weight: 600;
+  text-align: center;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* ============================================================
+   ÜST PANEL — Ortak Kullanıcı Barı
+============================================================ */
+.ust-panel {
+  width: 100%;
+  background: #ffffffcc;
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #ddd;
+}
+
+.kullanici-bilgi {
+  font-size: 16px;
+  color: #243447;
+  display: flex;
+  gap: 15px;
+}
+
+.cikis-btn {
+  padding: 8px 14px;
+  background: #e53935;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: 0.25s;
+}
+
+.cikis-btn:hover {
+  background: #c62828;
+  transform: scale(1.05);
+}
+
+/* ============================================================
+   ANA MENÜ KARTLARI — index.html
+============================================================ */
+.menu-grid {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.menu-kart {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  text-align: center;
+  transition: 0.25s;
+}
+
+.menu-kart:hover {
+  transform: scale(1.05);
+  background: #f7fbff;
+}
+
+/* Pasif modüller */
+.pasif {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   DİKKAT MENÜSÜ — dikkat_menu.html
+============================================================ */
+.dikkat-grid {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  padding: 20px;
+}
+
+.dikkat-btn {
+  background: white;
+  border: none;
+  padding: 20px 10px;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  transition: 0.25s;
+}
+
+.dikkat-btn:hover {
+  background: #e0ecff;
+  transform: scale(1.05);
+}
+
+/* ============================================================
+   HAZIRLIK EKRANI — hazirlik.html
+============================================================ */
+.hazirlik-kutu,
+.hazirlik-container {
+  margin: 40px auto;
+  max-width: 450px;
+  background: #ffffffee;
+  padding: 30px 40px;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.hazirlik-baslik {
+  font-size: 26px;
+  font-weight: 700;
+  color: #243447;
+}
+
+.hazirlik-bilgi {
+  font-size: 17px;
+  color: #444;
+  line-height: 1.6;
+}
+
+.hazirlik-btn,
+.baslat-btn {
+  margin-top: 20px;
+  padding: 12px 22px;
+  border-radius: 12px;
+  border: none;
+  background: #4a90e2;
+  color: white;
+  font-size: 18px;
+  transition: 0.25s;
+}
+
+.hazirlik-btn:hover,
+.baslat-btn:hover {
+  transform: scale(1.05);
+  background: #357abd;
+}
+
+/* ============================================================
+   SONUÇ EKRANI — sonuc.html ve oyun özel sonuç sayfaları
+============================================================ */
+.sonuc-kutu,
+.sonuc-container {
+  margin: 30px auto;
+  width: 92%;
+  max-width: 700px;
+  background: white;
+  padding: 25px;
+  border-radius: 18px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.14);
+  text-align: center;
+  font-size: 18px;
+}
+
+.sonuc-baslik {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+/* BİLEŞEN GRUP */
+.bilesen-grup {
+  margin-top: 25px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+}
+
+.bilesen {
+  background: #fafafa;
+  padding: 15px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.bilesenDeger {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e88e5;
+}
+
+/* Grafik Kutuları */
+.grafik-kutu {
+  margin: 35px auto;
+  max-width: 650px;
+  background: white;
+  padding: 25px 10px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  text-align: center;
+}
+
+canvas {
+  width: 100% !important;
+  max-height: 360px !important;
+}
+
+/* Öğretmen Yorumu */
+.yorum-alani,
+#yorumKart {
+  background: white;
+  padding: 18px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-top: 20px;
+  text-align: left;
+}
+
+/* ============================================================
+   ANALİZ EKRANI — analiz.html
+============================================================ */
+.filter-bar {
+  margin: 20px auto;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.filter-bar select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #bbb;
+  font-size: 15px;
+}
+
+.sonuc-listesi {
+  margin: 30px auto;
+  width: 92%;
+  max-width: 700px;
+}
+
+.sonuc-kart {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.sonuc-kart:hover {
+  transform: scale(1.03);
+  background: #f3f8ff;
+}
+
+/* ============================================================
+   PANEL SAYFALARI — admin, editor, teacher
+============================================================ */
+.panel-wrapper {
+  width: 95%;
+  max-width: 950px;
+  margin: 25px auto;
+  background: #ffffffcc;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.oyun-kart,
+.kullanici-kart {
+  padding: 14px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  background: #f3f7ff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+/* Öğretmen paneli için eksik class tamamlandı */
+.ogr-kart {
+  background: #f3f7ff;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: .25s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ogr-kart:hover {
+  transform: scale(1.02);
+  background: #e8efff;
+}
+
+/* ============================================================
+   RESPONSIVE — Mobil / Tablet
+============================================================ */
+@media (max-width: 600px) {
+
+  .ust-panel {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .menu-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  .dikkat-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+
+  .grafik-kutu {
+    padding: 15px;
+  }
+
+  .panel-wrapper {
+    padding: 15px;
+  }
+}

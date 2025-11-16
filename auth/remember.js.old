@@ -1,0 +1,78 @@
+// =============================================================
+// 📌 remember.js — Oturum Hatırlatma & LocalStorage Yönetimi
+// Zihin Platformu v6.4 — Final, Stabil, Kırılmaz Yapı
+// =============================================================
+
+import { watchAuthState } from "./auth.js";
+import { ROLES } from "../platform/router.js";
+
+console.log("remember.js yüklendi ✔");
+
+// =============================================================
+// 🔍 1) Firebase Oturumunu İzle
+// =============================================================
+// Kullanıcı giriş yapmışsa localStorage oto-dolum yapılır.
+// Çıkış yapmışsa localStorage temizlenir.
+//
+watchAuthState(user => {
+  if (!user) {
+    console.warn("🔸 remember.js → Oturum yok → storage temizleniyor.");
+    localStorage.removeItem("uid");
+    localStorage.removeItem("loggedUser");
+    return;
+  }
+
+  console.log("🔹 remember.js → Oturum bulundu:", user.email);
+
+  // Eğer bilgiler kayıtlı değilse → doldur
+  if (!localStorage.getItem("uid")) {
+    localStorage.setItem("uid", user.uid);
+  }
+
+  if (!localStorage.getItem("loggedUser")) {
+    localStorage.setItem("loggedUser", user.email);
+  }
+});
+
+// =============================================================
+// 📌 2) Rol Güvenliği — Rol kaydı eksikse öğrenci atanır
+// =============================================================
+export function ensureRole() {
+  let role = localStorage.getItem("role");
+
+  if (!role) {
+    console.warn("⚠ remember.js → Rol bulunamadı → OGRENCI atanıyor.");
+    role = ROLES.OGRENCI;
+    localStorage.setItem("role", role);
+  }
+
+  return role;
+}
+
+// =============================================================
+// 📌 3) Öğretmen Bağlantısı Hatırlatma
+// =============================================================
+export function ensureTeacherLink() {
+  const role = localStorage.getItem("role");
+
+  if (role === ROLES.OGRETMEN) {
+    const uid = localStorage.getItem("uid");
+
+    if (uid && !localStorage.getItem("teacherID")) {
+      console.log("📘 remember.js → teacherID kaydedildi:", uid);
+      localStorage.setItem("teacherID", uid);
+    }
+  }
+}
+
+// =============================================================
+// 📌 4) Tüm Hatırlatma İşlemini Başlat
+// =============================================================
+export function initRemember() {
+  console.log("🚀 remember.js → Oturum & Rol & Bağlantı kontrolü başlatıldı.");
+
+  ensureRole();
+  ensureTeacherLink();
+}
+
+initRemember();

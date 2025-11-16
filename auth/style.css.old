@@ -1,0 +1,125 @@
+/* ============================================================
+   Zihin Platformu v6.4 — LOGIN & REGISTER Ortak Stil Dosyası
+   /auth/style.css — Final, Stabil, Kırılmaz Sürüm
+============================================================ */
+
+/* Arka plan */
+body {
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Ana kutu */
+.login-container {
+  background: #ffffffee;
+  padding: 30px 35px;
+  border-radius: 14px;
+  width: 320px;
+  max-width: 92%;
+
+  box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+  text-align: center;
+  animation: fadeIn .35s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Başlık */
+.login-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #243447;
+}
+
+.login-sub {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 18px;
+}
+
+/* Input */
+input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: .25s;
+}
+
+input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 6px rgba(74,144,226,0.4);
+  outline: none;
+}
+
+/* Buton */
+button {
+  margin-top: 18px;
+  padding: 12px;
+  width: 100%;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+button:hover {
+  background: #357ABD;
+  transform: scale(1.03);
+}
+
+button:disabled {
+  background: #9bbfe5;
+  cursor: not-allowed;
+}
+
+/* Link */
+a {
+  display: block;
+  margin-top: 14px;
+  color: #1a73e8;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Hata Mesajı */
+.error-msg {
+  margin-top: 12px;
+  color: #d9534f;
+  background: #ffe5e5;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 14px;
+  display: none;
+}
+
+/* Mobil uyum */
+@media (max-width: 420px) {
+  .login-container {
+    width: 92%;
+    padding: 25px;
+  }
+}

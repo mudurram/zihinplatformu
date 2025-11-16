@@ -1,0 +1,120 @@
+// =============================================================
+// 📌 ZİHİN PLATFORMU — globalConfig.js (Final v6.4)
+// Tüm oyunlar + yönlendirme + analiz + sonuç sistemi için MERKEZ
+// Bu dosya platformun omurgasıdır, ASLA bozulmamalıdır.
+// =============================================================
+
+console.log("globalConfig.js yüklendi ✅");
+
+// =============================================================
+// 0) ROL SABITLERI — Tüm sistemde ortak
+// =============================================================
+export const ROLES = {
+  OGRENCI: "ogrenci",
+  OGRETMEN: "ogretmen",
+  ADMIN: "admin",
+  EDITOR: "editor"
+};
+
+// =============================================================
+// 1) GLOBAL ANA OBJE (tüm platformun çekirdeği)
+// =============================================================
+export const GLOBAL = {
+
+  // -----------------------------------------------------------
+  // 1) ANA KLASÖRLER (Tüm yönlendirmeler buradan hesaplanır)
+  // -----------------------------------------------------------
+  ROOT: "../",
+  PLATFORM: "../platform/",
+  OYUNLAR: "../oyunlar/",
+  SESLER: "../sesler/",
+
+  // -----------------------------------------------------------
+  // 2) LOCALSTORAGE ANAHTARLARI
+  // -----------------------------------------------------------
+  LS_KEYS: {
+    AKTIF_KULLANICI: "aktifKullanici",
+    AKTIF_OGRENCI: "aktifOgrenci",
+    AKTIF_OGRENCI_ID: "aktifOgrenciId",
+    AKTIF_OYUN: "aktifOyun",
+
+    SON_OYUN: "sonOyun",
+    OYUN_GECMISI: "oyunGecmisi"
+  },
+
+  // -----------------------------------------------------------
+  // 3) FIRESTORE SABİT KOLEKSİYON ADLARI
+  // -----------------------------------------------------------
+  FIRESTORE: {
+    PROFILES: "profiles",
+    RESULTS: "results",
+    OGRENCILER: "ogrenciler",
+    GAMES: "games"
+  },
+
+  // -----------------------------------------------------------
+  // 4) OYUN KODLARI — Sistemin temel referansları
+  // -----------------------------------------------------------
+  OYUN_KODLARI: {
+    RENK_ESLEME: "renk_esleme",
+    AYIRT_ETME: "ayirt_etme"
+    // Yeni oyun eklemek için buraya 1 satır eklemen yeterli
+  },
+
+  // -----------------------------------------------------------
+  // 5) OYUN YOLLARI — Menü → Hazırlık → Oyun akışı
+  // -----------------------------------------------------------
+  OYUN_YOLLARI: {
+    renk_esleme: "../oyunlar/1_basamak_esleme/esleme.html",
+    ayirt_etme: "../oyunlar/2_basamak_ayirt_etme/ayirtetme.html"
+  },
+
+  // -----------------------------------------------------------
+  // 6) OYUN ADLARI — Tüm platformda aynı isim kullanılır
+  // -----------------------------------------------------------
+  OYUN_ADLARI: {
+    renk_esleme: "Renk Eşleme",
+    ayirt_etme: "Ayırt Etme"
+  },
+
+  // -----------------------------------------------------------
+  // 7) SES DOSYALARI (Engine ortak kullanır)
+  // -----------------------------------------------------------
+  SES: {
+    DOGRU: "../sesler/dogru.mp3",
+    YANLIS: "../sesler/yanlis.mp3"
+  },
+
+  // -----------------------------------------------------------
+  // 8) SONUÇ VERİ ŞEMASI — Her oyun aynı formatı oluşturur
+  // -----------------------------------------------------------
+  SONUC_SEMASI: {
+    oyun: "",
+    level: "",
+    dogru: 0,
+    yanlis: 0,
+    sure: 0,
+    tarih: "",
+    beceriler: [], // geçmiş uyumluluğu için korundu
+
+    skorlar: {
+      reaction_speed: 0,
+      inhibitory_control: 0,
+      sustained_attention: 0
+    }
+  },
+
+  // -----------------------------------------------------------
+  // 9) ANALİZ — Trend / Radar / Max Geçmiş
+  // -----------------------------------------------------------
+  ANALIZ: {
+    MAKS_GECMIS: 20,
+    RADAR_MIN: 0,
+    RADAR_MAX: 100
+  },
+
+  // -----------------------------------------------------------
+  // 10) Global rol sabitleri (Router ile tam uyumlu)
+  // -----------------------------------------------------------
+  ROLES: ROLES
+};

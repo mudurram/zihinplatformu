@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zihin Platformu – Kayıt Ol</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .register-box {
+      width: 90%;
+      max-width: 380px;
+      background: #ffffffdd;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #1d3557;
+      font-size: 26px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #bbb;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #4a90e2;
+      color: #fff;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #3578c6;
+    }
+
+    .alt-link {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #444;
+      cursor: pointer;
+    }
+
+    .alt-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="register-box">
+    <h2>📝 Yeni Hesap Oluştur</h2>
+
+    <input type="email" id="email" placeholder="E-posta" autocomplete="on">
+    <input type="password" id="password" placeholder="Şifre">
+
+    <!-- Rol seçimi (GLOBAL.ROLES ile tam uyumlu) -->
+    <select id="role">
+      <option value="ogrenci">Öğrenci</option>
+      <option value="ogretmen">Öğretmen</option>
+      <option value="editor">Editör</option>
+      <option value="admin">Admin</option>
+    </select>
+
+    <button id="registerBtn">Kayıt Ol</button>
+
+    <p class="alt-link" onclick="window.location.href='login.html'">
+      Hesabın var mı? Giriş yap
+    </p>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- 📌 REGISTER JS (GLOBAL UYUMLU IMPORT) -->
+  <!-- ====================================================== -->
+  <script type="module">
+    import { register } from "../auth/auth.js";
+
+    const btn = document.getElementById("registerBtn");
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+    const role = document.getElementById("role");
+
+    btn.onclick = async () => {
+
+      // Boş alan kontrolü (kırılmaz)
+      if (!email.value.trim() || !password.value.trim()) {
+        alert("⚠ Lütfen tüm alanları doldurun.");
+        return;
+      }
+
+      // Minimum güvenlik
+      if (password.value.length < 6) {
+        alert("⚠ Şifre en az 6 karakter olmalıdır.");
+        return;
+      }
+
+      const sonuc = await register(email.value.trim(), password.value.trim(), role.value);
+
+      if (sonuc.success) {
+        alert("✔ Kayıt başarılı! Giriş ekranına yönlendiriliyorsunuz.");
+        window.location.href = "login.html";
+      } else {
+        alert("❌ " + (sonuc.message || "Kayıt yapılamadı."));
+      }
+    };
+  </script>
+
+</body>
+</html>

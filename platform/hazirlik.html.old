@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hazırlık Ekranı | Zihin Platformu</title>
+
+  <!-- Ortak Stil -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Global config + yönlendirme -->
+  <script type="module" src="globalConfig.js"></script>
+  <script type="module" src="main.js"></script>
+
+  <style>
+    .hazirlik-kutu {
+      width: 90%;
+      max-width: 650px;
+      background: #ffffffdd;
+      margin: 40px auto;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+
+    .hazirlik-baslik {
+      font-size: 26px;
+      font-weight: 700;
+      color: #243447;
+      margin-bottom: 15px;
+    }
+
+    .hazirlik-bilgi {
+      font-size: 17px;
+      line-height: 1.6;
+      color: #444;
+      margin-bottom: 25px;
+    }
+
+    .hazirlik-btn {
+      background: #4a90e2;
+      padding: 12px 26px;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+
+    .hazirlik-btn:hover {
+      transform: scale(1.06);
+      background: #357abd;
+    }
+
+    .geri {
+      margin-top: 18px;
+      cursor: pointer;
+      text-decoration: underline;
+      color: #444;
+      font-size: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Üst Panel -->
+  <header class="ust-panel">
+    <div class="kullanici-bilgi">
+      <span id="kullaniciAdi">Kullanıcı: -</span>
+      <span id="kullaniciRol">Rol: -</span>
+    </div>
+    <button class="cikis-btn" onclick="cikisYap()">Çıkış Yap</button>
+  </header>
+
+  <!-- Hazırlık Kartı -->
+  <div class="hazirlik-kutu">
+    <h2 id="hazirlikBaslik" class="hazirlik-baslik">Hazırlanıyor...</h2>
+    <p id="hazirlikMetni" class="hazirlik-bilgi">Yükleniyor...</p>
+
+    <button id="baslaBtn" class="hazirlik-btn">🔥 Oyuna Başla</button>
+
+    <div class="geri" onclick="menuGit('index.html')">Ana Menüye Dön</div>
+  </div>
+
+  <!-- Sayfa Scripti -->
+  <script type="module">
+
+    import { GLOBAL } from "./globalConfig.js";
+    import { aktifKullaniciBilgi } from "./main.js";
+
+    document.addEventListener("DOMContentLoaded", () => {
+
+      const kod = localStorage.getItem("secilenOyunKodu");
+
+      if (!kod) {
+        document.getElementById("hazirlikBaslik").textContent = "Hata!";
+        document.getElementById("hazirlikMetni").textContent = "Seçilen oyun bulunamadı.";
+        return;
+      }
+
+      // Oyun bilgileri GLOBAL üzerinden çekilir
+      const oyunAdi = GLOBAL.OYUN_ADLARI[kod] || kod;
+      const oyunYolu = GLOBAL.OYUN_YOLLARI[kod] || GLOBAL.PLATFORM;
+      
+      // Başlık
+      document.getElementById("hazirlikBaslik").textContent = oyunAdi;
+
+      // Alt bilgi (gelişmiş açıklama ileride Firestore’dan alınacak)
+      document.getElementById("hazirlikMetni").innerHTML = `
+        <b>${oyunAdi}</b> oyunu için hazırlık tamam.<br><br>
+        Oyun süresi: <b>30 saniye</b><br>
+        Bilişsel alan: <b>Dikkat</b><br>
+        Seviye: <b>1 – 3</b>
+      `;
+
+      // Başlat butonu
+      document.getElementById("baslaBtn").onclick = () => {
+        window.location.href = oyunYolu;
+      };
+
+      aktifKullaniciBilgi();
+    });
+
+  </script>
+
+</body>
+</html>

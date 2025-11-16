@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zihin Platformu — Ana Menü</title>
+
+  <!-- GLOBAL CSS -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- ANA MENÜ SCRIPTLERİ (SIRA ÖNEMLİ!) -->
+  <script type="module" src="router.js"></script>
+  <script type="module" src="main.js"></script>
+
+  <script type="module">
+    import { ROLES } from "./router.js";
+
+    document.addEventListener("DOMContentLoaded", () => {
+
+      // ================================
+      // 🟦 Kullanıcı bilgisi yazımı
+      // ================================
+      const email = localStorage.getItem("loggedUser") || "-";
+      document.getElementById("kullaniciAdi").textContent =
+        "Kullanıcı: " + email;
+
+      // ================================
+      // 🎯 ROL OKUMA — Eksikse öğrenci
+      // ================================
+      const role = localStorage.getItem("role") || ROLES.OGRENCI;
+
+      const rolYazi = {
+        ogrenci: "Öğrenci",
+        ogretmen: "Öğretmen",
+        admin: "Admin",
+        editor: "Editör"
+      };
+
+      document.getElementById("kullaniciRol").textContent =
+        "Rol: " + (rolYazi[role] || role);
+
+      // ================================
+      // 🎯 ROL BAZLI MENÜ GÖRÜNÜRLÜĞÜ
+      // ================================
+      const ogretmenBtn = document.getElementById("ogretmenPanelBtn");
+      const adminBtn = document.getElementById("adminPanelBtn");
+      const editorBtn = document.getElementById("editorPanelBtn");
+
+      if (role !== ROLES.OGRETMEN && ogretmenBtn) ogretmenBtn.style.display = "none";
+      if (role !== ROLES.ADMIN && adminBtn) adminBtn.style.display = "none";
+      if (role !== ROLES.EDITOR && editorBtn) editorBtn.style.display = "none";
+    });
+
+    // ================================
+    // 📌 Sayfa geçişi
+    // ================================
+    window.menuGit = function (sayfa) {
+      window.location.href = sayfa;
+    };
+
+    // ================================
+    // 📌 Çıkış
+    // ================================
+    window.cikisYap = function () {
+      localStorage.clear();
+      window.location.href = "login.html";
+    };
+  </script>
+</head>
+
+<body>
+
+  <!-- ========================= -->
+  <!-- 🔷 ÜST KULLANICI PANELİ -->
+  <!-- ========================= -->
+  <header class="ust-panel">
+    <div class="kullanici-bilgi">
+      <span id="kullaniciAdi">Kullanıcı: -</span>
+      <span id="kullaniciRol">Rol: -</span>
+    </div>
+    <button class="cikis-btn" onclick="cikisYap()">Çıkış Yap</button>
+  </header>
+
+  <!-- ========================= -->
+  <!-- 🔶 ANA MENÜ BAŞLIK -->
+  <!-- ========================= -->
+  <h1 class="ana-baslik">🧠 Zihin Platformu</h1>
+  <h3 class="alt-baslik">Bilişsel Gelişim Modülleri</h3>
+
+  <!-- ========================= -->
+  <!-- 🔵 ANA MENÜ MODÜL KARTLARI -->
+  <!-- ========================= -->
+  <div class="menu-grid">
+
+    <!-- DİKKAT -->
+    <div class="menu-kart" onclick="menuGit('dikkat_menu.html')">
+      <h2>🎯 Dikkat</h2>
+      <p>Odaklanma, hız, inhibisyon oyunları</p>
+    </div>
+
+    <!-- HAFIZA (Pasif) -->
+    <div class="menu-kart pasif">
+      <h2>🧩 Hafıza</h2>
+      <p>(Yakında eklenecek)</p>
+    </div>
+
+    <!-- ALGILAMA (Pasif) -->
+    <div class="menu-kart pasif">
+      <h2>👁️ Algısal İşleme</h2>
+      <p>(Yakında eklenecek)</p>
+    </div>
+
+    <!-- YÜRÜTÜCÜ İŞLEVLAR (Pasif) -->
+    <div class="menu-kart pasif">
+      <h2>🧠 Yürütücü İşlevler</h2>
+      <p>(Yakında eklenecek)</p>
+    </div>
+
+    <!-- MATEMATİK (Pasif) -->
+    <div class="menu-kart pasif">
+      <h2>🔢 Matematiksel İşlem</h2>
+      <p>(Yakında eklenecek)</p>
+    </div>
+
+    <!-- OKUMA & DİL (Pasif) -->
+    <div class="menu-kart pasif">
+      <h2>📚 Okuma & Dil</h2>
+      <p>(Yakında eklenecek)</p>
+    </div>
+
+  </div>
+
+  <!-- ========================= -->
+  <!-- 🟩 ÖĞRETMEN PANELİ -->
+  <!-- ========================= -->
+  <div class="menu-grid" id="ogretmenPanelBtn">
+    <div class="menu-kart" onclick="menuGit('teacher_panel.html')">
+      <h2>👩‍🏫 Öğretmen Paneli</h2>
+      <p>Öğrenci seçimi, analiz, raporlama</p>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- 🟥 ADMIN PANELİ -->
+  <!-- ========================= -->
+  <div class="menu-grid" id="adminPanelBtn">
+    <div class="menu-kart" onclick="menuGit('admin_panel.html')">
+      <h2>🛠 Admin Paneli</h2>
+      <p>Kullanıcı yönetimi, rol atama</p>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- 🟦 EDITÖR PANELİ -->
+  <!-- ========================= -->
+  <div class="menu-grid" id="editorPanelBtn">
+    <div class="menu-kart" onclick="menuGit('editor_panel.html')">
+      <h2>📝 Editör Paneli</h2>
+      <p>Oyun içerik düzenleme</p>
+    </div>
+  </div>
+
+</body>
+</html>

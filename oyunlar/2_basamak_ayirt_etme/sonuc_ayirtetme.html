@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Renk Ayırt Etme — Oyun Sonucu</title>
+
+  <!-- GLOBAL STİL -->
+  <link rel="stylesheet" href="../../platform/style.css">
+
+  <!-- OYUN SONUCU ÖZEL CSS -->
+  <link rel="stylesheet" href="sonuc_ayirtetme.css">
+
+  <!-- CHART.JS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- SONUÇ SCRIPTI -->
+  <script type="module" src="sonuc_ayirtetme.js" defer></script>
+</head>
+
+<body>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 ÜST MENÜ -->
+  <!-- ========================================================= -->
+  <div class="nav-bar">
+    <button onclick="window.location.href='../../platform/index.html'">🏠 Ana Menü</button>
+    <button id="tekrarBtnNav">↻ Tekrar Oyna</button>
+    <button onclick="window.location.href='../../platform/analiz.html'">📊 Genel Analiz</button>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 BAŞLIK -->
+  <!-- ========================================================= -->
+  <h2 id="oyunBaslik" class="baslik">Renk Ayırt Etme — Sonuç</h2>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 SKOR KARTI -->
+  <!-- ========================================================= -->
+  <div class="sonuc-container">
+    <p><strong>Doğru:</strong> <span id="dogru">-</span></p>
+    <p><strong>Yanlış:</strong> <span id="yanlis">-</span></p>
+    <p><strong>Oyun Süresi:</strong> <span id="sure">-</span></p>
+    <p><strong>Tarih:</strong> <span id="tarih">-</span></p>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 3 BİLİŞSEL BİLEŞEN -->
+  <!-- ========================================================= -->
+  <h3 class="baslik">🧠 Bilişsel Performans</h3>
+
+  <div class="bilesen-grup">
+
+    <div class="bilesen">
+      <h4>Tepki Hızı</h4>
+      <p id="reactionSpeed" class="bilesenDeger">- / 100</p>
+    </div>
+
+    <div class="bilesen">
+      <h4>İnhibisyon</h4>
+      <p id="inhibControl" class="bilesenDeger">- / 100</p>
+    </div>
+
+    <div class="bilesen">
+      <h4>Dikkat Sürekliliği</h4>
+      <p id="sustainedAttention" class="bilesenDeger">- / 100</p>
+    </div>
+
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 BAR GRAFİĞİ -->
+  <!-- ========================================================= -->
+  <div class="grafik-kutu">
+    <h3>Skor Dağılımı</h3>
+    <canvas id="skorGrafik"></canvas>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 RADAR GRAFİĞİ -->
+  <!-- ========================================================= -->
+  <div class="grafik-kutu">
+    <h3>Bilişsel Profil Haritası</h3>
+    <canvas id="radarGrafik"></canvas>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 BECERİ BARLARI -->
+  <!-- ========================================================= -->
+  <h3 class="baslik">🎯 Becerilere Göre Gelişim</h3>
+
+  <div class="skill-section">
+
+    <div class="skill-card">
+      <strong>Tepki Hızı</strong>
+      <div class="skill-bar"><div id="speedBar"></div></div>
+    </div>
+
+    <div class="skill-card">
+      <strong>Dikkat Sürekliliği</strong>
+      <div class="skill-bar"><div id="attentionBar"></div></div>
+    </div>
+
+    <div class="skill-card">
+      <strong>İnhibisyon</strong>
+      <div class="skill-bar"><div id="inhibitionBar"></div></div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 AI / NLP PERFORMANS YORUM -->
+  <!-- ========================================================= -->
+  <div id="yorumKart"></div>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 ÖĞRETMEN YORUMU -->
+  <!-- ========================================================= -->
+  <div id="ogretmenYorumAlani">
+    <h3>👨‍🏫 Öğretmen Yorumu</h3>
+
+    <textarea
+      id="ogretmenYorumMetin"
+      readonly
+      style="
+        background:#f3f3f3;
+        cursor:default;
+        border:1px solid #ccc;
+        min-height:120px;
+        padding:14px;
+      "
+    ></textarea>
+
+    <!-- Öğretmen rolünde görünmeyen gizli buton -->
+    <button id="ogretmenYorumKaydet" style="display:none;"></button>
+  </div>
+
+</body>
+</html>

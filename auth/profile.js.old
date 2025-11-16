@@ -1,0 +1,80 @@
+// ============================================================
+// 📌 profile.js — Kullanıcı Profil Bilgisi (Final v6.4)
+// Zihin Platformu tam uyumlu — Kırılmaz yapıda
+// ============================================================
+
+import { auth } from "../data/firebaseConfig.js";
+import { watchAuthState, logout } from "../auth/auth.js";
+import { ROLES, yonlendir } from "../platform/router.js";
+
+console.log("profile.js yüklendi ✔");
+
+// ============================================================
+// 🔍 1) Kullanıcı Oturum Kontrolü
+// ============================================================
+//
+// Bu dosya yalnızca giriş yapılmış bir kullanıcı varsa çalışır.
+// Eğer kullanıcı yoksa → login.html’e yönlendirilir.
+//
+watchAuthState(async user => {
+  if (!user) {
+    console.warn("🚫 Kullanıcı oturumu yok → login.html");
+    window.location.href = "login.html";
+    return;
+  }
+
+  console.log("👤 Profil yükleniyor:", user.email);
+
+  // Email
+  const emailEl = document.getElementById("email");
+  if (emailEl) emailEl.textContent = user.email;
+
+  // UID
+  const uidEl = document.getElementById("uid");
+  if (uidEl) uidEl.textContent = user.uid;
+
+  // Rol (localStorage → Firestore ile uyumlu)
+  const roleEl = document.getElementById("role");
+  const role = localStorage.getItem("role") || ROLES.OGRENCI;
+
+  if (roleEl) roleEl.textContent = role;
+
+  // Öğretmen ID (yalnızca öğrenci için anlamlı)
+  const teacherEl = document.getElementById("teacherID");
+  const teacherID = localStorage.getItem("teacherID");
+
+  if (teacherEl) teacherEl.textContent = teacherID || "-";
+
+});
+
+// ============================================================
+// 🚪 2) Çıkış Butonu
+// ============================================================
+const logoutBtn = document.getElementById("logoutBtn");
+
+if (logoutBtn) {
+  logoutBtn.onclick = async () => {
+    await logout();
+
+    console.log("👋 Kullanıcı çıkış yaptı → login.html");
+    window.location.href = "login.html";
+  };
+}
+
+// ============================================================
+// 🔐 3) Profil Ekranı Rol Güvenliği
+// ============================================================
+// Profil tüm roller tarafından görülebilir.
+// Ama istenirse burada role bağlı UI gizleme ekleri yapılabilir.
+//
+(function rolKontrol() {
+  const role = localStorage.getItem("role");
+
+  if (!role) {
+    console.warn("⚠ Profil rolü bulunamadı!");
+    return;
+  }
+
+  console.log("🔐 Profil görüntülendi. Rol:", role);
+
+})();

@@ -1,0 +1,79 @@
+// =============================================================
+// 📌 trialLabeler.js — Trial Etiketleme Motoru (Final v6.4)
+// =============================================================
+//
+// Her trial ham verisini analiz ederek şu 3 bileşeni etiketler:
+//  - reaction (tepki hızı)
+//  - inhibition (engel baskılama hatası)
+//  - focus (dikkat kaybı)
+//
+// Bu dosya tüm oyunlarla %100 uyumludur.
+// =============================================================
+
+
+// -------------------------------------------------------------
+// 🎯 1) Trial ortalamalarını hesaplama
+// -------------------------------------------------------------
+function average(arr) {
+  if (!arr || arr.length === 0) return 0;
+  return arr.reduce((a, b) => a + b, 0) / arr.length;
+}
+
+
+// -------------------------------------------------------------
+// 🧠 2) Trial Etiketleme
+// -------------------------------------------------------------
+export function labelTrials(trials) {
+  if (!Array.isArray(trials) || trials.length === 0) return [];
+
+  // Reaction sürelerini al
+  const reactionTimes = trials
+    .filter(t => typeof t.reaction_ms === "number" && t.reaction_ms > 0)
+    .map(t => t.reaction_ms);
+
+  const avgReaction = average(reactionTimes) || 600; // fallback
+
+  return trials.map((trial, index) => {
+    let labeled = { ...trial };
+
+    // ---------------------------------------------------------
+    // 🟦 1) Doğru tepki → "reaction"
+    // ---------------------------------------------------------
+    if (trial.correct === true && typeof trial.reaction_ms === "number") {
+      labeled.component = "reaction";
+    }
+
+    // ---------------------------------------------------------
+    // 🟥 2) Yanlış tepki → "inhibition"
+    // ---------------------------------------------------------
+    if (trial.correct === false) {
+      labeled.component = "inhibition";
+    }
+
+    // ---------------------------------------------------------
+    // 🟨 3) Çok yavaş tepki → "focus" (dikkat kaybı)
+    // ---------------------------------------------------------
+    if (
+      typeof trial.reaction_ms === "number" &&
+      trial.reaction_ms > avgReaction * 1.35
+    ) {
+      labeled.component = "focus";
+    }
+
+    // ---------------------------------------------------------
+    // 🟪 4) Son 5 turda aşırı hata → "focus"
+    // ---------------------------------------------------------
+    if (index >= 4) {
+      const lastFive = trials.slice(index - 4, index + 1);
+      const errors = lastFive.filter(t => t.correct === false).length;
+
+      if (errors >= 3) {
+        labeled.component = "focus";
+      }
+    }
+
+    return labeled;
+  });
+}
+
+console.log("📘 trialLabeler.js yüklendi (Final v6.4)");

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Öğretmen Paneli | Zihin Platformu</title>
+
+  <!-- Ortak Stil -->
+  <link rel="stylesheet" href="../platform/style.css" />
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 15px;
+      font-size: 30px;
+      color: #1b2d4a;
+      font-weight: 700;
+    }
+
+    /* Ana içerik kutusu */
+    .panel-container {
+      width: 92%;
+      max-width: 900px;
+      margin: 25px auto;
+      background: #ffffffdd;
+      padding: 22px;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      text-align: left;
+    }
+
+    .panel-container h2 {
+      font-size: 22px;
+      color: #243447;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    /* Öğrenci listesi */
+    .ogrenci-listesi {
+      margin-top: 12px;
+      padding: 10px 0;
+      max-height: 330px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fafafa;
+    }
+
+    .ogrenci-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      border-bottom: 1px solid #eee;
+      font-size: 18px;
+    }
+
+    .ogrenci-item button {
+      padding: 6px 12px;
+      background: #4A90E2;
+      color: white;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .ogrenci-item button:hover {
+      background: #357ABD;
+    }
+
+    /* Çıkış butonu */
+    #logoutBtn {
+      margin-top: 20px;
+      background: #d9534f;
+      color: #fff;
+    }
+
+    #logoutBtn:hover {
+      background: #b52b27;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ÜST MENÜ (router.js ile %100 uyumlu) -->
+  <div class="nav-bar">
+    <button onclick="window.location.href='../platform/index.html'">🏠 Ana Menü</button>
+    <button onclick="window.location.href='reportHistory.html'">📘 Tüm Geçmiş</button>
+    <button id="logoutBtn">🚪 Çıkış</button>
+  </div>
+
+  <h1>👩‍🏫 Öğretmen Paneli</h1>
+
+  <div class="panel-container">
+
+    <h2>Öğrenci Listesi</h2>
+
+    <div id="ogrenciListesi" class="ogrenci-listesi">
+      <p style="text-align:center; opacity:0.7;">Öğrenciler yükleniyor...</p>
+    </div>
+
+  </div>
+
+  <!-- Script -->
+  <script type="module" src="panel.js"></script>
+
+</body>
+</html>

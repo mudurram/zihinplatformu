@@ -1,0 +1,136 @@
+// ============================================================================
+// 🧠 advisor.js — Öğrenciye Akıllı Beceri Öneri Motoru (MINI AI SYSTEM)
+// Final Stabil Sürüm — Zihin Platformu v6.3 ile %100 uyumlu
+// ============================================================================
+// Bu modül:
+// ✔ Bilişsel bileşen skorlarını okur
+// ✔ En zayıf beceriyi tespit eder
+// ✔ O beceriye göre oyun ve gelişim önerileri üretir
+// ============================================================================
+
+console.log("🧩 advisor.js yüklendi (FINAL v6.3)");
+
+
+// ============================================================================
+// 🚧 Güvenli Sayısal Okuma
+// ============================================================================
+
+function safe(v) {
+  return typeof v === "number" && !isNaN(v) ? v : 0;
+}
+
+
+// ============================================================================
+// 1) 🔍 Zayıf Beceri Tespiti
+// ============================================================================
+
+function detectWeakSkill(scores) {
+  if (!scores) return "bilinmiyor";
+
+  const R = safe(scores.reaction_speed);
+  const I = safe(scores.inhibitory_control);
+  const S = safe(scores.sustained_attention);
+
+  const minVal = Math.min(R, I, S);
+
+  if (minVal === R) return "reaction_speed";
+  if (minVal === I) return "inhibitory_control";
+  return "sustained_attention";
+}
+
+
+// ============================================================================
+// 2) 🎮 Beceriye Özel Oyun + Gelişim Önerileri
+// ============================================================================
+
+function recommendationFor(skill) {
+
+  switch (skill) {
+
+    case "reaction_speed":
+      return {
+        beceri: "Tepki Hızı",
+        oyun: [
+          "Hızlı Renk Eşleme",
+          "Renk–Kelime Ayrıştırma",
+          "Görsel Hız Tepki Oyunları"
+        ],
+        öneri:
+          "Daha hızlı karar verme ve hızlı görsel tepki gerektiren aktiviteler tepki hızını güçlendirir."
+      };
+
+    case "inhibitory_control":
+      return {
+        beceri: "İnhibisyon (Engel Baskılama)",
+        oyun: [
+          "Ayırt Etme Oyunu",
+          "Yanıltıcı Renk Engelleme",
+          "Doğru–Yanlış Ayırma Hız Testleri"
+        ],
+        öneri:
+          "Acele kararları azaltmak ve kontrollü davranışı artırmak için hataya karşı uyarıcı oyunlar önerilir."
+      };
+
+    case "sustained_attention":
+      return {
+        beceri: "Dikkat Sürekliliği",
+        oyun: [
+          "Uzun Süreli Odak Takip",
+          "Görsel–İşitsel Seri Takip",
+          "Sıra Hatırlama ve Tamamlama"
+        ],
+        öneri:
+          "Odaklanmayı uzun süre sürdürmeyi gerektiren çalışmalar dikkat becerini güçlendirir."
+      };
+
+    default:
+      return {
+        beceri: "Bilinmiyor",
+        oyun: [],
+        öneri: "Veri bulunamadı."
+      };
+  }
+}
+
+
+// ============================================================================
+// 3) ⭐ Ana Fonksiyon — Öğrenci İçin Öneri Üretme
+// ============================================================================
+
+export function getAdvisorRecommendation(scores) {
+
+  if (!scores) {
+    return {
+      zayifBeceri: "Bilinmiyor",
+      öneriMetni: "Analiz yapılabilmesi için yeterli veri bulunamadı.",
+      oyunOneriListesi: []
+    };
+  }
+
+  const skill = detectWeakSkill(scores);      // zayıf beceri
+  const detay = recommendationFor(skill);     // öneri bilgileri
+
+  const öneriMetni = `
+📌 <strong>Geliştirmen Gereken Beceri: ${detay.beceri}</strong>
+
+${detay.öneri}
+
+🎮 <strong>Önerilen Gelişim Oyunları:</strong>
+• ${detay.oyun.join("\n• ")}
+  `;
+
+  return {
+    zayifBeceri: detay.beceri,
+    öneriMetni,
+    oyunOneriListesi: detay.oyun
+  };
+}
+
+
+// ============================================================================
+// 4) 🌐 Varsayılan Export
+// ============================================================================
+
+export default {
+  getAdvisorRecommendation
+};

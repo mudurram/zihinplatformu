@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Renk Ayırt Etme | Zihin Platformu</title>
+
+  <!-- Stil -->
+  <link rel="stylesheet" href="ayirtetme.css" />
+
+  <!-- GLOBAL CONFIG -->
+  <script type="module" src="../../platform/globalConfig.js"></script>
+
+  <!-- Oyun Script -->
+  <script type="module" src="ayirtetme.js" defer></script>
+
+</head>
+
+<body>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 ÜST MENÜ -->
+  <!-- ========================================================= -->
+  <div class="nav-bar">
+    <button onclick="window.location.href='../../platform/index.html'">🏠 Ana Menü</button>
+    <button onclick="window.location.href='../../platform/dikkat_menu.html'">🎯 Dikkat Alanı</button>
+    <button id="bitirBtn" class="bitir-btn">⛔ Bitir</button>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 Oyun Bilgi Alanı -->
+  <!-- ========================================================= -->
+  <div class="info-bar">
+    Süre: <span id="sure">30</span> |
+    Skor: <span id="skor">0</span> |
+    Yanlış: <span id="yanlis">0</span>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 BAŞLIK -->
+  <!-- ========================================================= -->
+  <h2 class="oyun-baslik">Zemin Rengi ile Aynı Olanı Seç</h2>
+
+  <!-- ========================================================= -->
+  <!-- 🎯 HEDEF KUTU -->
+  <!-- ========================================================= -->
+  <div id="hedefKutu" class="hedefKutu">
+    <span id="renkYazi" class="renkYazi">RENK</span>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 🎯 SEÇENEKLER -->
+  <!-- ========================================================= -->
+  <div id="secenekAlani" class="secenek-container"></div>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 SEVİYE POPUP -->
+  <!-- ========================================================= -->
+  <div id="seviyePopup" class="popup show">
+    <div class="popup-content">
+      <h3>Seviye Seç</h3>
+
+      <button class="seviyeBtn" data-seviye="2">Kolay (2 seçenek)</button>
+      <button class="seviyeBtn" data-seviye="3">Orta (3 seçenek)</button>
+      <button class="seviyeBtn" data-seviye="4">Zor (4 seçenek)</button>
+    </div>
+  </div>
+
+</body>
+</html>

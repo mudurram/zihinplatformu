@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Paneli | Zihin Platformu</title>
+
+  <!-- Ortak Stil -->
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .panel-wrapper {
+      width: 95%;
+      max-width: 950px;
+      margin: 25px auto;
+      background: #ffffffdd;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
+    .kullanici-kart {
+      padding: 12px;
+      border-radius: 10px;
+      background: #f3f7ff;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .kullanici-kart strong { font-size: 17px; }
+
+    .rol-sec {
+      padding: 6px;
+      border-radius: 6px;
+      width: 160px;
+      margin-right: 8px;
+    }
+
+    .btn-kaydet {
+      padding: 6px 12px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: .25s;
+    }
+
+    .btn-kaydet:hover {
+      background: #3578c6;
+    }
+
+    .ust-panel {
+      display: flex;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: #fff;
+      border-bottom: 2px solid #ddd;
+      align-items: center;
+    }
+
+    .cikis-btn {
+      padding: 10px 16px;
+      background: #d9534f;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .cikis-btn:hover {
+      background: #b52b27;
+    }
+  </style>
+
+  <!-- Yönetim Scripti -->
+  <script type="module" src="../management/admin_panel.js" defer></script>
+  <script type="module">
+    import { logout } from "../auth/auth.js";
+
+    // Çıkış fonksiyonu globalde kullanılacak
+    window.cikisYap = async function () {
+      await logout();
+      window.location.href = "../auth/login.html";
+    };
+  </script>
+
+</head>
+
+<body>
+
+  <!-- Üst Panel -->
+  <header class="ust-panel">
+    <div class="kullanici-bilgi">
+      <strong>Admin Paneli</strong>
+    </div>
+    <button class="cikis-btn" onclick="cikisYap()">Çıkış Yap</button>
+  </header>
+
+  <div class="panel-wrapper">
+    <h2>🛠 Kullanıcı Yönetimi</h2>
+
+    <p>Tüm kullanıcıları görüntüleyebilir ve rollerini değiştirebilirsiniz.</p>
+
+    <div id="kullaniciListesi">
+      <!-- admin_panel.js tarafından doldurulacak -->
+    </div>
+  </div>
+
+</body>
+</html>

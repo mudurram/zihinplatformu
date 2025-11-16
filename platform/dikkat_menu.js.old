@@ -1,0 +1,56 @@
+// =======================================================
+// 📌 dikkat_menu.js — Dikkat Alanı Oyun Listesi (Final)
+// =======================================================
+
+import { GAME_MAP } from "./globalConfig.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const grid = document.getElementById("dikkatGrid");
+  if (!grid) {
+    console.warn("⚠ dikkatGrid elementi bulunamadı. HTML kontrol edin.");
+    return;
+  }
+
+  grid.innerHTML = "";
+
+  // ============================
+  // 1) Dikkat oyunlarını filtrele
+  // ============================
+  const dikkatOyunlari = Object.values(GAME_MAP).filter(
+    oyun => oyun.kategori === "Dikkat"
+  );
+
+  if (dikkatOyunlari.length === 0) {
+    grid.innerHTML = `
+      <p style="text-align:center;color:#777;">
+        Bu kategori için henüz oyun bulunmuyor.
+      </p>
+    `;
+    return;
+  }
+
+  // ============================
+  // 2) Kartları oluştur
+  // ============================
+  dikkatOyunlari.forEach(oyun => {
+    const kart = document.createElement("div");
+    kart.className = "oyunKart";
+
+    kart.innerHTML = `
+      <div class="oyunBaslik">${oyun.ad}</div>
+      <div class="oyunAlt">${oyun.aciklama || "Dikkat geliştirme oyunu"}</div>
+    `;
+
+    kart.addEventListener("click", () => {
+      if (!oyun.path) {
+        alert("Bu oyunun yolu tanımlanmamış.");
+        return;
+      }
+      window.location.href = oyun.path;
+    });
+
+    grid.appendChild(kart);
+  });
+
+});

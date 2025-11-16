@@ -1,0 +1,210 @@
+// =============================================================
+// 📘 teacherAI.js — Öğretmen AI Analiz Motoru (Final v6.6)
+// =============================================================
+// Bu dosya, Zihin Platformu analiz altyapısının öğretmen odaklı
+// gelişmiş yapay zeka yorumlarını üretir.
+// =============================================================
+
+console.log("teacherAI.js (v6.6) yüklendi ✔");
+
+
+// =============================================================
+// 0) KALITIM — Eski öğretmen yorumu korundu
+// =============================================================
+export function teacherAI_generateAdvice(result) {
+  if (!result || !result.skorlar) return "Veri bulunamadı.";
+
+  const r = result.skorlar.reaction_speed ?? 0;
+  const a = result.skorlar.sustained_attention ?? 0;
+  const i = result.skorlar.inhibitory_control ?? 0;
+
+  let advice = "🧠 Öğretmen Değerlendirmesi\n\n";
+
+  // Tepki Hızı
+  if (r < 40) advice += "⚡ **Tepki Hızı:** Çok düşük — hızlı tepki oyunları önerilir.\n\n";
+  else if (r < 70) advice += "⚡ **Tepki Hızı:** Ortalama — hız artırma egzersizleri eklenebilir.\n\n";
+  else advice += "⚡ **Tepki Hızı:** Güçlü bir refleks kontrolü mevcut.\n\n";
+
+  // Dikkat
+  if (a < 40) advice += "🎯 **Dikkat Sürekliliği:** Dalgınlık var — süreli görevler etkili olur.\n\n";
+  else if (a < 70) advice += "🎯 **Dikkat Sürekliliği:** Orta seviye — stabilite artırılabilir.\n\n";
+  else advice += "🎯 **Dikkat Sürekliliği:** Çok iyi.\n\n";
+
+  // İnhibisyon
+  if (i < 40) advice += "🛑 **İnhibisyon:** Aceleci davranış gözleniyor — engelleme oyunları önerilir.\n\n";
+  else if (i < 70) advice += "🛑 **İnhibisyon:** Kontrollü fakat geliştirilebilir.\n\n";
+  else advice += "🛑 **İnhibisyon:** İleri düzey kontrol sergiliyor.\n\n";
+
+  advice += "📌 Düzenli tekrar tüm becerilerin dengeli gelişmesine katkı sağlar.";
+
+  return advice;
+}
+
+
+
+// =============================================================
+// 1) Son N oyunu çek
+// =============================================================
+export function getLastGames(history, limit = 10) {
+  if (!Array.isArray(history)) return [];
+  return history.slice(-limit);
+}
+
+
+
+// =============================================================
+// 2) Ortalama hesaplama (genel amaçlı)
+// =============================================================
+function ortalama(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) return 0;
+  return Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
+}
+
+
+
+// =============================================================
+// 3) Bileşen ortalamaları
+// =============================================================
+export function calculateComponentAverages(history) {
+  if (!history || history.length === 0) return null;
+
+  const comp = {
+    reaction_speed: [],
+    inhibitory_control: [],
+    sustained_attention: []
+  };
+
+  history.forEach(h => {
+    if (h?.skorlar) {
+      comp.reaction_speed.push(h.skorlar.reaction_speed ?? 0);
+      comp.inhibitory_control.push(h.skorlar.inhibitory_control ?? 0);
+      comp.sustained_attention.push(h.skorlar.sustained_attention ?? 0);
+    }
+  });
+
+  return {
+    reaction_avg: ortalama(comp.reaction_speed),
+    inhibition_avg: ortalama(comp.inhibitory_control),
+    attention_avg: ortalama(comp.sustained_attention)
+  };
+}
+
+
+
+// =============================================================
+// 4) Güçlü – Zayıf Beceri Analizi
+// =============================================================
+export function analyzeStrengthsWeakness(history) {
+  const avg = calculateComponentAverages(history);
+  if (!avg) return null;
+
+  const entries = [
+    { key: "Tepki Hızı", value: avg.reaction_avg },
+    { key: "İnhibisyon", value: avg.inhibition_avg },
+    { key: "Dikkat Sürekliliği", value: avg.attention_avg }
+  ];
+
+  const sorted = entries.sort((a, b) => a.value - b.value);
+
+  return {
+    weakest: sorted[0],
+    strongest: sorted[2],
+    middle: sorted[1]
+  };
+}
+
+
+
+// =============================================================
+// 5) Trend Hesabı (son oyun - bir önceki)
+// =============================================================
+export function getImprovementTrend(history) {
+  if (!history || history.length < 2) return "Veri yetersiz";
+
+  const son = history.at(-1)?.skorlar;
+  const onceki = history.at(-2)?.skorlar;
+
+  if (!son || !onceki) return "Veri yetersiz";
+
+  return {
+    reaction: son.reaction_speed - onceki.reaction_speed,
+    attention: son.sustained_attention - onceki.sustained_attention,
+    inhibition: son.inhibitory_control - onceki.inhibitory_control
+  };
+}
+
+
+
+// =============================================================
+// 6) Kritik Düşüş Algılama
+// =============================================================
+export function detectDrop(history) {
+  if (!history || history.length < 3) return null;
+
+  const last = history.at(-1)?.skorlar;
+  const prev = history.at(-2)?.skorlar;
+
+  if (!last || !prev) return null;
+
+  const drop = {
+    reaction: prev.reaction_speed - last.reaction_speed,
+    attention: prev.sustained_attention - last.sustained_attention,
+    inhibition: prev.inhibitory_control - last.inhibitory_control
+  };
+
+  let critical = [];
+
+  Object.keys(drop).forEach(k => {
+    if (drop[k] >= 15) {
+      critical.push({
+        component: k,
+        amount: drop[k]
+      });
+    }
+  });
+
+  return critical.length ? critical : null;
+}
+
+
+
+// =============================================================
+// 7) AI öneri motoru — Öğretmen önerileri
+// =============================================================
+export function generateRecommendations(history) {
+  const avg = calculateComponentAverages(history);
+  if (!avg) return [];
+
+  const rec = [];
+
+  if (avg.reaction_avg < 50)
+    rec.push("⏱ Tepki hızını artırmak için hızlı eşleme oyunları önerilir.");
+
+  if (avg.attention_avg < 50)
+    rec.push("🎯 Dikkat sürekliliği zayıf — uzun süreli odak oyunları tercih edilebilir.");
+
+  if (avg.inhibition_avg < 50)
+    rec.push("🛑 İnhibisyon düşük — hata baskılama gerektiren oyunlarla desteklenebilir.");
+
+  if (rec.length === 0)
+    rec.push("📈 Tüm bileşenlerde güçlü, zorluk seviyesi artırılabilir.");
+
+  return rec;
+}
+
+
+
+// =============================================================
+// 8) Ana Fonksiyon — Öğretmene tam rapor
+// =============================================================
+export function fullTeacherAnalysis(history) {
+  const last = getLastGames(history, 10);
+
+  return {
+    average: calculateComponentAverages(last),
+    strengthsWeakness: analyzeStrengthsWeakness(last),
+    trend: getImprovementTrend(last),
+    criticalDrops: detectDrop(last),
+    recommendations: generateRecommendations(last)
+  };
+}

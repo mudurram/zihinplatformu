@@ -1,0 +1,89 @@
+// =============================================================
+// 📌 heatmap.js — Renk Hataları HeatMap Motoru (Final v6.4)
+// =============================================================
+//
+// Bu modül özellikle Ayırt Etme oyununda renk bazlı hataları
+// görsel olarak göstermek için kullanılır.
+//
+// - Kırılma yapmaz
+// - Canvas responsive olarak ölçeklenir
+// - Mobil / tablet / PC uyumludur
+//
+// =============================================================
+
+export function drawHeatmap(canvas, renkBazliVeri) {
+  if (!canvas) {
+    console.warn("⚠ heatmap: Canvas bulunamadı.");
+    return;
+  }
+  if (!renkBazliVeri || typeof renkBazliVeri !== "object") {
+    console.warn("⚠ heatmap: Veri geçersiz.");
+    return;
+  }
+
+  const ctx = canvas.getContext("2d");
+  const style = getComputedStyle(canvas);
+
+  // -------------------------------------------------------------
+  // 📌 1) GERÇEK Piksel Boyutlarını Ayarla (Retina fix)
+  // -------------------------------------------------------------
+  const displayWidth = parseInt(style.width);
+  const displayHeight = parseInt(style.height);
+
+  canvas.width = displayWidth * devicePixelRatio;
+  canvas.height = displayHeight * devicePixelRatio;
+
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+
+  // -------------------------------------------------------------
+  // 📌 2) Heatmap veri kontrolü
+  // -------------------------------------------------------------
+  const renkler = Object.keys(renkBazliVeri);
+  if (renkler.length === 0) return;
+
+  const maxHata = Math.max(...Object.values(renkBazliVeri), 1);
+  const colWidth = displayWidth / renkler.length;
+
+  ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+  // -------------------------------------------------------------
+  // 📌 3) Her renk için sütun çiz
+  // -------------------------------------------------------------
+  renkler.forEach((renk, i) => {
+    const hataSayisi = renkBazliVeri[renk];
+    const oran = hataSayisi / maxHata;
+
+    // 🔥 Kırmızı (çok hata) → Sarı (az hata)
+    const r = Math.round(255 * oran);
+    const g = Math.round(220 * (1 - oran));
+    const b = Math.round(80 * (1 - oran));
+
+    ctx.fillStyle = `rgba(${r},${g},${b},0.92)`;
+    ctx.fillRect(i * colWidth, 0, colWidth - 4, displayHeight - 34);
+
+    // ---------------------------------------------------------
+    // 📌 Hata sayısı
+    // ---------------------------------------------------------
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 16px Segoe UI";
+    ctx.textAlign = "center";
+    ctx.fillText(
+      hataSayisi,
+      i * colWidth + colWidth / 2,
+      22
+    );
+
+    // ---------------------------------------------------------
+    // 📌 Renk adı
+    // ---------------------------------------------------------
+    ctx.fillStyle = "#222";
+    ctx.font = "14px Segoe UI";
+    ctx.fillText(
+      renk,
+      i * colWidth + colWidth / 2,
+      displayHeight - 6
+    );
+  });
+
+  console.log("🎨 heatmap çizildi ✔");
+}
