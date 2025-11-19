@@ -69,8 +69,7 @@ if (!sadeceOgrenciModu) {
 // =============================================================
 const oyunGrid =
   document.getElementById("oyunListesi") ||
-  document.getElementById("oyunGrid") ||
-  document.getElementById("dikkatGrid");
+  document.getElementById("oyunGrid");
 
 if (!oyunGrid) {
   console.warn("⚠ oyunGrid bulunamadı → index.html kontrol edilmeli.");

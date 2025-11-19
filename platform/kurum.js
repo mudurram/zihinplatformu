@@ -40,15 +40,29 @@ async function yukleKurumBilgisi() {
     const userData = userSnap.data();
     const kurumBilgisi = userData.institution;
     
+    console.log("📋 Öğrenci kurum bilgisi:", {
+      kurumBilgisi: kurumBilgisi,
+      status: kurumBilgisi?.status,
+      id: kurumBilgisi?.id,
+      userDataKeys: Object.keys(userData),
+      fullUserData: userData
+    });
+    
     if (kurumBilgisi && kurumBilgisi.status === "kabul" && kurumBilgisi.id) {
+      console.log("✅ Kurum bilgisi geçerli, kurum detayları yükleniyor...");
       try {
         const kurumRef = doc(db, "profiles", kurumBilgisi.id);
         const kurumSnap = await getDoc(kurumRef);
         
         if (kurumSnap.exists()) {
           const kurumData = kurumSnap.data();
-          const kurumAdi = kurumData.username || kurumData.name || "Kurum";
+          // Kurum adını almak için tüm olası alanları kontrol et
+          const kurumAdi = kurumData.institutionProfile?.name || 
+                           kurumData.name || 
+                           kurumData.username || 
+                           "Kurum";
           
+          console.log("🏢 Kurum bilgisi yüklendi:", { kurumAdi, kurumData });
           kurumAdiP.textContent = kurumAdi;
           mevcutKurumDiv.style.display = "block";
           kurumEkleDiv.style.display = "none";
@@ -62,6 +76,13 @@ async function yukleKurumBilgisi() {
         kurumEkleDiv.style.display = "block";
       }
     } else {
+      console.log("⚠️ Kurum bilgisi bulunamadı veya geçersiz:", {
+        kurumBilgisi: kurumBilgisi,
+        hasStatus: !!kurumBilgisi?.status,
+        statusValue: kurumBilgisi?.status,
+        hasId: !!kurumBilgisi?.id,
+        idValue: kurumBilgisi?.id
+      });
       mevcutKurumDiv.style.display = "none";
       kurumEkleDiv.style.display = "block";
     }
