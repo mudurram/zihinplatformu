@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Takip İstekleri — Zihin Platformu</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="router.js"></script>
+  <script type="module" src="header.js"></script>
+  <script type="module" src="takip-istekleri.js"></script>
+</head>
+<body>
+  <div class="container" style="padding-top:90px;">
+    <div class="panel-wrapper">
+      <h2 style="color:#1e3d59;margin-bottom:20px;">📩 Takip İstekleri</h2>
+      
+      <!-- Davet Gönder -->
+      <div style="background:#f0f8ff;padding:20px;border-radius:12px;margin-bottom:30px;border:2px solid #4a90e2;">
+        <h3 style="margin-top:0;color:#1e3d59;">➕ Davet Gönder</h3>
+        <p style="color:#666;font-size:14px;margin-bottom:15px;" id="davetAciklama">
+          Kullanıcı adını girerek davet gönderebilirsiniz.
+        </p>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+          <input 
+            type="text" 
+            id="davetUsernameInput" 
+            placeholder="Kullanıcı adı girin"
+            style="flex:1;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+          <button 
+            id="davetGonderBtn" 
+            style="padding:12px 24px;background:#4a90e2;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;"
+            onmouseover="this.style.background='#3578c6'"
+            onmouseout="this.style.background='#4a90e2'"
+          >
+            📤 Davet Gönder
+          </button>
+        </div>
+        <div id="davetMesaji" style="font-size:14px;font-weight:500;"></div>
+      </div>
+      
+      <!-- Alınan Davetler -->
+      <div style="margin-bottom:30px;">
+        <h3 style="color:#1e3d59;margin-bottom:10px;font-size:18px;">📥 Alınan Davetler</h3>
+        <p style="font-size:14px;color:#666;margin-bottom:15px;">
+          Size gelen davetleri buradan yönetebilirsiniz.
+        </p>
+        <ul id="alinanTalepler" style="list-style:none;padding:0;margin:0;">
+          <li style="padding:15px;text-align:center;color:#999;">Yükleniyor...</li>
+        </ul>
+      </div>
+
+      <!-- Gönderilen Davetler -->
+      <div>
+        <h3 style="color:#1e3d59;margin-bottom:10px;font-size:18px;">📤 Gönderilen Davetler</h3>
+        <p style="font-size:14px;color:#666;margin-bottom:15px;">
+          Gönderdiğiniz davetlerin durumunu buradan takip edebilirsiniz.
+        </p>
+        <ul id="gonderilenTalepler" style="list-style:none;padding:0;margin:0;">
+          <li style="padding:15px;text-align:center;color:#999;">Yükleniyor...</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

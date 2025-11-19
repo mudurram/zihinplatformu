@@ -47,12 +47,18 @@ try {
   if (getApps().length === 0) {
     app = initializeApp(firebaseConfig);
     console.log("✔ Firebase başlatıldı:", app.name);
+    console.log("✔ Firebase Project ID:", firebaseConfig.projectId);
   } else {
     app = getApps()[0];
     console.log("ℹ Firebase zaten başlatılmış:", app.name);
   }
 } catch (err) {
   console.error("❌ Firebase başlatılamadı:", err);
+  console.error("❌ Hata detayları:", {
+    message: err.message,
+    code: err.code,
+    stack: err.stack
+  });
   // Hata durumunda fallback - boş bir app objesi oluştur
   // Bu durumda auth ve db undefined olacak ama crash olmayacak
   app = null;
@@ -63,14 +69,28 @@ try {
 // =============================================================
 if (!app) {
   console.error("❌ Firebase app başlatılamadı - auth ve db kullanılamaz");
+  console.error("❌ Lütfen Firebase yapılandırmasını kontrol edin!");
+} else {
+  try {
+    const authInstance = getAuth(app);
+    const dbInstance = getFirestore(app);
+    console.log("🔥 Auth hazır (v7.3)");
+    console.log("📚 Firestore hazır (v7.3)");
+  } catch (serviceErr) {
+    console.error("❌ Firebase servisleri başlatılamadı:", serviceErr);
+  }
 }
 
 export const auth = app ? getAuth(app) : null;
 export const db = app ? getFirestore(app) : null;
 
-// Sağlık kontrolü logları
-if (auth) console.log("🔥 Auth hazır (v7.2)");
-if (db) console.log("📚 Firestore hazır (v7.2)");
+// Sağlık kontrolü
+if (!auth) {
+  console.error("⚠️ UYARI: Firebase Auth null! Giriş yapılamayacak.");
+}
+if (!db) {
+  console.error("⚠️ UYARI: Firestore null! Veritabanı işlemleri yapılamayacak.");
+}
 
 // =============================================================
 // Kullanım Notu:

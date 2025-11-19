@@ -110,21 +110,96 @@
   <!-- Header header.js tarafından otomatik eklenecek -->
 
   <div class="mesaj-wrapper">
-    <h2>💬 Öğretmenlerinle Mesajlaş</h2>
-    <p style="color:#666;margin-bottom:20px;">
-      Öğretmenlerinden birini seçerek mesajlaşmaya başlayabilirsin.
-    </p>
-
-    <div id="ogretmenListesi" class="ogretmen-listesi">
-      <p>Yükleniyor...</p>
+    <h2>💬 Mesajlaşma</h2>
+    
+    <!-- Role Seçimi -->
+    <div style="margin-bottom:20px;">
+      <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">Mesaj Göndermek İstediğiniz Rol:</label>
+      <div style="display:flex;gap:15px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="radio" name="mesajRolSecimi" value="ogretmen" id="rolOgretmen" style="cursor:pointer;">
+          <span>👩‍🏫 Öğretmen</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="radio" name="mesajRolSecimi" value="kurum" id="rolKurum" style="cursor:pointer;">
+          <span>🏢 Kurum</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="radio" name="mesajRolSecimi" value="herikisi" id="rolHerIkisi" style="cursor:pointer;">
+          <span>👥 Her İkisi</span>
+        </label>
+      </div>
     </div>
 
-    <div id="mesajAlani" class="mesaj-alani">
-      <h3 id="aktifOgretmenAdi">Öğretmen</h3>
+    <!-- Kullanıcı Seçim Alanı -->
+    <div id="mesajKullaniciSecimAlani" style="display:none;margin-bottom:20px;">
+      <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">Alıcı Seçimi:</label>
+      
+      <!-- Kullanıcı Adı ile Arama -->
+      <div style="margin-bottom:15px;">
+        <input 
+          type="text" 
+          id="mesajKullaniciAdiInput" 
+          placeholder="Kullanıcı adı girin (örn: ahmet.ogretmen)"
+          style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;"
+        >
+        <button 
+          id="mesajKullaniciAdiAraBtn" 
+          style="margin-top:8px;padding:8px 16px;background:#27ae60;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px;"
+        >
+          🔍 Ara ve Seç
+        </button>
+      </div>
+
+      <!-- VEYA Liste ile Seçim -->
+      <div style="margin-top:15px;">
+        <label style="display:block;margin-bottom:8px;font-size:13px;color:#666;">VEYA listeden seçin:</label>
+        <select id="mesajKullaniciSelect" style="width:100%;padding:10px;border-radius:8px;font-size:14px;">
+          <option value="">Kullanıcı seçin...</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Mesaj Gönderme Alanı -->
+    <div id="mesajGondermeAlani" style="display:none;margin-top:20px;">
+      <div style="background:#f0f7ff;padding:12px;border-radius:8px;margin-bottom:15px;border-left:4px solid #4a90e2;">
+        <strong>Alıcı:</strong> <span id="mesajAlıcıBilgisi" style="color:#4a90e2;"></span>
+      </div>
+
       <div id="mesajKutu" class="mesaj-kutu"></div>
-      <div class="mesaj-input-grup">
-        <input type="text" id="mesajInput" class="mesaj-input" placeholder="Mesajınızı yazın...">
-        <button id="mesajGonderBtn" class="mesaj-gonder-btn">Gönder</button>
+      
+      <div style="display:flex;gap:10px;">
+        <textarea 
+          id="mesajInput" 
+          rows="3"
+          style="flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;resize:vertical;font-family:inherit;" 
+          placeholder="Mesajınızı yazın..."
+        ></textarea>
+        <button 
+          id="mesajGonderBtn" 
+          style="padding:10px 20px;background:#4a90e2;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;align-self:flex-end;"
+        >
+          📤 Gönder
+        </button>
+      </div>
+    </div>
+
+    <!-- Mesaj Arşivi -->
+    <div style="margin-top:30px;border-top:2px solid #e0e0e0;padding-top:20px;">
+      <h4 style="color:#1e3d59;margin-bottom:15px;">📚 Mesaj Arşivi</h4>
+      <div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;">
+        <button id="arsivGonderilenBtn" style="padding:8px 16px;background:#27ae60;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;">
+          📤 Gönderilen Mesajlar
+        </button>
+        <button id="arsivGelenBtn" style="padding:8px 16px;background:#3498db;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;">
+          📥 Gelen Mesajlar
+        </button>
+        <button id="arsivSilinenBtn" style="padding:8px 16px;background:#e74c3c;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;">
+          🗑️ Silinen Mesajlar
+        </button>
+      </div>
+      <div id="mesajArsivAlani" style="max-height:300px;overflow-y:auto;border:1px solid #ddd;border-radius:8px;padding:15px;background:#f9f9f9;">
+        <p style="text-align:center;color:#999;">Arşiv görüntülemek için yukarıdaki butonlardan birini seçin.</p>
       </div>
     </div>
   </div>

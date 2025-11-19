@@ -120,17 +120,44 @@ export async function saveGameResult(sonuc) {
     // =================================================================
     
     // Temel skor hesaplama (eğer yoksa)
-    const temelSkor = sonuc.temel_skor || {
-      dogru: sonuc.dogru || 0,
-      yanlis: sonuc.yanlis || 0,
-      sure: sonuc.sure || 0,
-      ortalamaTepki: hesaplaOrtalamaTepki(sonuc.trials || []),
-      ogrenmeHizi: hesaplaOgrenmeHizi(sonuc.trials || []),
-      baslangicSeviye: null, // Geçmiş verilerden hesaplanacak
-      bitisSeviye: null,
-      zorlukAdaptasyonu: null,
-      hataTurleri: analizEtHataTurleri(sonuc.trials || [])
-    };
+    // Önce sonuc.temel_skor'dan al, yoksa hesapla
+    let temelSkor = sonuc.temel_skor;
+    
+    if (!temelSkor || typeof temelSkor !== 'object') {
+      const ortalamaTepki = hesaplaOrtalamaTepki(sonuc.trials || []);
+      const ogrenmeHizi = hesaplaOgrenmeHizi(sonuc.trials || []);
+      
+      temelSkor = {
+        dogru: sonuc.dogru || 0,
+        yanlis: sonuc.yanlis || 0,
+        sure: sonuc.sure || sonuc.timeElapsed || 0,
+        ortalamaTepki: ortalamaTepki,
+        reaction_avg: ortalamaTepki, // Geriye uyumluluk
+        ogrenmeHizi: ogrenmeHizi,
+        learning_velocity: ogrenmeHizi, // Geriye uyumluluk
+        baslangicSeviye: null, // Geçmiş verilerden hesaplanacak
+        bitisSeviye: null,
+        zorlukAdaptasyonu: null,
+        hataTurleri: analizEtHataTurleri(sonuc.trials || [])
+      };
+    } else {
+      // temel_skor varsa ama eksik alanlar varsa tamamla
+      if (!temelSkor.ortalamaTepki && temelSkor.reaction_avg) {
+        temelSkor.ortalamaTepki = temelSkor.reaction_avg;
+      }
+      if (!temelSkor.reaction_avg && temelSkor.ortalamaTepki) {
+        temelSkor.reaction_avg = temelSkor.ortalamaTepki;
+      }
+      if (!temelSkor.ogrenmeHizi && temelSkor.learning_velocity) {
+        temelSkor.ogrenmeHizi = temelSkor.learning_velocity;
+      }
+      if (!temelSkor.learning_velocity && temelSkor.ogrenmeHizi) {
+        temelSkor.learning_velocity = temelSkor.ogrenmeHizi;
+      }
+      if (!temelSkor.sure && sonuc.sure) {
+        temelSkor.sure = sonuc.sure;
+      }
+    }
 
     // Çoklu alan skorları (oyun meta'dan modüllere göre)
     const cokluAlan = sonuc.coklu_alan || hesaplaCokluAlan(sonuc, oyunMeta);
@@ -180,6 +207,34 @@ export async function saveGameResult(sonuc) {
 
     const docRef = await addDoc(hedefRef, data);
     const resultId = docRef.id;
+
+    // Öğrenci oyun oynadığında, sonuçları bağlı öğretmenlerin alt koleksiyonlarına da kaydet
+    if (role === ROLES.OGRENCI && teacherIDs.length > 0) {
+      const ogrenciId = user.uid;
+      
+      // Her bağlı öğretmen için sonucu kaydet
+      const teacherPromises = teacherIDs.map(async (teacherId) => {
+        try {
+          const teacherOgrenciRef = collection(
+            db,
+            GLOBAL.FIRESTORE.PROFILES,
+            teacherId,
+            "ogrenciler",
+            ogrenciId,
+            "oyunSonuclari"
+          );
+          
+          // Öğretmenin alt koleksiyonuna da kaydet
+          await addDoc(teacherOgrenciRef, data);
+          console.log(`📝 Sonuç öğretmen ${teacherId} alt koleksiyonuna kaydedildi`);
+        } catch (err) {
+          console.warn(`⚠ Öğretmen ${teacherId} alt koleksiyonuna kayıt yapılamadı:`, err);
+        }
+      });
+      
+      // Tüm öğretmen kayıtlarını bekle (hata olsa bile devam et)
+      await Promise.allSettled(teacherPromises);
+    }
 
     // Sonuç ID'sini localStorage'a kaydet (yorumlar için)
     const oyunGecmisi = JSON.parse(localStorage.getItem("oyunGecmisi") || "[]");

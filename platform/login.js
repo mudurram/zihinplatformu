@@ -1,88 +1,89 @@
 // =============================================================
 // 📌 login.js — Giriş Ekranı Controller
-// Final v6.7 — (Kırılmayan, Username Destekli, GLOBAL Uyumlu)
+// Final v7.8 — (Kırılmayan, Username Destekli, GLOBAL Uyumlu)
 // =============================================================
 
 import { login } from "../auth/auth.js";
 import { yonlendir } from "./router.js";
-import { ROLES } from "./router.js";   // ✔ GLOBAL merkez rol kontrolü
+import { ROLES } from "./globalConfig.js";
 
 console.log("login.js yüklendi ✔");
 
-
 // =============================================================
-// 1) HTML Elemanları (Güvenli Seçim)
+// 1) HTML Elemanları
 // =============================================================
-let emailInput = document.getElementById("email");
-let passInput  = document.getElementById("password");
-let loginBtn   = document.getElementById("loginBtn");
+let emailInput, passInput, loginBtn, hataEl, yukleniyor;
 
-// Eksik input varsa otomatik oluştur (kırılmayı önler)
-function guvenliInput(id, type, placeholder) {
-  let el = document.getElementById(id);
-  if (!el) {
-    el = document.createElement("input");
-    el.id = id;
-    el.type = type;
-    el.placeholder = placeholder;
-    el.style.display = "block";
-    el.style.margin = "10px auto";
-    document.body.appendChild(el);
+// DOM yüklendiğinde elemanları al
+document.addEventListener("DOMContentLoaded", () => {
+  emailInput = document.getElementById("email");
+  passInput = document.getElementById("password");
+  loginBtn = document.getElementById("loginBtn");
+  hataEl = document.getElementById("hata");
+  yukleniyor = document.getElementById("yukleniyor");
+
+  // Eksik elemanları kontrol et
+  if (!emailInput) {
+    console.error("❌ Email input bulunamadı!");
+    return;
   }
-  return el;
-}
+  if (!passInput) {
+    console.error("❌ Password input bulunamadı!");
+    return;
+  }
+  if (!loginBtn) {
+    console.error("❌ Login button bulunamadı!");
+    return;
+  }
+  if (!hataEl) {
+    console.warn("⚠ Hata elementi bulunamadı, oluşturuluyor...");
+    hataEl = document.createElement("div");
+    hataEl.id = "hata";
+    hataEl.style.cssText = "color: #e74c3c; margin-top: 15px; display: none; font-size: 14px; font-weight: 500;";
+    const container = document.querySelector(".login-container");
+    if (container) container.appendChild(hataEl);
+  }
+  if (!yukleniyor) {
+    console.warn("⚠ Yükleniyor elementi bulunamadı, oluşturuluyor...");
+    yukleniyor = document.createElement("div");
+    yukleniyor.id = "yukleniyor";
+    yukleniyor.textContent = "Giriş yapılıyor...";
+    yukleniyor.style.cssText = "color: #3498db; margin-top: 15px; display: none; font-size: 14px;";
+    const container = document.querySelector(".login-container");
+    if (container) container.appendChild(yukleniyor);
+  }
 
-emailInput = emailInput || guvenliInput("email", "text", "Kullanıcı adı veya e-posta");
-passInput  = passInput  || guvenliInput("password", "password", "Şifre");
-
-// -------------------------------------------------------------
-// Hata mesajı elementi
-// -------------------------------------------------------------
-let hataEl = document.getElementById("hata");
-if (!hataEl) {
-  hataEl = document.createElement("div");
-  hataEl.id = "hata";
-  hataEl.style.color = "red";
-  hataEl.style.marginTop = "10px";
-  hataEl.style.display = "none";
-  document.body.appendChild(hataEl);
-}
-
-// -------------------------------------------------------------
-// Yükleniyor alanı
-// -------------------------------------------------------------
-let yukleniyor = document.getElementById("yukleniyor");
-if (!yukleniyor) {
-  yukleniyor = document.createElement("div");
-  yukleniyor.id = "yukleniyor";
-  yukleniyor.textContent = "Giriş yapılıyor...";
-  yukleniyor.style.display = "none";
-  yukleniyor.style.marginTop = "10px";
-  document.body.appendChild(yukleniyor);
-}
-
-
-// =============================================================
-// 2) Kullanıcı Adını E-Postaya Çevirme
-// =============================================================
-function normalizeEmail(text) {
-  // Zaten e-posta ise → direkt kullan
-  if (text.includes("@")) return text;
-
-  // Kullanıcı adı → otomatik e-posta
-  return text + "@zihin.com";
-}
-
+  // Giriş butonunu bağla
+  loginBtn.addEventListener("click", girisYap);
+  
+  // Enter tuşu ile giriş
+  emailInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      passInput.focus();
+    }
+  });
+  passInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      girisYap();
+    }
+  });
+});
 
 // =============================================================
-// 3) Giriş İşlemi
+// 2) Giriş İşlemi
 // =============================================================
 async function girisYap() {
+  if (!emailInput || !passInput || !hataEl || !yukleniyor) {
+    console.error("❌ Gerekli elemanlar bulunamadı!");
+    alert("Sayfa yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin.");
+    return;
+  }
 
   hataEl.style.display = "none";
   yukleniyor.style.display = "block";
+  yukleniyor.textContent = "Giriş yapılıyor...";
 
-  let girisText = emailInput.value.trim();
+  const girisText = emailInput.value.trim();
   const pass = passInput.value.trim();
 
   if (!girisText || !pass) {
@@ -92,49 +93,36 @@ async function girisYap() {
     return;
   }
 
-  // Kullanıcı adı → e-posta formatına çevir
-  const email = normalizeEmail(girisText);
+  console.log("➡ Giriş yapılıyor:", girisText.substring(0, 3) + "***");
 
-  console.log("➡ Firebase Login:", email);
+  try {
+    // auth.js zaten username veya email ile giriş yapıyor
+    const sonuc = await login(girisText, pass);
 
-  // ---- Firebase Login ----
-  const sonuc = await login(email, pass);
+    yukleniyor.style.display = "none";
 
-  yukleniyor.style.display = "none";
+    if (!sonuc.success) {
+      console.error("❌ Giriş başarısız:", sonuc.message);
+      hataEl.textContent = sonuc.message || "Giriş hatası. Lütfen bilgilerinizi kontrol edin.";
+      hataEl.style.display = "block";
+      return;
+    }
 
-  if (!sonuc.success) {
-    hataEl.textContent = sonuc.message || "Giriş hatası";
+    // Giriş başarılı - auth.js zaten yönlendirme yapıyor
+    console.log("🎯 Giriş başarılı, yönlendiriliyor...");
+    yukleniyor.textContent = "Giriş başarılı! Yönlendiriliyor...";
+  } catch (err) {
+    console.error("❌ Giriş hatası (catch):", err);
+    console.error("Hata detayları:", {
+      name: err.name,
+      message: err.message,
+      stack: err.stack
+    });
+    yukleniyor.style.display = "none";
+    hataEl.textContent = err.message || "Giriş yapılırken beklenmeyen bir hata oluştu. Lütfen sayfayı yenileyin.";
     hataEl.style.display = "block";
-    return;
   }
-
-  // Rol bilgisi auth.js tarafından LS'e yazıldı
-  const role = localStorage.getItem("role") || ROLES.OGRENCI;  // ✔ DOĞRU GLOBAL ROL OKUMA
-
-  console.log("🎯 Giriş başarılı → Rol:", role);
-
-  // Rolüne göre yönlendirme
-  yonlendir(role);
 }
-
-
-// =============================================================
-// 4) Giriş Butonu
-// =============================================================
-if (loginBtn) {
-  loginBtn.addEventListener("click", girisYap);
-}
-
-
-// =============================================================
-// 5) Enter Tuşu ile Giriş
-// =============================================================
-document.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    girisYap();
-  }
-});
-
 
 // =============================================================
 export { girisYap };

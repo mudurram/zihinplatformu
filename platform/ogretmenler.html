@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Öğretmenler — Zihin Platformu</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="router.js"></script>
+  <script type="module" src="header.js"></script>
+  <script type="module" src="ogretmenler.js"></script>
+</head>
+<body>
+  <div class="container" style="padding-top:90px;">
+    <div class="panel-wrapper">
+      <h2 style="color:#1e3d59;margin-bottom:20px;">👩‍🏫 Öğretmenlerim</h2>
+      
+      <!-- Yeni Öğretmen Ekle -->
+      <div style="background:#f0f8ff;padding:20px;border-radius:12px;margin-bottom:30px;border:2px solid #4a90e2;">
+        <h3 style="margin-top:0;color:#1e3d59;">➕ Yeni Öğretmen Ekle</h3>
+        <p style="color:#666;font-size:14px;margin-bottom:15px;">
+          Kullanıcı adını girerek öğretmenleri davet edebilirsiniz.
+        </p>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+          <input 
+            type="text" 
+            id="yeniOgretmenInput" 
+            placeholder="Kullanıcı adı girin (örn: ahmet.ogretmen)"
+            style="flex:1;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+          <button 
+            id="ogretmenEkleBtn" 
+            style="padding:12px 24px;background:#4a90e2;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;"
+            onmouseover="this.style.background='#3578c6'"
+            onmouseout="this.style.background='#4a90e2'"
+          >
+            📤 Davet Gönder
+          </button>
+        </div>
+        <div id="ogretmenMesaji" style="font-size:14px;font-weight:500;"></div>
+      </div>
+      
+      <!-- Mevcut Öğretmenler -->
+      <div>
+        <h3 style="color:#1e3d59;margin-bottom:10px;font-size:18px;">✅ Eklenmiş Öğretmenler</h3>
+        <ul id="ogretmenListesi" style="list-style:none;padding:0;margin:0;">
+          <li style="padding:15px;text-align:center;color:#999;">Yükleniyor...</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

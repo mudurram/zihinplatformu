@@ -174,3 +174,4 @@ await createTeacherStudentRequest(teacherId, studentUid);
 **Özet:** Talepler **kullanıcı adı ile başlatılır**, ancak **backend'de UID ile saklanır ve işlenir**. Bu yaklaşım hem kullanıcı dostu hem de güvenli bir sistem sağlar.
 
 
+

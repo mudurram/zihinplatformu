@@ -18,10 +18,19 @@ const aktifOgrenciId = localStorage.getItem("aktifOgrenciId");
 const teacherID = localStorage.getItem("teacherID");
 const uid = localStorage.getItem("uid");
 
-if (role === ROLES.OGRETMEN && !aktifOgrenciId) {
-  alert("ℹ Lütfen önce bir öğrenci seçiniz.");
-  window.location.href = "teacher_panel.html";
-  throw new Error("Öğretmen öğrenci seçmedi.");
+// Öğretmen, Kurum ve Admin için öğrenci seçimi kontrolü
+if ((role === ROLES.OGRETMEN || role === ROLES.INSTITUTION || role === ROLES.ADMIN) && !aktifOgrenciId) {
+  if (role === ROLES.OGRETMEN) {
+    alert("ℹ Lütfen önce bir öğrenci seçiniz.");
+    window.location.href = "teacher_panel.html";
+  } else if (role === ROLES.INSTITUTION) {
+    alert("ℹ Lütfen önce bir öğrenci seçiniz.");
+    window.location.href = "institution_panel.html";
+  } else if (role === ROLES.ADMIN) {
+    alert("ℹ Lütfen önce bir öğrenci seçiniz.");
+    window.location.href = "admin_panel.html";
+  }
+  throw new Error("Öğrenci seçilmedi.");
 }
 
 console.log("🎯 Tarihsel gelişim ekranı yüklendi → Rol:", role);
@@ -44,16 +53,34 @@ async function yukleFirestoreGecmis() {
       return;
     }
 
-    if (!teacherID || !aktifOgrenciId) return;
+    if (!aktifOgrenciId) return;
 
-    const yol = collection(
-      db,
-      "profiles",
-      teacherID,
-      "ogrenciler",
-      aktifOgrenciId,
-      "oyunSonuclari"
-    );
+    let yol = null;
+
+    // Öğretmen için: profiles/{teacherID}/ogrenciler/{ogrenciID}/oyunSonuclari
+    if (role === ROLES.OGRETMEN && teacherID) {
+      yol = collection(
+        db,
+        "profiles",
+        teacherID,
+        "ogrenciler",
+        aktifOgrenciId,
+        "oyunSonuclari"
+      );
+    }
+    // Kurum ve Admin için: profiles/{ogrenciID}/oyunSonuclari (direkt öğrenci profili)
+    else if (role === ROLES.INSTITUTION || role === ROLES.ADMIN) {
+      yol = collection(
+        db,
+        "profiles",
+        aktifOgrenciId,
+        "oyunSonuclari"
+      );
+    } else {
+      return;
+    }
+
+    if (!yol) return;
 
     const snap = await getDocs(yol);
     const temp = [];
@@ -70,6 +97,42 @@ async function yukleFirestoreGecmis() {
   } catch (err) {
     console.error("❌ Firestore geçmiş okunamadı:", err);
   }
+}
+
+// Öğrenci için önce Firestore, sonra LocalStorage
+async function yukleOgrenciGecmis() {
+  // Önce Firestore'dan çek
+  try {
+    if (db && uid) {
+      const yol = collection(
+        db,
+        "profiles",
+        uid,
+        "oyunSonuclari"
+      );
+      
+      const snap = await getDocs(yol);
+      const firestoreData = [];
+      
+      snap.forEach(doc => {
+        const data = doc.data();
+        if (data?.tarih) firestoreData.push(data);
+      });
+      
+      if (firestoreData.length > 0) {
+        gecmis = firestoreData.sort((a, b) => new Date(a.tarih) - new Date(b.tarih));
+        console.log("📥 Firestore geçmiş yüklendi (öğrenci - gelişim):", gecmis.length, "kayıt");
+        alanFiltreleriDoldur();
+        analizEt();
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn("⚠ Firestore'dan veri çekilemedi, LocalStorage deneniyor:", err);
+  }
+  
+  // Firestore'da veri yoksa LocalStorage'dan çek
+  yukleLocalGecmis();
 }
 
 function yukleLocalGecmis() {
@@ -458,8 +521,10 @@ alanFiltre?.addEventListener("change", () => analizEt());
 // =============================================================
 // 13) BAŞLAT
 // =============================================================
-if (role === ROLES.OGRETMEN) {
+if (role === ROLES.OGRETMEN || role === ROLES.INSTITUTION || role === ROLES.ADMIN) {
   yukleFirestoreGecmis();
+} else if (role === ROLES.OGRENCI) {
+  yukleOgrenciGecmis();
 } else {
   yukleLocalGecmis();
 }

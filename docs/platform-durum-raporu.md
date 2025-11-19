@@ -164,3 +164,4 @@ Tüm kritik modüller çalışır durumda ve platform kullanıma hazır. Kalan e
 **Platform şu anda production'a alınabilir durumda!** 🎉
 
 
+

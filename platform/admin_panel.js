@@ -8,13 +8,15 @@ console.log("🛠 admin_panel.js yüklendi");
 // 📌 Firebase + Router
 // -------------------------------------------------------------
 import { db } from "../data/firebaseConfig.js";
-import { ROLES } from "./router.js";
+import { ROLES } from "./globalConfig.js";
 
 import {
   collection,
   getDocs,
   doc,
   updateDoc,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { logout } from "../auth/auth.js";
@@ -103,7 +105,77 @@ async function listeleKullanicilar() {
   }
 }
 
+// -------------------------------------------------------------
+// 2B) TÜM ÖĞRENCİLERİ LİSTELE
+// -------------------------------------------------------------
+async function listeleOgrenciler() {
+  const div = document.getElementById("ogrenciListesi");
+  if (!div) {
+    console.warn("⚠ ogrenciListesi elementi bulunamadı.");
+    return;
+  }
+  
+  div.innerHTML = "<p>Yükleniyor...</p>";
+
+  try {
+    if (!db) {
+      console.error("❌ Firestore başlatılamadı!");
+      div.innerHTML = "<p>Veritabanı bağlantısı yok.</p>";
+      return;
+    }
+
+    const ref = collection(db, "profiles");
+    const q = query(ref, where("role", "==", ROLES.OGRENCI));
+    const snap = await getDocs(q);
+
+    div.innerHTML = "";
+
+    if (snap.empty) {
+      div.innerHTML = "<p>Henüz öğrenci kaydı bulunmuyor.</p>";
+      return;
+    }
+
+    snap.forEach(docu => {
+      const data = docu.data();
+      const id = docu.id;
+      const ad = data.username || data.fullName || data.ad || "İsimsiz Öğrenci";
+
+      const kart = document.createElement("div");
+      kart.className = "kullanici-kart";
+      kart.style.cursor = "pointer";
+
+      kart.innerHTML = `
+        <div style="flex:1;">
+            <strong>${ad}</strong><br>
+            <small>${data.email || "-"}</small>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <button class="btn-kaydet" onclick="ogrenciSec('${id}', '${ad}')" style="background:#27ae60;">
+              Analiz
+            </button>
+        </div>
+      `;
+
+      div.appendChild(kart);
+    });
+
+  } catch (err) {
+    console.error("⚠ Öğrenci listesi okunamadı:", err);
+    div.innerHTML = "<p>Hata oluştu.</p>";
+  }
+}
+
+// Öğrenci seç ve analiz sayfasına yönlendir
+window.ogrenciSec = function(studentId, studentName) {
+  localStorage.setItem("aktifOgrenciId", studentId);
+  localStorage.setItem("aktifOgrenci", studentName || "Bilinmiyor");
+  console.log("📌 Öğrenci seçildi:", studentId, studentName);
+  window.location.href = "analiz.html";
+};
+
 listeleKullanicilar();
+listeleOgrenciler();
 
 
 // -------------------------------------------------------------

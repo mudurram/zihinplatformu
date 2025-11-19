@@ -39,26 +39,178 @@
   <!-- Header header.js tarafından otomatik eklenecek -->
 
   <div class="panel-wrapper">
-    <h2>📩 Öğretmen Talepleri</h2>
-    <p>Kurumunuza katılmak isteyen öğretmenler burada listelenir.</p>
-    <ul id="kurumTalepListesi" class="talep-listesi">
-      <li>Henüz talep yok.</li>
-    </ul>
-  </div>
+    <h2 style="color:#1e3d59;margin-bottom:20px;">🏢 Kurum Paneli</h2>
+    
+    <!-- SEKMELER -->
+    <div class="sekme-grup" style="display:flex;gap:10px;margin-bottom:20px;border-bottom:2px solid #e0e0e0;">
+      <button class="sekme-btn active" data-sekme="talepler" style="padding:12px 20px;background:transparent;border:none;border-bottom:3px solid #4a90e2;color:#4a90e2;cursor:pointer;font-size:15px;font-weight:600;">📩 Talepler</button>
+      <button class="sekme-btn" data-sekme="ogretmenler" style="padding:12px 20px;background:transparent;border:none;border-bottom:3px solid transparent;color:#666;cursor:pointer;font-size:15px;">👩‍🏫 Öğretmenler</button>
+      <button class="sekme-btn" data-sekme="ogrenciler" style="padding:12px 20px;background:transparent;border:none;border-bottom:3px solid transparent;color:#666;cursor:pointer;font-size:15px;">👥 Öğrenciler</button>
+      <button class="sekme-btn" data-sekme="mesajlar" style="padding:12px 20px;background:transparent;border:none;border-bottom:3px solid transparent;color:#666;cursor:pointer;font-size:15px;">💬 Mesajlaşma</button>
+    </div>
 
-  <div class="panel-wrapper">
-    <h2>👩‍🏫 Aktif Öğretmenler</h2>
-    <ul id="kurumOgretmenListesi" class="talep-listesi">
-      <li>Kayıtlı öğretmen bulunmuyor.</li>
-    </ul>
-  </div>
+    <!-- TALEPLER SEKMESİ -->
+    <div id="sekme-talepler" class="sekme-icerik active">
+    <h2 style="color:#1e3d59;margin-bottom:20px;">📩 Davet Yönetimi</h2>
+    
+    <!-- Davet Gönder -->
+    <div style="background:#f0f8ff;padding:20px;border-radius:12px;margin-bottom:30px;border:2px solid #4a90e2;">
+      <h3 style="margin-top:0;color:#1e3d59;">➕ Davet Gönder</h3>
+      <p style="color:#666;font-size:14px;margin-bottom:15px;">
+        Kullanıcı adını girerek öğretmen veya öğrencileri davet edebilirsiniz.
+      </p>
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+        <input 
+          type="text" 
+          id="davetUsernameInput" 
+          placeholder="Kullanıcı adı girin (öğretmen veya öğrenci)"
+          style="flex:1;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+        />
+        <button 
+          id="davetGonderBtn" 
+          style="padding:12px 24px;background:#4a90e2;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;"
+          onmouseover="this.style.background='#3578c6'"
+          onmouseout="this.style.background='#4a90e2'"
+        >
+          📤 Davet Gönder
+        </button>
+      </div>
+      <div id="davetMesaji" style="font-size:14px;font-weight:500;"></div>
+    </div>
+    
+    <!-- Alınan Davetler -->
+    <div style="margin-bottom:30px;">
+      <h3 style="color:#1e3d59;margin-bottom:10px;font-size:18px;">📥 Alınan Davetler</h3>
+      <p style="font-size:14px;color:#666;margin-bottom:15px;">
+        Kurumunuza katılmak isteyen öğretmen ve öğrenciler burada listelenir.
+      </p>
+      <ul id="kurumAlinanTalepler" class="talep-listesi">
+        <li style="padding:15px;text-align:center;color:#999;">Yükleniyor...</li>
+      </ul>
+    </div>
 
-  <div class="panel-wrapper">
-    <h2>➕ Öğretmen Davet Et</h2>
-    <p>Kullanıcı adını girerek öğretmenleri davet edin.</p>
-    <div class="form-group">
-      <input type="text" id="ogretmenUsernameInput" placeholder="Öğretmen kullanıcı adı">
-      <button id="ogretmenDavetBtn">Davet Gönder</button>
+    <!-- Gönderilen Davetler -->
+    <div>
+      <h3 style="color:#1e3d59;margin-bottom:10px;font-size:18px;">📤 Gönderilen Davetler</h3>
+      <p style="font-size:14px;color:#666;margin-bottom:15px;">
+        Öğretmen ve öğrencilere gönderdiğiniz davetlerin durumunu buradan takip edebilirsiniz.
+      </p>
+      <ul id="kurumGonderilenTalepler" class="talep-listesi">
+        <li style="padding:15px;text-align:center;color:#999;">Yükleniyor...</li>
+      </ul>
+    </div>
+    </div>
+
+    <!-- ÖĞRETMENLER SEKMESİ -->
+    <div id="sekme-ogretmenler" class="sekme-icerik" style="display:none;">
+      <h2>✅ Kabul Edilen Öğretmenler</h2>
+      <ul id="kurumOgretmenListesi" class="talep-listesi">
+        <li>Kayıtlı öğretmen bulunmuyor.</li>
+      </ul>
+    </div>
+
+    <!-- ÖĞRENCİLER SEKMESİ -->
+    <div id="sekme-ogrenciler" class="sekme-icerik" style="display:none;">
+      <h2>👥 Öğrenciler</h2>
+      <p style="font-size:14px;color:#666;margin-bottom:15px;">
+        Kurumunuzdaki öğretmenlerin öğrencilerini buradan görüntüleyebilir ve analizlerini inceleyebilirsiniz.
+      </p>
+      <ul id="kurumOgrenciListesi" class="talep-listesi">
+        <li>Yükleniyor...</li>
+      </ul>
+    </div>
+
+    <!-- MESAJLAŞMA SEKMESİ -->
+    <div id="sekme-mesajlar" class="sekme-icerik" style="display:none;">
+      <h3>💬 Mesajlaşma</h3>
+      
+      <!-- Role Seçimi -->
+      <div style="margin-bottom:20px;">
+        <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">Mesaj Göndermek İstediğiniz Rol:</label>
+        <div style="display:flex;gap:15px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="radio" name="mesajRolSecimi" value="ogrenci" id="rolOgrenci" style="cursor:pointer;">
+            <span>👩‍🎓 Öğrenci</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="radio" name="mesajRolSecimi" value="ogretmen" id="rolOgretmen" style="cursor:pointer;">
+            <span>👩‍🏫 Öğretmen</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="radio" name="mesajRolSecimi" value="herikisi" id="rolHerIkisi" style="cursor:pointer;">
+            <span>👥 Her İkisi</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Kullanıcı Seçim Alanı -->
+      <div id="mesajKullaniciSecimAlani" style="display:none;margin-bottom:20px;">
+        <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">Alıcı Seçimi:</label>
+        
+        <!-- Kullanıcı Adı ile Arama -->
+        <div style="margin-bottom:15px;">
+          <input 
+            type="text" 
+            id="mesajKullaniciAdiInput" 
+            placeholder="Kullanıcı adı girin (örn: ahmet.ogrenci)"
+            style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;"
+          >
+          <button 
+            id="mesajKullaniciAdiAraBtn" 
+            style="margin-top:8px;padding:8px 16px;background:#27ae60;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px;"
+          >
+            🔍 Ara ve Seç
+          </button>
+        </div>
+
+        <!-- VEYA Liste ile Seçim -->
+        <div style="margin-top:15px;">
+          <label style="display:block;margin-bottom:8px;font-size:13px;color:#666;">VEYA listeden seçin:</label>
+          <select id="mesajKullaniciSelect" style="width:100%;padding:10px;border-radius:8px;font-size:14px;">
+            <option value="">Kullanıcı seçin...</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Mesaj Gönderme Alanı -->
+      <div id="mesajGondermeAlani" style="display:none;margin-top:20px;">
+        <div style="background:#f0f7ff;padding:12px;border-radius:8px;margin-bottom:15px;border-left:4px solid #4a90e2;">
+          <strong>Alıcı:</strong> <span id="mesajAlıcıBilgisi" style="color:#4a90e2;"></span>
+        </div>
+
+        <div id="mesajKutu" style="height:400px;overflow-y:auto;border:1px solid #ddd;border-radius:8px;padding:15px;margin-bottom:15px;background:#f9f9f9;"></div>
+        
+        <div style="display:flex;gap:10px;">
+          <textarea 
+            id="mesajInput" 
+            rows="3"
+            style="flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;resize:vertical;font-family:inherit;" 
+            placeholder="Mesajınızı yazın..."
+          ></textarea>
+          <button 
+            id="mesajGonderBtn" 
+            style="padding:10px 20px;background:#4a90e2;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;align-self:flex-end;"
+          >
+            📤 Gönder
+          </button>
+        </div>
+      </div>
+
+      <!-- Mesaj Arşivi -->
+      <div style="margin-top:30px;border-top:2px solid #e0e0e0;padding-top:20px;">
+        <h4 style="color:#1e3d59;margin-bottom:15px;">📚 Mesaj Arşivi</h4>
+        <div style="display:flex;gap:10px;margin-bottom:15px;">
+          <button id="arsivGonderilenBtn" style="padding:8px 16px;background:#27ae60;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;">
+            📤 Gönderilen Mesajlar
+          </button>
+          <button id="arsivSilinenBtn" style="padding:8px 16px;background:#e74c3c;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;">
+            🗑️ Silinen Mesajlar
+          </button>
+        </div>
+        <div id="mesajArsivAlani" style="max-height:300px;overflow-y:auto;border:1px solid #ddd;border-radius:8px;padding:15px;background:#f9f9f9;">
+          <p style="text-align:center;color:#999;">Arşiv görüntülemek için yukarıdaki butonlardan birini seçin.</p>
+        </div>
+      </div>
     </div>
   </div>
 

@@ -6,6 +6,8 @@
 import { GLOBAL, ROLES, BRAIN_AREAS, GUNLUK_HAYAT_KARSILIKLARI } from "./globalConfig.js";
 import { aiAdvice } from "../engine/aiAdvisor.js";
 import { addComment, getCommentsByGameResult, updateComment, deleteComment } from "../data/commentService.js";
+import { db } from "../data/firebaseConfig.js";
+import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ==================================================================
 // 🔵 GLOBAL SEKME DEĞİŞTİRME FONKSİYONU (HTML onclick için)
@@ -19,59 +21,241 @@ import { addComment, getCommentsByGameResult, updateComment, deleteComment } fro
 const role = localStorage.getItem("role");
 const aktifOgrenciId = localStorage.getItem("aktifOgrenciId");
 
-if (role === ROLES.OGRETMEN && !aktifOgrenciId) {
-  alert("ℹ Önce bir öğrenci seçmeniz gerekiyor.");
-  window.location.href = "teacher_panel.html";
-  throw new Error("Öğretmen öğrenci seçmeden sonuç ekranına erişemez.");
+// Öğretmen, Kurum ve Admin için öğrenci seçimi kontrolü
+if ((role === ROLES.OGRETMEN || role === ROLES.INSTITUTION || role === ROLES.ADMIN) && !aktifOgrenciId) {
+  if (role === ROLES.OGRETMEN) {
+    alert("ℹ Önce bir öğrenci seçmeniz gerekiyor.");
+    window.location.href = "teacher_panel.html";
+  } else if (role === ROLES.INSTITUTION) {
+    alert("ℹ Önce bir öğrenci seçmeniz gerekiyor.");
+    window.location.href = "institution_panel.html";
+  } else if (role === ROLES.ADMIN) {
+    alert("ℹ Önce bir öğrenci seçmeniz gerekiyor.");
+    window.location.href = "admin_panel.html";
+  }
+  throw new Error("Öğrenci seçilmeden sonuç ekranına erişilemez.");
 }
 
-if (role === ROLES.ADMIN || role === ROLES.EDITOR) {
-  alert("⛔ Bu ekran admin/editor için kapalıdır.");
+// Editor için erişim kapalı
+if (role === ROLES.EDITOR) {
+  alert("⛔ Bu ekran editor için kapalıdır.");
   window.location.href = "index.html";
-  throw new Error("Admin/Editor yetkisiz sonuç ekranı erişimi.");
+  throw new Error("Editor yetkisiz sonuç ekranı erişimi.");
 }
 
 // -------------------------------------------------------------
-// 2) 📌 Yerel Oyun Geçmişi → Son Kayıt
+// 2) 📌 Veri Yükleme - Rol Bazlı
 // -------------------------------------------------------------
-let gecmis;
-try {
-  gecmis = JSON.parse(localStorage.getItem("oyunGecmisi")) || [];
-  if (!Array.isArray(gecmis)) throw 0;
-} catch {
-  console.warn("⚠ oyunGecmisi bozuk → sıfırlandı.");
-  gecmis = [];
+let gecmis = [];
+let son = null;
+const teacherID = localStorage.getItem("teacherID");
+const uid = localStorage.getItem("uid");
+
+// Öğretmen/Kurum/Admin için Firestore'dan veri çek
+async function yukleFirestoreSonuc() {
+  try {
+    if (!db || !aktifOgrenciId) {
+      console.warn("⚠ Firestore veya öğrenci bilgisi eksik.");
+      return null;
+    }
+
+    let yol = null;
+
+    // Öğretmen için: profiles/{teacherID}/ogrenciler/{ogrenciID}/oyunSonuclari
+    if (role === ROLES.OGRETMEN && teacherID) {
+      yol = collection(
+        db,
+        "profiles",
+        teacherID,
+        "ogrenciler",
+        aktifOgrenciId,
+        "oyunSonuclari"
+      );
+    }
+    // Kurum ve Admin için: profiles/{ogrenciID}/oyunSonuclari (direkt öğrenci profili)
+    else if (role === ROLES.INSTITUTION || role === ROLES.ADMIN) {
+      yol = collection(
+        db,
+        "profiles",
+        aktifOgrenciId,
+        "oyunSonuclari"
+      );
+    } else {
+      console.warn("⚠ Geçersiz rol veya eksik bilgi.");
+      return null;
+    }
+
+    if (!yol) {
+      console.warn("⚠ Firestore yolu oluşturulamadı.");
+      return null;
+    }
+
+    // En son kaydı al
+    const q = query(yol, orderBy("kaydedildi", "desc"), limit(1));
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      console.warn("⚠ Firestore'da sonuç bulunamadı.");
+      return null;
+    }
+
+    const data = snap.docs[0].data();
+    console.log("📥 Firestore'dan sonuç yüklendi:", data);
+    return data;
+
+  } catch (err) {
+    console.error("❌ Firestore sonuç okunamadı:", err);
+    return null;
+  }
 }
 
-const son = gecmis.at(-1);
+// Öğrenci için LocalStorage'dan veri çek
+function yukleLocalSonuc() {
+  try {
+    const gecmisStr = localStorage.getItem("oyunGecmisi");
+    if (gecmisStr) {
+      gecmis = JSON.parse(gecmisStr);
+      if (!Array.isArray(gecmis)) {
+        console.warn("⚠ oyunGecmisi dizi değil, sıfırlandı.");
+        gecmis = [];
+      } else {
+        console.log("📦 localStorage'dan oyunGecmisi okundu:", gecmis.length, "kayıt");
+      }
+    } else {
+      console.warn("⚠ localStorage'da oyunGecmisi bulunamadı.");
+      gecmis = [];
+    }
+  } catch (err) {
+    console.error("❌ oyunGecmisi parse hatası:", err);
+    console.warn("⚠ oyunGecmisi bozuk → sıfırlandı.");
+    gecmis = [];
+  }
 
-if (!son) {
-  alert("Henüz bir oyun sonucu kayıtlı değil.");
-  window.location.href = "index.html";
-  throw new Error("Sonuç bulunamadı.");
+  return gecmis.at(-1) || null;
+}
+
+// Öğrenci için Firestore'dan sonuç çek
+async function yukleOgrenciSonuc() {
+  try {
+    if (db && uid) {
+      const yol = collection(
+        db,
+        "profiles",
+        uid,
+        "oyunSonuclari"
+      );
+      
+      // En son kaydı al
+      const q = query(yol, orderBy("kaydedildi", "desc"), limit(1));
+      const snap = await getDocs(q);
+      
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        console.log("📥 Firestore'dan sonuç yüklendi (öğrenci):", data);
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn("⚠ Firestore'dan veri çekilemedi, LocalStorage deneniyor:", err);
+  }
+  
+  // Firestore'da yoksa LocalStorage'dan çek
+  return yukleLocalSonuc();
+}
+
+// Veri yükleme - rol bazlı
+if (role === ROLES.OGRETMEN || role === ROLES.INSTITUTION || role === ROLES.ADMIN) {
+  // Öğretmen/Kurum/Admin için Firestore'dan yükle
+  yukleFirestoreSonuc().then(firestoreSonuc => {
+    if (firestoreSonuc) {
+      son = firestoreSonuc;
+      console.log("📊 Son oyun sonucu (Firestore):", son);
+      baslatSayfa();
+    } else {
+      // Firestore'da yoksa localStorage'dan dene
+      son = yukleLocalSonuc();
+      if (son) {
+        console.log("📊 Son oyun sonucu (LocalStorage):", son);
+        baslatSayfa();
+      } else {
+        alert("Henüz bir oyun sonucu kayıtlı değil.");
+        if (role === ROLES.INSTITUTION) {
+          window.location.href = "institution_panel.html";
+        } else if (role === ROLES.ADMIN) {
+          window.location.href = "admin_panel.html";
+        } else {
+          window.location.href = "analiz.html";
+        }
+      }
+    }
+  });
+} else if (role === ROLES.OGRENCI) {
+  // Öğrenci için önce Firestore, sonra LocalStorage
+  yukleOgrenciSonuc().then(ogrenciSonuc => {
+    if (ogrenciSonuc) {
+      son = ogrenciSonuc;
+      console.log("📊 Son oyun sonucu (öğrenci):", son);
+      baslatSayfa();
+    } else {
+      alert("Henüz bir oyun sonucu kayıtlı değil.");
+      window.location.href = "index.html";
+    }
+  });
+} else {
+  // Diğer roller için LocalStorage'dan yükle
+  son = yukleLocalSonuc();
+  console.log("📊 Son oyun sonucu:", son);
+
+  if (!son) {
+    alert("Henüz bir oyun sonucu kayıtlı değil.");
+    window.location.href = "index.html";
+    throw new Error("Sonuç bulunamadı.");
+  }
+  
+  baslatSayfa();
 }
 
 // -------------------------------------------------------------
-// 3) 📌 Oyun Adı & Meta
+// 3) 📌 Oyun Adı & Meta (son değişkeni hazır olduğunda)
 // -------------------------------------------------------------
-const oyunKod = son.oyun || "bilinmiyor";
-const oyunAdi = GLOBAL.OYUN_ADLARI?.[oyunKod] || 
-                (oyunKod && oyunKod !== "bilinmiyor" ? oyunKod.replace(/_/g, " ").toUpperCase() : "Oyun Sonucu");
-const oyunBaslikEl = document.getElementById("oyunBaslik");
-if (oyunBaslikEl) oyunBaslikEl.textContent = oyunAdi;
+// Oyun bilgisi için global değişken (yukleOyunOzel ve yukleCokluAlan için)
+let oyunMeta = {};
+let oyunKod = "";
 
-// Oyun meta bilgisi (GAME_MAP'ten)
-const oyunMeta = GLOBAL.GAME_MAP?.[oyunKod] || {};
+function yukleOyunBilgisi() {
+  if (!son) return {};
+  
+  oyunKod = son.oyun || "bilinmiyor";
+  const oyunAdi = GLOBAL.OYUN_ADLARI?.[oyunKod] || 
+                  (oyunKod && oyunKod !== "bilinmiyor" ? oyunKod.replace(/_/g, " ").toUpperCase() : "Oyun Sonucu");
+  const oyunBaslikEl = document.getElementById("oyunBaslik");
+  if (oyunBaslikEl) oyunBaslikEl.textContent = oyunAdi;
+
+  // Oyun meta bilgisi (GAME_MAP'ten)
+  oyunMeta = GLOBAL.GAME_MAP?.[oyunKod] || {};
+  return oyunMeta;
+}
 
 // -------------------------------------------------------------
 // 4) 📌 Sekme Yönetimi ve Tüm İçerik Yükleme
 // -------------------------------------------------------------
 function initSonucSayfasi() {
+  if (!son) {
+    console.error("❌ Sonuç verisi yüklenmedi!");
+    return;
+  }
+  
+  // Oyun bilgisini yükle
+  oyunMeta = yukleOyunBilgisi();
+  
   // İçerikleri yükle
   yukleTemelSkor();
   yukleCokluAlan();
   yukleOyunOzel();
   yuklePerformans();
+  
+  // Yorum sistemini başlat
+  yukleYorumSistemi();
 }
 
 // -------------------------------------------------------------
@@ -108,22 +292,55 @@ function yukleTemelSkor() {
     console.error("yanlis elementi bulunamadı!");
   }
   
-  // Süre
-  const sureDegeri = temelSkor.sure || son.sure || 0;
+  // Süre (saniye cinsinden)
+  // Önce temel_skor'dan, sonra ana objeden, sonra timeElapsed'dan
+  let sureDegeri = temelSkor.sure || son.sure || son.timeElapsed || 0;
+  
+  // Eğer hiçbiri yoksa, timeLimit'ten hesapla (varsa)
+  if (!sureDegeri && son.timeLimit) {
+    sureDegeri = son.timeLimit;
+  }
+  
   if (sureEl) {
-    sureEl.textContent = sureDegeri > 0 ? `${sureDegeri} saniye` : "-";
+    sureEl.textContent = sureDegeri > 0 ? `${Math.round(sureDegeri)} saniye` : "-";
     console.log("Süre yazıldı:", sureDegeri);
   }
   
-  // Ortalama tepki süresi
-  const ortalamaTepkiMs = temelSkor.ortalamaTepki || temelSkor.reaction_avg || null;
+  // Ortalama tepki süresi (ms cinsinden)
+  // Önce temel_skor'dan, sonra trials'dan hesapla
+  let ortalamaTepkiMs = temelSkor.ortalamaTepki || temelSkor.reaction_avg || null;
+  
+  // Eğer temel_skor'da yoksa, trials'dan hesapla
+  if (!ortalamaTepkiMs && Array.isArray(son.trials) && son.trials.length > 0) {
+    const dogruTrials = son.trials.filter(t => t.correct && typeof t.reaction_ms === "number");
+    if (dogruTrials.length > 0) {
+      const toplam = dogruTrials.reduce((sum, t) => sum + (t.reaction_ms || 0), 0);
+      ortalamaTepkiMs = Math.round(toplam / dogruTrials.length);
+      console.log("Ortalama tepki trials'dan hesaplandı:", ortalamaTepkiMs);
+    }
+  }
+  
   if (ortalamaTepkiEl) {
     ortalamaTepkiEl.textContent = ortalamaTepkiMs ? `${Math.round(ortalamaTepkiMs)} ms` : "-";
     console.log("Ortalama tepki yazıldı:", ortalamaTepkiMs);
   }
   
-  // Öğrenme hızı
-  const ogrenmeHiziDegeri = temelSkor.ogrenmeHizi || temelSkor.learning_velocity || null;
+  // Öğrenme hızı (0-100 arası)
+  let ogrenmeHiziDegeri = temelSkor.ogrenmeHizi || temelSkor.learning_velocity || null;
+  
+  // Eğer temel_skor'da yoksa, hesapla
+  if (ogrenmeHiziDegeri === null && Array.isArray(son.trials) && son.trials.length >= 4) {
+    const ilkYari = son.trials.slice(0, Math.floor(son.trials.length / 2));
+    const ikinciYari = son.trials.slice(Math.floor(son.trials.length / 2));
+    const ilkDogru = ilkYari.filter(t => t.correct).length;
+    const ikinciDogru = ikinciYari.filter(t => t.correct).length;
+    const ilkOrt = ilkYari.length > 0 ? ilkDogru / ilkYari.length : 0;
+    const ikinciOrt = ikinciYari.length > 0 ? ikinciDogru / ikinciYari.length : 0;
+    const gelisim = ikinciOrt - ilkOrt;
+    ogrenmeHiziDegeri = Math.round(Math.max(0, Math.min(100, 50 + gelisim * 100)));
+    console.log("Öğrenme hızı hesaplandı:", ogrenmeHiziDegeri);
+  }
+  
   if (ogrenmeHiziEl) {
     ogrenmeHiziEl.textContent = ogrenmeHiziDegeri !== null ? `${ogrenmeHiziDegeri} / 100` : "-";
     console.log("Öğrenme hızı yazıldı:", ogrenmeHiziDegeri);
@@ -204,127 +421,450 @@ function yukleTemelSkor() {
 // 6) 📌 2. ÇOKLU ALAN SEKMESİ
 // -------------------------------------------------------------
 function yukleCokluAlan() {
+  console.log("🔵 yukleCokluAlan çağrıldı");
+  console.log("📊 son.coklu_alan:", son.coklu_alan);
+  
   const cokluAlan = son.coklu_alan || {};
   const cokluAlanListe = document.getElementById("cokluAlanListe");
+  
+  console.log("📋 cokluAlan objesi:", cokluAlan);
+  console.log("📋 cokluAlanListe elementi:", cokluAlanListe);
+  console.log("📋 BRAIN_AREAS:", BRAIN_AREAS);
 
-if (cokluAlanListe) {
-  const alanlar = Object.keys(BRAIN_AREAS || {});
-  if (alanlar.length === 0) {
-    cokluAlanListe.innerHTML = "<p>Çoklu alan verisi henüz hesaplanmadı.</p>";
-  } else {
-    let html = "<ul style='list-style:none; padding:0;'>";
-    alanlar.forEach(alanKey => {
-      const skor = cokluAlan[alanKey] || 0;
-      const alanAd = BRAIN_AREAS[alanKey]?.ad || alanKey;
-      html += `<li style='padding:8px; margin:5px 0; background:#f5f5f5; border-radius:6px;'>
-        <strong>${alanAd}:</strong> ${Math.round(skor)} / 100
-      </li>`;
+  if (cokluAlanListe) {
+    // Oyunun modüllerini al (hangi alanlara veri gönderiyor)
+    let moduller = oyunMeta.moduller || [];
+    
+    // Eğer moduller boşsa, son.moduller'den al
+    if (moduller.length === 0) {
+      moduller = son.moduller || [];
+    }
+    
+    console.log("📋 Oyunun modulleri:", moduller);
+    
+    // Modül adlarını BRAIN_AREAS key'lerine çevir
+    const modulMap = {
+      "attention": "attention", "dikkat": "attention",
+      "perception": "perception", "algisal_islemleme": "perception", "algisal": "perception",
+      "executive": "executive", "yuruteci_islev": "executive", "yuruteci": "executive",
+      "logic": "logic", "mantik": "logic", "mantiksal": "logic",
+      "memory": "memory", "hafiza": "memory",
+      "literacy": "literacy", "okuma": "literacy",
+      "dyslexia": "dyslexia", "disleksi": "dyslexia",
+      "writing": "writing", "yazi": "writing",
+      "math": "math", "matematik": "math",
+      "emotional": "emotional", "duygusal": "emotional",
+      "social": "social", "sosyal": "social",
+      "comprehension": "comprehension", "anlama": "comprehension"
+    };
+    
+    // Sadece oyunun veri gönderdiği alanları filtrele
+    const gosterilecekAlanlar = moduller.map(modul => {
+      return modulMap[modul] || modul;
+    }).filter(alanKey => {
+      // BRAIN_AREAS'ta bu alan var mı kontrol et
+      return BRAIN_AREAS[alanKey] !== undefined;
     });
-    html += "</ul>";
-    cokluAlanListe.innerHTML = html;
+    
+    console.log("📋 Gösterilecek alanlar:", gosterilecekAlanlar);
+    
+    if (gosterilecekAlanlar.length === 0) {
+      console.warn("⚠ Gösterilecek alan bulunamadı!");
+      cokluAlanListe.innerHTML = "<p>Bu oyun için çoklu alan verisi bulunamadı.</p>";
+    } else {
+      // Eğer coklu_alan boşsa, oyun meta'dan hesapla
+      let gosterilecekAlan = {};
+      
+      // Önce mevcut coklu_alan'dan sadece gösterilecek alanları al
+      gosterilecekAlanlar.forEach(alanKey => {
+        if (cokluAlan[alanKey] !== undefined) {
+          gosterilecekAlan[alanKey] = cokluAlan[alanKey];
+        }
+      });
+      
+      // Eğer hiç veri yoksa, hesapla
+      if (Object.keys(gosterilecekAlan).length === 0) {
+        console.log("⚠ coklu_alan boş, oyun meta'dan hesaplanıyor...");
+        const total = (son.dogru || 0) + (son.yanlis || 0);
+        const accuracy = total > 0 ? (son.dogru || 0) / total : 0;
+        const temelSkor = son.temel_skor || {};
+        const avgReaction = temelSkor.ortalamaTepki || temelSkor.reaction_avg || 1000;
+        const reactionScore = Math.max(0, Math.min(100, 100 - (avgReaction / 20)));
+        
+        gosterilecekAlanlar.forEach(alanKey => {
+          let skor = 0;
+          
+          if (alanKey === "attention") {
+            skor = Math.round(accuracy * 60 + reactionScore * 0.4);
+          } else if (alanKey === "perception") {
+            skor = Math.round(accuracy * 70 + reactionScore * 0.3);
+          } else if (alanKey === "executive") {
+            skor = Math.round(accuracy * 50 + reactionScore * 0.5);
+          } else if (alanKey === "logic") {
+            skor = Math.round(accuracy * 80 + reactionScore * 0.2);
+          } else {
+            skor = Math.round(accuracy * 70 + reactionScore * 0.3);
+          }
+          
+          gosterilecekAlan[alanKey] = Math.max(0, Math.min(100, skor));
+        });
+        
+        console.log("✅ Hesaplanan coklu_alan:", gosterilecekAlan);
+      }
+      
+      let html = "<ul style='list-style:none; padding:0;'>";
+      gosterilecekAlanlar.forEach(alanKey => {
+        const skor = gosterilecekAlan[alanKey] || 0;
+        const alanAd = BRAIN_AREAS[alanKey]?.ad || alanKey;
+        html += `<li style='padding:8px; margin:5px 0; background:#f5f5f5; border-radius:6px;'>
+          <strong>${alanAd}:</strong> ${Math.round(skor)} / 100
+        </li>`;
+      });
+      html += "</ul>";
+      cokluAlanListe.innerHTML = html;
+      console.log("✅ Çoklu alan listesi oluşturuldu,", gosterilecekAlanlar.length, "alan gösterildi");
+    }
+  } else {
+    console.error("❌ cokluAlanListe elementi bulunamadı!");
   }
-}
 
-// 12 Alan Radar Grafiği
-const cokluAlanRadar = document.getElementById("cokluAlanRadar");
-if (cokluAlanRadar && window.Chart) {
-  // Önceki chart'ı destroy et (varsa)
-  const existingChart = Chart.getChart(cokluAlanRadar);
-  if (existingChart) {
-    existingChart.destroy();
-  }
+  // Radar Grafiği - Sadece oyunun veri gönderdiği alanlar
+  const cokluAlanRadar = document.getElementById("cokluAlanRadar");
+  console.log("📊 cokluAlanRadar elementi:", cokluAlanRadar);
+  
+  if (cokluAlanRadar && window.Chart) {
+    // Önceki chart'ı destroy et (varsa)
+    const existingChart = Chart.getChart(cokluAlanRadar);
+    if (existingChart) {
+      existingChart.destroy();
+    }
 
-  const alanlar = Object.keys(BRAIN_AREAS || {});
-  const labels = alanlar.map(k => BRAIN_AREAS[k]?.ad || k).slice(0, 12);
-  const data = alanlar.map(k => cokluAlan[k] || 0).slice(0, 12);
+    // Oyunun modüllerini al (yukarıda zaten hesaplandı)
+    let moduller = oyunMeta.moduller || [];
+    if (moduller.length === 0) {
+      moduller = son.moduller || [];
+    }
+    
+    const modulMap = {
+      "attention": "attention", "dikkat": "attention",
+      "perception": "perception", "algisal_islemleme": "perception", "algisal": "perception",
+      "executive": "executive", "yuruteci_islev": "executive", "yuruteci": "executive",
+      "logic": "logic", "mantik": "logic", "mantiksal": "logic",
+      "memory": "memory", "hafiza": "memory",
+      "literacy": "literacy", "okuma": "literacy",
+      "dyslexia": "dyslexia", "disleksi": "dyslexia",
+      "writing": "writing", "yazi": "writing",
+      "math": "math", "matematik": "math",
+      "emotional": "emotional", "duygusal": "emotional",
+      "social": "social", "sosyal": "social",
+      "comprehension": "comprehension", "anlama": "comprehension"
+    };
+    
+    // Sadece oyunun veri gönderdiği alanları filtrele
+    const gosterilecekAlanlarRadar = moduller.map(modul => {
+      return modulMap[modul] || modul;
+    }).filter(alanKey => {
+      return BRAIN_AREAS[alanKey] !== undefined;
+    });
 
-  new Chart(cokluAlanRadar, {
-    type: "radar",
-    data: {
-      labels,
-      datasets: [{
-        label: "Zihin Alanları",
-        data,
-        borderColor: "#1E88E5",
-        backgroundColor: "rgba(30, 136, 229, 0.25)",
-        borderWidth: 2
-      }]
-    },
-    options: {
-      scales: {
-        r: {
-          min: 0,
-          max: 100,
-          ticks: { stepSize: 20 }
+    // Eğer coklu_alan boşsa, hesapla
+    let gosterilecekAlanRadar = {};
+    gosterilecekAlanlarRadar.forEach(alanKey => {
+      if (cokluAlan[alanKey] !== undefined) {
+        gosterilecekAlanRadar[alanKey] = cokluAlan[alanKey];
+      }
+    });
+    
+    if (Object.keys(gosterilecekAlanRadar).length === 0) {
+      const total = (son.dogru || 0) + (son.yanlis || 0);
+      const accuracy = total > 0 ? (son.dogru || 0) / total : 0;
+      const temelSkor = son.temel_skor || {};
+      const avgReaction = temelSkor.ortalamaTepki || temelSkor.reaction_avg || 1000;
+      const reactionScore = Math.max(0, Math.min(100, 100 - (avgReaction / 20)));
+      
+      gosterilecekAlanlarRadar.forEach(alanKey => {
+        let skor = 0;
+        
+        if (alanKey === "attention") {
+          skor = Math.round(accuracy * 60 + reactionScore * 0.4);
+        } else if (alanKey === "perception") {
+          skor = Math.round(accuracy * 70 + reactionScore * 0.3);
+        } else if (alanKey === "executive") {
+          skor = Math.round(accuracy * 50 + reactionScore * 0.5);
+        } else if (alanKey === "logic") {
+          skor = Math.round(accuracy * 80 + reactionScore * 0.2);
+        } else {
+          skor = Math.round(accuracy * 70 + reactionScore * 0.3);
+        }
+        
+        gosterilecekAlanRadar[alanKey] = Math.max(0, Math.min(100, skor));
+      });
+    }
+
+    // Sadece gösterilecek alanlar için labels ve data oluştur
+    const labels = gosterilecekAlanlarRadar.map(k => BRAIN_AREAS[k]?.ad || k);
+    const data = gosterilecekAlanlarRadar.map(k => gosterilecekAlanRadar[k] || 0);
+    
+    console.log("📊 Radar grafik verileri:", { labels, data });
+
+    new Chart(cokluAlanRadar, {
+      type: "radar",
+      data: {
+        labels,
+        datasets: [{
+          label: "Zihin Alanları",
+          data,
+          borderColor: "#1E88E5",
+          backgroundColor: "rgba(30, 136, 229, 0.25)",
+          borderWidth: 2
+        }]
+      },
+      options: {
+        scales: {
+          r: {
+            min: 0,
+            max: 100,
+            ticks: { stepSize: 20 }
+          }
         }
       }
+    });
+  }
+
+  // Günlük hayat karşılığı (Çoklu) - Sadece gösterilen alanlar için
+  const gunlukHayatCoklu = document.getElementById("gunlukHayatCoklu");
+  
+  // Oyunun modüllerini al (yukarıda zaten hesaplandı)
+  let modullerFinal = oyunMeta.moduller || [];
+  if (modullerFinal.length === 0) {
+    modullerFinal = son.moduller || [];
+  }
+  
+  const modulMapFinal = {
+    "attention": "attention", "dikkat": "attention",
+    "perception": "perception", "algisal_islemleme": "perception", "algisal": "perception",
+    "executive": "executive", "yuruteci_islev": "executive", "yuruteci": "executive",
+    "logic": "logic", "mantik": "logic", "mantiksal": "logic",
+    "memory": "memory", "hafiza": "memory",
+    "literacy": "literacy", "okuma": "literacy",
+    "dyslexia": "dyslexia", "disleksi": "dyslexia",
+    "writing": "writing", "yazi": "writing",
+    "math": "math", "matematik": "math",
+    "emotional": "emotional", "duygusal": "emotional",
+    "social": "social", "sosyal": "social",
+    "comprehension": "comprehension", "anlama": "comprehension"
+  };
+  
+  // Sadece oyunun veri gönderdiği alanları filtrele
+  const gosterilecekAlanlarFinal = modullerFinal.map(modul => {
+    return modulMapFinal[modul] || modul;
+  }).filter(alanKey => {
+    return BRAIN_AREAS[alanKey] !== undefined;
+  });
+  
+  // Sadece gösterilecek alanlar için veri topla
+  let gosterilecekAlanFinal = {};
+  gosterilecekAlanlarFinal.forEach(alanKey => {
+    if (cokluAlan[alanKey] !== undefined) {
+      gosterilecekAlanFinal[alanKey] = cokluAlan[alanKey];
     }
   });
-}
-
-// Günlük hayat karşılığı (Çoklu)
-const gunlukHayatCoklu = document.getElementById("gunlukHayatCoklu");
-if (gunlukHayatCoklu && Object.keys(cokluAlan).length > 0) {
-  const enYuksek = Object.entries(cokluAlan).sort((a, b) => b[1] - a[1])[0];
-  if (enYuksek) {
-    const alanAd = BRAIN_AREAS[enYuksek[0]]?.ad || enYuksek[0];
-    gunlukHayatCoklu.textContent = `💡 En güçlü alanın: ${alanAd} (${Math.round(enYuksek[1])}/100). Bu alan günlük hayatta problem çözme ve öğrenme süreçlerinde avantaj sağlar.`;
-    gunlukHayatCoklu.style.display = "block";
+  
+  // Eğer coklu_alan boşsa, hesapla
+  if (Object.keys(gosterilecekAlanFinal).length === 0) {
+    const total = (son.dogru || 0) + (son.yanlis || 0);
+    const accuracy = total > 0 ? (son.dogru || 0) / total : 0;
+    const temelSkor = son.temel_skor || {};
+    const avgReaction = temelSkor.ortalamaTepki || temelSkor.reaction_avg || 1000;
+    const reactionScore = Math.max(0, Math.min(100, 100 - (avgReaction / 20)));
+    
+    gosterilecekAlanlarFinal.forEach(alanKey => {
+      let skor = 0;
+      
+      if (alanKey === "attention") {
+        skor = Math.round(accuracy * 60 + reactionScore * 0.4);
+      } else if (alanKey === "perception") {
+        skor = Math.round(accuracy * 70 + reactionScore * 0.3);
+      } else if (alanKey === "executive") {
+        skor = Math.round(accuracy * 50 + reactionScore * 0.5);
+      } else if (alanKey === "logic") {
+        skor = Math.round(accuracy * 80 + reactionScore * 0.2);
+      } else {
+        skor = Math.round(accuracy * 70 + reactionScore * 0.3);
+      }
+      
+      gosterilecekAlanFinal[alanKey] = Math.max(0, Math.min(100, skor));
+    });
   }
+  
+  if (gunlukHayatCoklu && Object.keys(gosterilecekAlanFinal).length > 0) {
+    const enYuksek = Object.entries(gosterilecekAlanFinal).sort((a, b) => b[1] - a[1])[0];
+    if (enYuksek) {
+      const alanAd = BRAIN_AREAS[enYuksek[0]]?.ad || enYuksek[0];
+      gunlukHayatCoklu.textContent = `💡 En güçlü alanın: ${alanAd} (${Math.round(enYuksek[1])}/100). Bu alan günlük hayatta problem çözme ve öğrenme süreçlerinde avantaj sağlar.`;
+      gunlukHayatCoklu.style.display = "block";
+      console.log("✅ Günlük hayat karşılığı gösterildi");
+    }
+  }
+  
+  console.log("✅ yukleCokluAlan tamamlandı");
 }
 
 // -------------------------------------------------------------
 // 7) 📌 3. OYUN ÖZEL SEKMESİ
 // -------------------------------------------------------------
 function yukleOyunOzel() {
-  const oyunOzel = son.oyun_ozel || {};
+  console.log("🔵 yukleOyunOzel çağrıldı");
+  console.log("📊 son.oyun_ozel:", son.oyun_ozel);
+  
+  let oyunOzel = son.oyun_ozel || {};
   const oyunOzelListe = document.getElementById("oyunOzelListe");
-  const oyunMeta = GLOBAL.GAME_MAP?.[oyunKod] || {};
   const temelSkor = son.temel_skor || {};
+  
+  console.log("📋 oyunOzel objesi:", oyunOzel);
+  console.log("📋 oyunOzelListe elementi:", oyunOzelListe);
+  console.log("📋 oyunMeta:", oyunMeta);
+  console.log("📋 oyunKod:", oyunKod);
+
+  // Eğer oyun_ozel boşsa, oyun meta'dan hesapla
+  if (Object.keys(oyunOzel).length === 0) {
+    console.log("⚠ oyun_ozel boş, oyun meta'dan hesaplanıyor...");
+    // gameResultService.js'deki hesaplaOyunOzel mantığını kullan
+    const performansKeys = oyunMeta.performansKeys || [];
+    const trials = son.trials || [];
+    const total = (son.dogru || 0) + (son.yanlis || 0);
+    
+    performansKeys.forEach(key => {
+      switch (key) {
+        case "match_accuracy":
+          oyunOzel.match_accuracy = total > 0 ? Math.round((son.dogru / total) * 100) : 0;
+          break;
+        case "match_time":
+          const avgReaction = temelSkor.ortalamaTepki || temelSkor.reaction_avg || 0;
+          oyunOzel.match_time = avgReaction;
+          break;
+        case "visual_discrimination_score":
+          const dogruOran = total > 0 ? (son.dogru / total) : 0;
+          oyunOzel.visual_discrimination_score = Math.round(dogruOran * 100);
+          break;
+        case "difference_detect_accuracy":
+          oyunOzel.difference_detect_accuracy = total > 0 ? Math.round((son.dogru / total) * 100) : 0;
+          break;
+        case "micro_discrimination":
+          const hizliDogru = trials.filter(t => t.correct && t.reaction_ms < 500).length;
+          oyunOzel.micro_discrimination = total > 0 ? Math.round((hizliDogru / total) * 100) : 0;
+          break;
+        case "visual_discrimination":
+          oyunOzel.visual_discrimination = total > 0 ? Math.round((son.dogru / total) * 100) : 0;
+          break;
+        case "reaction_time":
+          const reactionTime = temelSkor.ortalamaTepki || temelSkor.reaction_avg || 0;
+          oyunOzel.reaction_time = reactionTime;
+          break;
+        case "processing_speed":
+          const sure = son.sure || son.timeElapsed || 30;
+          oyunOzel.processing_speed = sure > 0 ? Math.round((total / sure) * 10) / 10 : 0;
+          break;
+        default:
+          if (key.includes("accuracy") || key.includes("doğruluk")) {
+            oyunOzel[key] = total > 0 ? Math.round((son.dogru / total) * 100) : 0;
+          } else if (key.includes("time") || key.includes("süre")) {
+            const timeValue = temelSkor.ortalamaTepki || temelSkor.reaction_avg || 0;
+            oyunOzel[key] = timeValue;
+          } else if (key.includes("score") || key.includes("skor")) {
+            oyunOzel[key] = total > 0 ? Math.round((son.dogru / total) * 100) : 0;
+          }
+      }
+    });
+    
+    console.log("✅ Hesaplanan oyun_ozel:", oyunOzel);
+  }
+
+  // Hata türleri hesaplama (eğer yoksa) - önce hesapla, sonra kullan
+  let hataTurleri = temelSkor.hataTurleri || {};
+  if (!hataTurleri || Object.keys(hataTurleri).length === 0 || !hataTurleri.toplam) {
+    console.log("⚠ hataTurleri boş, trials'dan hesaplanıyor...");
+    const trials = son.trials || [];
+    const hataliTrials = trials.filter(t => !t.correct);
+    hataTurleri = {
+      impulsivite: hataliTrials.filter(t => t.reaction_ms < 300).length,
+      karistirma: hataliTrials.filter(t => t.reaction_ms >= 300 && t.reaction_ms < 800).length,
+      dikkatsizlik: hataliTrials.filter(t => t.reaction_ms >= 800).length,
+      toplam: hataliTrials.length
+    };
+    console.log("✅ Hesaplanan hataTurleri:", hataTurleri);
+  }
+
+  // Performans metrikleri - Sadece oyunun performansKeys'inde belirtilen metrikler
+  const performansKeys = oyunMeta.performansKeys || [];
+  let gosterilecekMetrikler = {};
+  
+  // Sadece oyunun performansKeys'inde olan metrikleri filtrele
+  performansKeys.forEach(key => {
+    if (oyunOzel[key] !== undefined && oyunOzel[key] !== null) {
+      gosterilecekMetrikler[key] = oyunOzel[key];
+    }
+  });
+  
+  console.log("📋 performansKeys:", performansKeys);
+  console.log("📋 gosterilecekMetrikler:", gosterilecekMetrikler);
 
   if (oyunOzelListe) {
     // Oyun özel becerileri göster
     const oyunOzelBeceriler = oyunMeta.oyunOzelBeceriler || [];
-    const hataTurleri = temelSkor.hataTurleri || {};
+    
+    console.log("📋 oyunOzelBeceriler:", oyunOzelBeceriler);
+    console.log("📋 hataTurleri:", hataTurleri);
   
-  let html = "";
+    let html = "";
   
-  // Oyun özel beceriler
-  if (oyunOzelBeceriler.length > 0) {
-    html += "<h4 style='margin-top:0;'>🎯 Oyun Özel Beceriler</h4>";
-    html += "<ul style='list-style:none; padding:0;'>";
-    oyunOzelBeceriler.forEach(beceri => {
-      // Performans key'lerinden ilgili değeri bul
-      // Beceri ID'sini performans key'lerine eşleştir
-      let deger = "-";
-      const performansKeys = oyunMeta.performansKeys || [];
-      
-      // Önce doğrudan eşleşme dene
-      if (oyunOzel[beceri.id]) {
-        deger = oyunOzel[beceri.id];
-      } else {
-        // Performans key'lerinden ilgili olanı bul
-        const ilgiliKey = performansKeys.find(k => k.includes(beceri.id) || beceri.id.includes(k.split('_')[0]));
-        if (ilgiliKey && oyunOzel[ilgiliKey]) {
-          deger = oyunOzel[ilgiliKey];
+    // Oyun özel beceriler - Sadece performansKeys'de olan beceriler
+    const performansKeysForBeceriler = performansKeys;
+    
+    if (oyunOzelBeceriler.length > 0) {
+      html += "<h4 style='margin-top:0;'>🎯 Oyun Özel Beceriler</h4>";
+      html += "<ul style='list-style:none; padding:0;'>";
+      oyunOzelBeceriler.forEach(beceri => {
+        // Performans key'lerinden ilgili değeri bul
+        // Beceri ID'sini performans key'lerine eşleştir
+        let deger = "-";
+        let ilgiliKey = null;
+        
+        // Önce doğrudan eşleşme dene (beceri.id performansKeys'de var mı?)
+        if (performansKeysForBeceriler.includes(beceri.id)) {
+          ilgiliKey = beceri.id;
+          deger = oyunOzel[beceri.id];
+        } else {
+          // Performans key'lerinden ilgili olanı bul (içerik eşleşmesi)
+          ilgiliKey = performansKeysForBeceriler.find(k => 
+            k.includes(beceri.id) || 
+            beceri.id.includes(k.split('_')[0]) ||
+            k.includes(beceri.id.split('_')[0])
+          );
+          if (ilgiliKey && oyunOzel[ilgiliKey] !== undefined) {
+            deger = oyunOzel[ilgiliKey];
+          }
         }
-      }
-      
-      const skor = typeof deger === 'number' ? Math.round(deger) : deger;
-      const birim = typeof deger === 'number' && (beceri.id.includes('accuracy') || beceri.id.includes('score')) ? '%' : 
-                    beceri.id.includes('time') ? ' ms' : '';
-      html += `<li style='padding:10px; margin:8px 0; background:#f0f8ff; border-radius:8px; border-left:4px solid #4a90e2;'>
-        <strong>${beceri.ad}:</strong> <span style='color:#1e88e5;font-weight:600;'>${skor}${birim}</span>
-      </li>`;
-    });
-    html += "</ul>";
-  }
+        
+        // Eğer değer bulunduysa ve performansKeys'de varsa göster
+        if (deger !== "-" && ilgiliKey && performansKeysForBeceriler.includes(ilgiliKey)) {
+          const skor = typeof deger === 'number' ? Math.round(deger) : deger;
+          const birim = typeof deger === 'number' && (ilgiliKey.includes('accuracy') || ilgiliKey.includes('score') || ilgiliKey.includes('discrimination')) ? '%' : 
+                        ilgiliKey.includes('time') ? ' ms' : 
+                        ilgiliKey.includes('speed') ? ' işlem/sn' : '';
+          html += `<li style='padding:10px; margin:8px 0; background:#f0f8ff; border-radius:8px; border-left:4px solid #4a90e2;'>
+            <strong>${beceri.ad}:</strong> <span style='color:#1e88e5;font-weight:600;'>${skor}${birim}</span>
+          </li>`;
+        }
+      });
+      html += "</ul>";
+    }
   
-  // Performans metrikleri
-  if (Object.keys(oyunOzel).length > 0) {
+    // Performans metrikleri - Sadece oyunun performansKeys'inde belirtilen metrikler
+    if (Object.keys(gosterilecekMetrikler).length > 0) {
     html += "<h4 style='margin-top:20px;'>📊 Performans Metrikleri</h4>";
     html += "<ul style='list-style:none; padding:0;'>";
-    Object.entries(oyunOzel).forEach(([key, value]) => {
+    Object.entries(gosterilecekMetrikler).forEach(([key, value]) => {
       const keyAd = key.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
       const skor = typeof value === 'number' ? Math.round(value) : value;
       const birim = key.includes('accuracy') || key.includes('score') || key.includes('discrimination') ? '%' : 
@@ -365,20 +905,71 @@ function yukleOyunOzel() {
     html += "</ul>";
   }
   
-  if (html === "") {
-    html = "<p>Bu oyun için özel performans metrikleri henüz hesaplanmadı.</p>";
-  }
-  
+    // Renk hataları tablosu (sadece ayirt_etme oyunu için)
+    if (oyunKod === "renk_ayirt_etme" || oyunKod === "ayirt_etme") {
+      const renkHatalari = analizEtRenkHatalari(son.trials || []);
+      if (renkHatalari && renkHatalari.length > 0) {
+        html += "<h4 style='margin-top:20px;'>🎨 En Çok Hata Yapılan Renkler</h4>";
+        html += "<div style='overflow-x:auto;'>";
+        html += "<table style='width:100%; border-collapse:collapse; margin-top:10px; background:white; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);'>";
+        html += "<thead>";
+        html += "<tr style='background:linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color:white;'>";
+        html += "<th style='padding:12px; text-align:left; border-radius:8px 0 0 0;'>Renk</th>";
+        html += "<th style='padding:12px; text-align:center;'>Hata Sayısı</th>";
+        html += "<th style='padding:12px; text-align:center;'>Hata Oranı</th>";
+        html += "<th style='padding:12px; text-align:center; border-radius:0 8px 0 0;'>Görsel</th>";
+        html += "</tr>";
+        html += "</thead>";
+        html += "<tbody>";
+        
+        renkHatalari.forEach((renk, index) => {
+          const renkKodlari = {
+            "Kırmızı": "#e53935",
+            "Mavi": "#2962ff",
+            "Yeşil": "#43a047",
+            "Sarı": "#fdd835",
+            "Mor": "#8e24aa",
+            "Turuncu": "#fb8c00",
+            "Kahverengi": "#6d4c41",
+            "Pembe": "#f06292"
+          };
+          const renkKodu = renkKodlari[renk.renk] || "#cccccc";
+          const satirRengi = index % 2 === 0 ? "#f8f9fa" : "#ffffff";
+          
+          html += `<tr style='background:${satirRengi};'>`;
+          html += `<td style='padding:12px; font-weight:600; color:#2c3e50;'>${renk.renk}</td>`;
+          html += `<td style='padding:12px; text-align:center; color:#e74c3c; font-weight:600;'>${renk.hataSayisi}</td>`;
+          html += `<td style='padding:12px; text-align:center; color:#e74c3c; font-weight:600;'>%${renk.hataOrani}</td>`;
+          html += `<td style='padding:12px; text-align:center;'>`;
+          html += `<div style='width:40px; height:40px; background:${renkKodu}; border-radius:8px; margin:0 auto; box-shadow:0 2px 4px rgba(0,0,0,0.2); border:2px solid ${renkKodu};'></div>`;
+          html += `</td>`;
+          html += `</tr>`;
+        });
+        
+        html += "</tbody>";
+        html += "</table>";
+        html += "</div>";
+        html += "<p style='margin-top:10px; font-size:12px; color:#666; font-style:italic;'>💡 Bu tablo, hangi renklerde daha fazla hata yapıldığını gösterir. Yüksek hata oranı olan renkler için ekstra pratik önerilir.</p>";
+      }
+    }
+    
+    if (html === "") {
+      html = "<p>Bu oyun için özel performans metrikleri henüz hesaplanmadı.</p>";
+    }
+    
     oyunOzelListe.innerHTML = html;
+    console.log("✅ Oyun özel liste oluşturuldu, HTML uzunluğu:", html.length);
+  } else {
+    console.error("❌ oyunOzelListe elementi bulunamadı!");
   }
 
-  // Günlük hayat karşılığı (Oyun Özel)
+  // Günlük hayat karşılığı (Oyun Özel) - Sadece gösterilen metrikler için
   const gunlukHayatOyun = document.getElementById("gunlukHayatOyun");
-  if (gunlukHayatOyun && Object.keys(oyunOzel).length > 0) {
+  if (gunlukHayatOyun && Object.keys(gosterilecekMetrikler).length > 0) {
     let gunlukHayatMetni = "💡 <strong>Günlük Hayat Karşılığı:</strong><br>";
     
-    // Her performans metrik için günlük hayat karşılığını bul
-    Object.keys(oyunOzel).forEach(key => {
+    // Sadece gösterilen performans metrikleri için günlük hayat karşılığını bul
+    Object.keys(gosterilecekMetrikler).forEach(key => {
       const karsilik = GUNLUK_HAYAT_KARSILIKLARI[key] || 
                        Object.values(GUNLUK_HAYAT_KARSILIKLARI).find(k => k.metrik === key);
       if (karsilik) {
@@ -392,22 +983,67 @@ function yukleOyunOzel() {
     
     gunlukHayatOyun.innerHTML = gunlukHayatMetni;
     gunlukHayatOyun.style.display = "block";
+    console.log("✅ Günlük hayat karşılığı gösterildi");
   }
+  
+  console.log("✅ yukleOyunOzel tamamlandı");
 }
 
 // -------------------------------------------------------------
 // 8) 📌 4. ZİHİN ALANLARI PERFORMANS SEKMESİ
 // -------------------------------------------------------------
 function yuklePerformans() {
+  console.log("🔵 yuklePerformans çağrıldı");
+  
   const cokluAlan = son.coklu_alan || {};
   const performansTabloBody = document.getElementById("performansTabloBody");
+  
+  console.log("📊 oyunMeta:", oyunMeta);
+  console.log("📊 oyunKod:", oyunKod);
+  
   if (performansTabloBody) {
-    const alanlar = Object.keys(BRAIN_AREAS || {});
-    if (alanlar.length === 0) {
-      performansTabloBody.innerHTML = "<tr><td colspan='5'>Veri bulunamadı.</td></tr>";
+    // Oyunun modüllerini al (hangi alanlara veri gönderiyor)
+    let moduller = oyunMeta.moduller || [];
+    
+    // Eğer moduller boşsa, son.moduller'den al
+    if (moduller.length === 0) {
+      moduller = son.moduller || [];
+    }
+    
+    console.log("📋 Oyunun modulleri:", moduller);
+    
+    // Modül adlarını BRAIN_AREAS key'lerine çevir
+    const modulMap = {
+      "attention": "attention", "dikkat": "attention",
+      "perception": "perception", "algisal_islemleme": "perception", "algisal": "perception",
+      "executive": "executive", "yuruteci_islev": "executive", "yuruteci": "executive",
+      "logic": "logic", "mantik": "logic", "mantiksal": "logic",
+      "memory": "memory", "hafiza": "memory",
+      "literacy": "literacy", "okuma": "literacy",
+      "dyslexia": "dyslexia", "disleksi": "dyslexia",
+      "writing": "writing", "yazi": "writing",
+      "math": "math", "matematik": "math",
+      "emotional": "emotional", "duygusal": "emotional",
+      "social": "social", "sosyal": "social",
+      "comprehension": "comprehension", "anlama": "comprehension"
+    };
+    
+    // Sadece oyunun veri gönderdiği alanları filtrele
+    const gosterilecekAlanlar = moduller.map(modul => {
+      return modulMap[modul] || modul;
+    }).filter(alanKey => {
+      // BRAIN_AREAS'ta bu alan var mı kontrol et
+      return BRAIN_AREAS[alanKey] !== undefined;
+    });
+    
+    console.log("📋 Gösterilecek alanlar:", gosterilecekAlanlar);
+    
+    if (gosterilecekAlanlar.length === 0) {
+      performansTabloBody.innerHTML = "<tr><td colspan='5'>Bu oyun için zihin alanı verisi bulunamadı.</td></tr>";
+      console.warn("⚠ Gösterilecek alan bulunamadı!");
     } else {
       let html = "";
-      alanlar.forEach(alanKey => {
+      gosterilecekAlanlar.forEach(alanKey => {
         const alanAd = BRAIN_AREAS[alanKey]?.ad || alanKey;
         const sonSkor = cokluAlan[alanKey] || 0;
         const ortalama = sonSkor; // Geçmiş verilerden hesaplanacak (şimdilik aynı)
@@ -422,8 +1058,13 @@ function yuklePerformans() {
         </tr>`;
       });
       performansTabloBody.innerHTML = html;
+      console.log("✅ Performans tablosu oluşturuldu,", gosterilecekAlanlar.length, "alan gösterildi");
     }
+  } else {
+    console.error("❌ performansTabloBody elementi bulunamadı!");
   }
+  
+  console.log("✅ yuklePerformans tamamlandı");
 }
 
 // -------------------------------------------------------------
@@ -433,26 +1074,31 @@ const teacherID = localStorage.getItem("teacherID");
 const studentId = role === ROLES.OGRENCI ? localStorage.getItem("uid") || localStorage.getItem("studentID") : aktifOgrenciId;
 let currentGameResultId = null;
 
-// Oyun sonucu ID'sini al (localStorage'dan veya son kayıttan)
-if (son && son.id) {
-  currentGameResultId = son.id;
-} else {
-  // Eğer ID yoksa, timestamp ve oyun kodundan oluştur
-  currentGameResultId = `${son.oyun}_${son.timestamp || Date.now()}`;
-}
-
-// Öğretmen için yorum yazma alanını göster
-if (role === ROLES.OGRETMEN && teacherID && studentId) {
-  const yorumYazmaAlani = document.getElementById("yorumYazmaAlani");
-  if (yorumYazmaAlani) {
-    yorumYazmaAlani.style.display = "block";
+// Yorum sistemi initSonucSayfasi içinde çağrılacak
+function yukleYorumSistemi() {
+  if (!son) return;
+  
+  // Oyun sonucu ID'sini al (localStorage'dan veya son kayıttan)
+  if (son.id) {
+    currentGameResultId = son.id;
+  } else {
+    // Eğer ID yoksa, timestamp ve oyun kodundan oluştur
+    currentGameResultId = `${son.oyun}_${son.timestamp || Date.now()}`;
   }
+  
+  // Öğretmen için yorum yazma alanını göster
+  if (role === ROLES.OGRETMEN && teacherID && studentId) {
+    const yorumYazmaAlani = document.getElementById("yorumYazmaAlani");
+    if (yorumYazmaAlani) {
+      yorumYazmaAlani.style.display = "block";
+    }
 
-  const yorumGonderBtn = document.getElementById("yorumGonderBtn");
-  if (yorumGonderBtn) {
-    yorumGonderBtn.onclick = async () => {
-      await yorumGonder();
-    };
+    const yorumGonderBtn = document.getElementById("yorumGonderBtn");
+    if (yorumGonderBtn) {
+      yorumGonderBtn.onclick = async () => {
+        await yorumGonder();
+      };
+    }
   }
 }
 
@@ -672,3 +1318,62 @@ if (radarCanvas && window.Chart) {
 }
 
 console.log("📘 sonuc.js yüklendi (v8.0 — Yeni Şema Desteği)");
+
+// ============================================================
+// 🎨 RENK HATALARI ANALİZ FONKSİYONU
+// ============================================================
+function analizEtRenkHatalari(trials) {
+  if (!trials || !Array.isArray(trials) || trials.length === 0) {
+    return [];
+  }
+  
+  // Hatalı trial'ları filtrele ve renk bazında grupla
+  const renkHatalari = {};
+  const toplamHata = trials.filter(t => !t.correct).length;
+  
+  if (toplamHata === 0) {
+    return [];
+  }
+  
+  trials.forEach(trial => {
+    // Sadece hatalı trial'ları say
+    if (!trial.correct && trial.hedefRenk) {
+      const renk = trial.hedefRenk;
+      if (!renkHatalari[renk]) {
+        renkHatalari[renk] = {
+          renk: renk,
+          hataSayisi: 0,
+          toplamDeneme: 0
+        };
+      }
+      renkHatalari[renk].hataSayisi++;
+    }
+    
+    // Toplam deneme sayısını da hesapla (doğru + yanlış)
+    if (trial.hedefRenk) {
+      const renk = trial.hedefRenk;
+      if (!renkHatalari[renk]) {
+        renkHatalari[renk] = {
+          renk: renk,
+          hataSayisi: 0,
+          toplamDeneme: 0
+        };
+      }
+      renkHatalari[renk].toplamDeneme++;
+    }
+  });
+  
+  // Hata oranını hesapla ve sırala
+  const sonuc = Object.values(renkHatalari)
+    .filter(r => r.hataSayisi > 0) // Sadece hata yapılan renkleri göster
+    .map(r => ({
+      renk: r.renk,
+      hataSayisi: r.hataSayisi,
+      toplamDeneme: r.toplamDeneme,
+      hataOrani: r.toplamDeneme > 0 ? Math.round((r.hataSayisi / r.toplamDeneme) * 100) : 0
+    }))
+    .sort((a, b) => b.hataSayisi - a.hataSayisi); // En çok hatadan en aza sırala
+  
+  console.log("🎨 Renk hataları analizi:", sonuc);
+  return sonuc;
+}

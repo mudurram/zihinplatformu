@@ -12,9 +12,9 @@ body {
   margin: 0;
   padding: 0;
   padding-top: 70px; /* Header için alan - Fixed header */
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: linear-gradient(135deg, #a8edea, #fed6e3);
-  color: #333;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+  background: #f5f7fa; /* Profesyonel açık gri arka plan */
+  color: #2c3e50;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -69,17 +69,17 @@ button {
 }
 
 /* ============================================================
-   PLATFORM HEADER — Profesyonel Tam Genişlik Üst Menü
+   PLATFORM HEADER — Profesyonel Eğitim Platformu Üst Menü
 ============================================================ */
 .platform-header {
   width: 100%;
   max-width: 100%;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #1e3a8a 100%);
   padding: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.08);
   position: fixed;
   top: 0;
   left: 0;
@@ -88,18 +88,38 @@ button {
   min-height: 70px;
   margin: 0;
   border: none;
+  border-bottom: 3px solid rgba(255,255,255,0.1);
 }
 
 .header-left {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
-  padding: 0 30px;
+  padding: 0 25px;
   height: 70px;
+  min-width: 200px;
+}
+
+.logo-icon {
+  font-size: 28px;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.logo-icon:hover {
+  background: rgba(255,255,255,0.25);
+  transform: scale(1.1);
 }
 
 .logo {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: white;
   cursor: pointer;
@@ -107,14 +127,15 @@ button {
   display: flex;
   align-items: center;
   gap: 10px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .logo:hover {
-  opacity: 0.85;
-  transform: translateY(-2px);
-  text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  opacity: 0.9;
+  transform: translateY(-1px);
+  text-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
 .header-center {
@@ -122,79 +143,328 @@ button {
   align-items: center;
   flex: 1;
   justify-content: center;
-  padding: 0 20px;
+  padding: 0 15px;
+  min-width: 0;
+}
+
+/* Tüm profiller için ortada menü düzeni */
+.role-header .header-center {
+  justify-content: center;
+  gap: 8px;
+}
+
+.role-center-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.role-center-nav-items {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.role-right-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.user-info-inline {
+  display: flex;
+  align-items: center;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  margin-right: 8px;
+}
+
+.user-name-inline {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.95;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .user-info {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 0;
   color: white;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }
 
 .user-name {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  opacity: 0.98;
-  letter-spacing: 0.3px;
+  opacity: 0.95;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.user-role {
+.user-role-inline {
   font-size: 11px;
-  opacity: 0.9;
-  background: rgba(255,255,255,0.25);
-  padding: 4px 12px;
-  border-radius: 15px;
+  opacity: 0.85;
+  background: rgba(255,255,255,0.2);
+  padding: 3px 10px;
+  border-radius: 12px;
   font-weight: 500;
+  white-space: nowrap;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: 1px solid rgba(255,255,255,0.3);
+  letter-spacing: 0.3px;
+  margin-left: 4px;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
   flex: 0 0 auto;
-  padding: 0 30px;
+  padding: 0 25px;
   height: 70px;
+  flex-wrap: nowrap;
 }
 
 .header-nav {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
+  flex-wrap: nowrap;
+  order: 1;
 }
 
 .nav-link {
-  padding: 10px 18px;
-  color: white;
+  padding: 9px 16px;
+  color: #0056B3;
   text-decoration: none;
-  border-radius: 10px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 500;
-  transition: all 0.3s ease;
-  background: rgba(255,255,255,0.12);
   white-space: nowrap;
-  border: 1px solid rgba(255,255,255,0.15);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  background: #FFFFFF;
+  border: 1px solid #D0D7E1;
+  text-shadow: none;
   letter-spacing: 0.2px;
 }
 
 .nav-link:hover {
-  background: rgba(255,255,255,0.25);
+  background: #E7F1FF;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  border-color: rgba(255,255,255,0.3);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-color: #D0D7E1;
 }
 
 .nav-link.active {
-  background: rgba(255,255,255,0.35);
+  background: #E7F1FF;
+  color: #0056B3;
   font-weight: 600;
-  border-color: rgba(255,255,255,0.4);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  border-color: #D0D7E1;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Kurum profili için özel nav-link stilleri */
+.role-header.role-institution .nav-link {
+  background: #FFFFFF;
+  color: #0056B3;
+  border: 1px solid #D0D7E1;
+  text-shadow: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+.role-header.role-institution .nav-link:hover {
+  background: #E7F1FF;
+  border-color: #D0D7E1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.role-header.role-institution .nav-link.active {
+  background: #E7F1FF;
+  color: #0056B3;
+  border-color: #D0D7E1;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Kurum profili için profil düğmesi stilleri */
+.role-header.role-institution .profile-btn {
+  background: #FFFFFF;
+  color: #0056B3;
+  border: 1px solid #D0D7E1;
+  text-shadow: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+.role-header.role-institution .profile-btn:hover {
+  background: #E7F1FF;
+  border-color: #D0D7E1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Kurum profili için mesaj düğmesi stilleri */
+.role-header.role-institution .header-message-btn {
+  background: #FFFFFF;
+  color: #0056B3;
+  border: 1px solid #D0D7E1;
+  text-shadow: none;
+}
+
+.role-header.role-institution .header-message-btn:hover {
+  background: #E7F1FF;
+  border-color: #D0D7E1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* ============================================================
+   PROFİL DROPDOWN MENÜSÜ (Öğrenci için)
+============================================================ */
+.profile-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  background: #FFFFFF;
+  border: 1px solid #D0D7E1;
+  border-radius: 8px;
+  color: #0056B3;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-shadow: none;
+  letter-spacing: 0.2px;
+}
+
+.profile-btn:hover {
+  background: #E7F1FF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-color: #D0D7E1;
+}
+
+.profile-icon {
+  font-size: 18px;
+}
+
+.profile-name {
+  font-weight: 600;
+}
+
+.profile-arrow {
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+.profile-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  min-width: 280px;
+  z-index: 10001;
+  overflow: hidden;
+}
+
+.menu-section {
+  padding: 0;
+  margin: 0;
+}
+
+.menu-section:last-child {
+  border-bottom: none;
+}
+
+.menu-item-large {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  color: #1e3d59;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  background: #FFFFFF;
+  border: 1px solid #D0D6E0;
+  border-radius: 8px;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 8px;
+  box-sizing: border-box;
+}
+
+.menu-item-large:hover {
+  background: #E8F1FF;
+  border-color: #D0D6E0;
+}
+
+.menu-item-large.with-submenu {
+  cursor: pointer;
+}
+
+.submenu-arrow {
+  font-size: 10px;
+  color: #666;
+  transition: transform 0.2s;
+}
+
+.submenu {
+  background: #f8f9fa;
+  padding: 0;
+  margin: 0 8px 8px 8px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.submenu-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px 10px 32px;
+  color: #1e3d59;
+  text-decoration: none;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.submenu-item:hover {
+  background: #E8F1FF;
+}
+
+.logout-item {
+  color: #e74c3c;
+}
+
+.logout-item:hover {
+  background: #ffeaea;
+  border-color: #e74c3c;
 }
 
 /* ============================================================
@@ -206,25 +476,31 @@ button {
 }
 
 .header-ogretmen-btn {
-  padding: 10px 18px;
-  color: white;
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 10px;
-  font-size: 14px;
+  padding: 9px 16px;
+  color: #0056B3;
+  background: #FFFFFF;
+  border: 1px solid #D0D7E1;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  text-shadow: none;
   letter-spacing: 0.2px;
+  order: 0;
+}
+
+/* Öğrenci header'da öğretmen butonu ortada */
+.role-ogrenci .header-ogretmen-dropdown {
+  order: -1;
 }
 
 .header-ogretmen-btn:hover {
-  background: rgba(255,255,255,0.25);
+  background: #E7F1FF;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  border-color: rgba(255,255,255,0.3);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-color: #D0D7E1;
 }
 
 .header-ogretmen-menu {
@@ -260,19 +536,132 @@ button {
   background: #555;
 }
 
+/* ============================================================
+   ÖĞRETMEN İÇİN ÖĞRENCİ DROPDOWN
+============================================================ */
+.header-ogrenci-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.header-ogrenci-btn {
+  padding: 9px 16px;
+  color: #0056B3;
+  background: #FFFFFF;
+  border: 1px solid #D0D7E1;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-shadow: none;
+  letter-spacing: 0.2px;
+}
+
+.header-ogrenci-btn:hover {
+  background: #E7F1FF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-color: #D0D7E1;
+}
+
+.header-ogrenci-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  padding: 20px;
+  min-width: 320px;
+  max-width: 400px;
+  z-index: 10001;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.header-ogrenci-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.header-ogrenci-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.header-ogrenci-menu::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.header-ogrenci-menu::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* ============================================================
+   MESAJ DÜĞMESİ VE BADGE
+============================================================ */
+.header-message-btn-wrapper {
+  position: relative;
+}
+
+.header-message-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #FFFFFF;
+  border: 1px solid #D0D7E1;
+  border-radius: 8px;
+  color: #0056B3;
+  text-decoration: none;
+  font-size: 18px;
+  transition: all 0.2s;
+  text-shadow: none;
+}
+
+.header-message-btn:hover {
+  background: #E7F1FF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-color: #D0D7E1;
+}
+
+.message-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  min-width: 20px;
+  height: 20px;
+  font-size: 11px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
 .header-logout-btn {
-  padding: 10px 20px;
-  background: rgba(220, 53, 69, 0.85);
+  padding: 9px 18px;
+  background: rgba(220, 53, 69, 0.9);
   color: white;
   border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 10px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
   text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
+  order: 2;
 }
 
 .header-logout-btn:hover {
@@ -297,6 +686,14 @@ button {
   .header-left {
     padding: 0 15px;
     height: 60px;
+    min-width: 150px;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 22px;
+    margin-right: 8px;
   }
 
   .header-right {
@@ -326,15 +723,51 @@ button {
     font-size: 13px;
   }
 
-  .user-role {
+  .user-role-inline {
     font-size: 10px;
-    padding: 3px 8px;
+    padding: 2px 8px;
+  }
+
+  /* Tüm profiller için mobilde */
+  .role-header .header-center {
+    gap: 4px;
+  }
+
+  .role-center-nav-items .nav-link {
+    font-size: 11px;
+    padding: 7px 10px;
+  }
+
+  .role-right-nav .nav-link {
+    font-size: 11px;
+    padding: 7px 10px;
+  }
+
+  .user-info-inline {
+    margin-right: 4px;
+  }
+
+  .user-name-inline {
+    font-size: 12px;
   }
 }
 
 @media (max-width: 480px) {
-  .header-nav {
-    display: none; /* Mobilde menü gizle, sadece logo ve çıkış göster */
+  /* Tüm profiller için mobilde bazı menüleri gizle */
+  .role-header .role-center-nav-items {
+    display: none; /* Çok küçük ekranlarda ortadaki menüleri gizle */
+  }
+
+  .role-header .header-ogretmen-dropdown {
+    display: block; /* Öğretmenler butonu görünür kalsın */
+  }
+
+  .role-header .role-right-nav .header-nav {
+    display: none; /* Ana Menü ve Mesajlaşma gizle */
+  }
+
+  .role-header .user-info-inline {
+    display: none; /* Mobilde kullanıcı bilgisini gizle */
   }
 
   .header-center {
@@ -348,6 +781,16 @@ button {
   .header-logout-btn {
     padding: 8px 14px;
     font-size: 12px;
+  }
+
+  .logo {
+    font-size: 16px;
+  }
+
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
   }
 }
 

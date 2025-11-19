@@ -3,9 +3,6 @@
 // =====================================================
 
 import { GLOBAL, ROLES, BRAIN_AREAS, SUBSKILLS } from "./globalConfig.js";
-import { listRequestsByUser, respondRequest, createStudentTeacherRequest } from "../data/requestService.js";
-import { db } from "../data/firebaseConfig.js";
-import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // =====================================================
 // 🔍 Kullanıcı Bilgisi (LocalStorage)
@@ -53,6 +50,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // Öğrenci için öğretmen bölümü artık header'da
 
   zihinAlanlariniCiz();
+  
+  // Aktif alan varsa modal aç
+  const aktifAlan = localStorage.getItem("aktifAlan");
+  if (aktifAlan && BRAIN_AREAS[aktifAlan]) {
+    modalAc(aktifAlan);
+    localStorage.removeItem("aktifAlan");
+  }
 });
 
 console.log("📘 index.js yüklendi (Final v6.8 — GLOBAL uyumlu)");
@@ -141,131 +145,185 @@ function oyunSec(oyunId) {
 }
 
 async function yukleOgrenciTalepleri() {
-  const liste = document.getElementById("ogrenciTalepListesi");
-  if (!liste) return;
+  const alinanListe = document.getElementById("ogrenciAlinanTalepler");
+  const gonderilenListe = document.getElementById("ogrenciGonderilenTalepler");
+  
+  if (!alinanListe && !gonderilenListe) return;
 
-  liste.innerHTML = "<li>Yükleniyor...</li>";
   const uid = localStorage.getItem(GLOBAL.LS_KEYS.UID) || localStorage.getItem("uid");
-  const talepler = await listRequestsByUser(uid);
+  const { received, sent } = await listAllRequestsByUser(uid);
 
-  // Sadece öğretmenden gelen talepleri filtrele (type: "teacher_student")
-  const ogretmenTalepleri = talepler.filter(req => req.type === "teacher_student" && req.status === "beklemede");
+  // ALINAN TALEPLER (Öğretmenden gelen)
+  if (alinanListe) {
+    const ogretmenTalepleri = received.filter(req => req.type === "teacher_student" && req.status === "beklemede");
+    
+    if (!ogretmenTalepleri.length) {
+      alinanListe.innerHTML = "<li style='color:#999;padding:15px;text-align:center;'>Bekleyen öğretmen talebi yok.</li>";
+    } else {
+      alinanListe.innerHTML = "";
+      for (const req of ogretmenTalepleri) {
+        let teacherName = req.fromId;
+        try {
+          const teacherRef = doc(db, "profiles", req.fromId);
+          const teacherSnap = await getDoc(teacherRef);
+          if (teacherSnap.exists()) {
+            const teacherData = teacherSnap.data();
+            teacherName = teacherData.username || teacherData.fullName || teacherData.ad || req.fromId;
+          }
+        } catch (err) {
+          console.warn("Öğretmen bilgisi alınamadı:", err);
+        }
 
-  if (!ogretmenTalepleri.length) {
-    liste.innerHTML = "<li style='color:#999;padding:15px;text-align:center;'>Bekleyen öğretmen talebi yok.</li>";
-    return;
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <div>
+            <strong>${teacherName}</strong> öğretmeni seni eklemek istiyor.
+          </div>
+          <div class="talep-btn-grup">
+            <button data-id="${req.id}" data-status="kabul" style="background:#27ae60;color:white;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;">✓ Kabul</button>
+            <button data-id="${req.id}" data-status="red" style="background:#e74c3c;color:white;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;">✗ Red</button>
+          </div>
+        `;
+
+        li.querySelectorAll("button").forEach(btn => {
+          btn.onclick = async () => {
+            await respondRequest(req.id, btn.dataset.status, uid);
+            await yukleOgrenciTalepleri();
+          };
+        });
+
+        alinanListe.appendChild(li);
+      }
+    }
   }
 
-  liste.innerHTML = "";
-  ogretmenTalepleri.forEach(req => {
-    const li = document.createElement("li");
-    const teacherName = req.payload?.teacherUsername || req.fromId;
-    li.innerHTML = `
-      <div>
-        <strong>${teacherName}</strong> öğretmeni seni eklemek istiyor.
-      </div>
-      <div class="talep-btn-grup">
-        <button data-id="${req.id}" data-status="kabul" style="background:#27ae60;color:white;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;">✓ Kabul</button>
-        <button data-id="${req.id}" data-status="red" style="background:#e74c3c;color:white;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;">✗ Red</button>
-      </div>
-    `;
+  // GÖNDERİLEN TALEPLER (Öğretmene gönderilen)
+  if (gonderilenListe) {
+    const ogrenciTalepleri = sent.filter(req => req.type === "student_teacher");
+    
+    if (!ogrenciTalepleri.length) {
+      gonderilenListe.innerHTML = "<li style='color:#999;padding:15px;text-align:center;'>Gönderilen talep yok.</li>";
+    } else {
+      gonderilenListe.innerHTML = "";
+      for (const req of ogrenciTalepleri) {
+        let teacherName = req.toId;
+        try {
+          const teacherRef = doc(db, "profiles", req.toId);
+          const teacherSnap = await getDoc(teacherRef);
+          if (teacherSnap.exists()) {
+            const teacherData = teacherSnap.data();
+            teacherName = teacherData.username || teacherData.fullName || teacherData.ad || req.toId;
+          }
+        } catch (err) {
+          console.warn("Öğretmen bilgisi alınamadı:", err);
+        }
 
-    li.querySelectorAll("button").forEach(btn => {
-      btn.onclick = async () => {
-        await respondRequest(req.id, btn.dataset.status, uid);
-        await yukleOgrenciTalepleri();
-      };
-    });
+        const statusText = req.status === "beklemede" ? "⏳ Beklemede" : 
+                          req.status === "kabul" ? "✅ Kabul Edildi" : 
+                          req.status === "red" ? "❌ Reddedildi" : req.status;
 
-    liste.appendChild(li);
-  });
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <div>
+            <strong>${teacherName}</strong> öğretmenine gönderildi — ${statusText}
+          </div>
+        `;
+        gonderilenListe.appendChild(li);
+      }
+    }
+  }
 }
 
 // =====================================================
-// 📤 ÖĞRETMENE TALEP GÖNDER
+// 📤 ORTAK DAVET GÖNDERME FONKSİYONU (ROL BAZLI)
 // =====================================================
-function ogretmenTalepGonderButonu() {
-  const btn = document.getElementById("ogretmenTalepGonderBtn");
-  const input = document.getElementById("ogretmenUsernameInput");
-  const mesajDiv = document.getElementById("talepMesaji");
+async function davetGonder() {
+  const input = document.getElementById("davetUsernameInput");
+  const mesajDiv = document.getElementById("davetMesaji");
+  
+  if (!input || !mesajDiv) {
+    console.warn("Davet formu elementleri bulunamadı.");
+    return;
+  }
+  
+  const username = input.value.trim();
+  if (!username) {
+    mesajDiv.innerHTML = "<span style='color:#e74c3c;'>⚠ Lütfen kullanıcı adı girin.</span>";
+    return;
+  }
 
-  if (!btn || !input) return;
-
-  btn.onclick = async () => {
-    const username = input.value.trim();
-    
-    if (!username) {
-      mesajDiv.innerHTML = "<span style='color:#e74c3c;'>⚠ Lütfen öğretmen kullanıcı adı girin.</span>";
+  mesajDiv.innerHTML = "<span style='color:#3498db;'>⏳ Kontrol ediliyor...</span>";
+  
+  try {
+    const targetUid = await findUserByUsername(username);
+    if (!targetUid) {
+      mesajDiv.innerHTML = "<span style='color:#e74c3c;'>❌ Kullanıcı bulunamadı. Kullanıcı adını kontrol edin.</span>";
       return;
     }
-
-    mesajDiv.innerHTML = "<span style='color:#3498db;'>⏳ Kontrol ediliyor...</span>";
-    btn.disabled = true;
-
-    try {
-      // Öğretmeni bul
-      const teacherUid = await findUserByUsername(username);
-      
-      if (!teacherUid) {
-        mesajDiv.innerHTML = "<span style='color:#e74c3c;'>❌ Öğretmen bulunamadı. Kullanıcı adını kontrol edin.</span>";
-        btn.disabled = false;
-        return;
-      }
-
-      // Öğretmen rolünü kontrol et
-      const teacherRef = doc(db, "profiles", teacherUid);
-      const teacherSnap = await getDoc(teacherRef);
-      
-      if (!teacherSnap.exists()) {
-        mesajDiv.innerHTML = "<span style='color:#e74c3c;'>❌ Öğretmen profili bulunamadı.</span>";
-        btn.disabled = false;
-        return;
-      }
-
-      const teacherData = teacherSnap.data();
+    
+    // Hedef kullanıcının bilgilerini al
+    const teacherRef = doc(db, "profiles", targetUid);
+    const teacherSnap = await getDoc(teacherRef);
+    if (!teacherSnap.exists()) {
+      mesajDiv.innerHTML = "<span style='color:#e74c3c;'>❌ Kullanıcı profili bulunamadı.</span>";
+      return;
+    }
+    
+    const teacherData = teacherSnap.data();
+    const role = localStorage.getItem(GLOBAL.LS_KEYS.ROLE) || localStorage.getItem("role");
+    let result = null;
+    
+    // Rol bazlı davet gönderme
+    if (role === ROLES.OGRENCI) {
+      // Öğrenci → Öğretmen daveti
       if (teacherData.role !== ROLES.OGRETMEN) {
         mesajDiv.innerHTML = "<span style='color:#e74c3c;'>❌ Bu kullanıcı öğretmen değil.</span>";
-        btn.disabled = false;
         return;
       }
-
-      // Öğrenci ID'sini al
-      const studentId = localStorage.getItem(GLOBAL.LS_KEYS.UID) || localStorage.getItem("uid");
       
+      const studentId = localStorage.getItem(GLOBAL.LS_KEYS.UID) || localStorage.getItem("uid");
       if (!studentId) {
         mesajDiv.innerHTML = "<span style='color:#e74c3c;'>❌ Oturum hatası. Lütfen tekrar giriş yapın.</span>";
-        btn.disabled = false;
         return;
       }
-
-      // Talep gönder
-      const result = await createStudentTeacherRequest(studentId, teacherUid);
       
-      if (result.success) {
-        mesajDiv.innerHTML = "<span style='color:#27ae60;'>✅ Talep başarıyla gönderildi! Öğretmen onayı bekleniyor.</span>";
-        input.value = "";
-        
-        // 3 saniye sonra mesajı temizle
-        setTimeout(() => {
-          mesajDiv.innerHTML = "";
-        }, 3000);
-      } else {
-        mesajDiv.innerHTML = `<span style='color:#e74c3c;'>❌ Hata: ${result.message || "Talep gönderilemedi."}</span>`;
-      }
-
-      btn.disabled = false;
-    } catch (err) {
-      console.error("Talep gönderme hatası:", err);
-      mesajDiv.innerHTML = "<span style='color:#e74c3c;'>❌ Bir hata oluştu. Lütfen tekrar deneyin.</span>";
-      btn.disabled = false;
+      result = await createStudentTeacherRequest(studentId, targetUid);
+    } else {
+      mesajDiv.innerHTML = "<span style='color:#e74c3c;'>❌ Geçersiz rol.</span>";
+      return;
     }
-  };
+    
+    if (result.success) {
+      mesajDiv.innerHTML = "<span style='color:#27ae60;'>✅ Davet başarıyla gönderildi!</span>";
+      input.value = "";
+      await yukleOgrenciTalepleri();
+      
+      // 3 saniye sonra mesajı temizle
+      setTimeout(() => {
+        mesajDiv.innerHTML = "";
+      }, 3000);
+    } else {
+      mesajDiv.innerHTML = `<span style='color:#e74c3c;'>❌ ${result.message || "Davet gönderilemedi."}</span>`;
+    }
+  } catch (err) {
+    console.error("Davet gönderme hatası:", err);
+    mesajDiv.innerHTML = "<span style='color:#e74c3c;'>❌ Bir hata oluştu. Lütfen tekrar deneyin.</span>";
+  }
+}
 
-  // Enter tuşu ile gönder
+// Eski fonksiyon adını koru (geriye uyumluluk için)
+function ogretmenTalepGonderButonu() {
+  const btn = document.getElementById("davetGonderBtn");
+  const input = document.getElementById("davetUsernameInput");
+  
+  if (btn) {
+    btn.onclick = davetGonder;
+  }
+  
   if (input) {
     input.onkeypress = (e) => {
       if (e.key === "Enter") {
-        btn.click();
+        davetGonder();
       }
     };
   }
@@ -308,4 +366,5 @@ document.addEventListener("DOMContentLoaded", () => {
   if (mesajKart && role === ROLES.OGRENCI) {
     mesajKart.style.display = "block";
   }
+  
 });

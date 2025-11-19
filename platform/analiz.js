@@ -21,11 +21,24 @@ const role = localStorage.getItem("role");
 const aktifOgrenciId = localStorage.getItem("aktifOgrenciId");
 const teacherID = localStorage.getItem("teacherID");
 const uid = localStorage.getItem("uid");
+const institutionID = localStorage.getItem("institutionID");
 
+// Öğretmen için öğrenci seçimi kontrolü
 if (role === ROLES.OGRETMEN && !aktifOgrenciId) {
   alert("ℹ Lütfen önce bir öğrenci seçiniz.");
   window.location.href = "teacher_panel.html";
   throw new Error("Öğretmen öğrenci seçmedi.");
+}
+
+// Kurum ve Admin için öğrenci seçimi kontrolü
+if ((role === ROLES.INSTITUTION || role === ROLES.ADMIN) && !aktifOgrenciId) {
+  // Kurum/Admin için öğrenci seçimi zorunlu değil, ana sayfaya yönlendir
+  if (role === ROLES.INSTITUTION) {
+    window.location.href = "institution_panel.html";
+  } else {
+    window.location.href = "admin_panel.html";
+  }
+  throw new Error("Öğrenci seçilmedi.");
 }
 
 console.log("🎯 Analiz ekranı yüklendi → Rol:", role);
@@ -40,7 +53,7 @@ const sonucListe = document.getElementById("sonucListe");
 let gecmis = []; // Analiz veri kaynağı
 
 // =============================================================
-// 🔥 3A — Öğretmen → Firestore'dan kayıt çek
+// 🔥 3A — Öğretmen/Kurum/Admin → Firestore'dan kayıt çek
 // =============================================================
 async function yukleFirestoreGecmis() {
   try {
@@ -49,19 +62,41 @@ async function yukleFirestoreGecmis() {
       return;
     }
 
-    if (!teacherID || !aktifOgrenciId) {
-      console.warn("⚠ teacherID veya aktifOgrenciId eksik.");
+    if (!aktifOgrenciId) {
+      console.warn("⚠ aktifOgrenciId eksik.");
       return;
     }
 
-    const yol = collection(
-      db,
-      "profiles",
-      teacherID,
-      "ogrenciler",
-      aktifOgrenciId,
-      "oyunSonuclari"
-    );
+    let yol = null;
+
+    // Öğretmen için: profiles/{teacherID}/ogrenciler/{ogrenciID}/oyunSonuclari
+    if (role === ROLES.OGRETMEN && teacherID) {
+      yol = collection(
+        db,
+        "profiles",
+        teacherID,
+        "ogrenciler",
+        aktifOgrenciId,
+        "oyunSonuclari"
+      );
+    }
+    // Kurum ve Admin için: profiles/{ogrenciID}/oyunSonuclari (direkt öğrenci profili)
+    else if (role === ROLES.INSTITUTION || role === ROLES.ADMIN) {
+      yol = collection(
+        db,
+        "profiles",
+        aktifOgrenciId,
+        "oyunSonuclari"
+      );
+    } else {
+      console.warn("⚠ Geçersiz rol veya eksik bilgi.");
+      return;
+    }
+
+    if (!yol) {
+      console.warn("⚠ Firestore yolu oluşturulamadı.");
+      return;
+    }
 
     const snap = await getDocs(yol);
     const temp = [];
@@ -72,6 +107,13 @@ async function yukleFirestoreGecmis() {
     });
 
     console.log("📥 Firestore geçmiş yüklendi:", temp.length, "kayıt");
+    
+    // Veri formatını kontrol et
+    if (temp.length > 0) {
+      console.log("📊 İlk kayıt örneği:", temp[0]);
+      console.log("📊 İlk kayıt coklu_alan:", temp[0].coklu_alan);
+      console.log("📊 İlk kayıt temel_skor:", temp[0].temel_skor);
+    }
 
     gecmis = temp.sort((a, b) => new Date(a.tarih) - new Date(b.tarih));
 
@@ -83,8 +125,50 @@ async function yukleFirestoreGecmis() {
 }
 
 // =============================================================
-// 🔥 3B — Öğrenci → LocalStorage geçmişi
+// 🔥 3B — Öğrenci → Önce Firestore, sonra LocalStorage geçmişi
 // =============================================================
+async function yukleOgrenciGecmis() {
+  // Önce Firestore'dan çek
+  try {
+    if (db && uid) {
+      const yol = collection(
+        db,
+        "profiles",
+        uid,
+        "oyunSonuclari"
+      );
+      
+      const snap = await getDocs(yol);
+      const firestoreData = [];
+      
+      snap.forEach(doc => {
+        const data = doc.data();
+        if (data?.tarih) firestoreData.push(data);
+      });
+      
+      if (firestoreData.length > 0) {
+        gecmis = firestoreData.sort((a, b) => new Date(a.tarih) - new Date(b.tarih));
+        console.log("📥 Firestore geçmiş yüklendi (öğrenci):", gecmis.length, "kayıt");
+        
+        // Veri formatını kontrol et
+        if (gecmis.length > 0) {
+          console.log("📊 İlk kayıt örneği:", gecmis[0]);
+          console.log("📊 İlk kayıt coklu_alan:", gecmis[0].coklu_alan);
+          console.log("📊 İlk kayıt temel_skor:", gecmis[0].temel_skor);
+        }
+        
+        filtrele();
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn("⚠ Firestore'dan veri çekilemedi, LocalStorage deneniyor:", err);
+  }
+  
+  // Firestore'da veri yoksa LocalStorage'dan çek
+  yukleLocalGecmis();
+}
+
 function yukleLocalGecmis() {
   let data;
 
@@ -101,6 +185,13 @@ function yukleLocalGecmis() {
     .sort((a, b) => new Date(a.tarih) - new Date(b.tarih));
 
   console.log("📥 LocalStorage geçmiş yüklendi:", gecmis.length, "kayıt");
+  
+  // Veri formatını kontrol et
+  if (gecmis.length > 0) {
+    console.log("📊 İlk kayıt örneği:", gecmis[0]);
+    console.log("📊 İlk kayıt coklu_alan:", gecmis[0].coklu_alan);
+    console.log("📊 İlk kayıt temel_skor:", gecmis[0].temel_skor);
+  }
 
   filtrele();
 }
@@ -222,7 +313,10 @@ function listele(data) {
 function radarGrafik(data) {
   try {
     const canvas = document.getElementById("radarChart");
-    if (!canvas || !window.Chart || data.length === 0) return;
+    if (!canvas || !window.Chart || data.length === 0) {
+      console.warn("⚠ Radar grafiği için veri yok");
+      return;
+    }
 
     // Tüm kayıtlardan coklu_alan verilerini topla
     const alanSkorlari = {};
@@ -230,12 +324,51 @@ function radarGrafik(data) {
 
     alanlar.forEach(alanKey => {
       const skorlar = data
-        .map(item => item.coklu_alan?.[alanKey] || 0)
+        .map(item => {
+          // Önce yeni formattan al
+          if (item.coklu_alan && item.coklu_alan[alanKey]) {
+            return item.coklu_alan[alanKey];
+          }
+          
+          // Eski format kontrolü (skorlar objesi)
+          if (item.skorlar && item.skorlar[alanKey]) {
+            return item.skorlar[alanKey];
+          }
+          
+          // Eğer hiç veri yoksa, trials'dan hesapla
+          if (item.trials && Array.isArray(item.trials) && item.trials.length > 0) {
+            const total = item.trials.length;
+            const dogru = item.trials.filter(t => t.correct).length;
+            const accuracy = total > 0 ? dogru / total : 0;
+            const avgReaction = item.trials.reduce((sum, t) => sum + (t.reaction_ms || 1000), 0) / total;
+            const reactionScore = Math.max(0, Math.min(100, 100 - (avgReaction / 20)));
+            
+            // Alan bazlı skor hesaplama (basit versiyon)
+            let skor = 0;
+            if (alanKey === "attention") {
+              skor = Math.round(accuracy * 60 + reactionScore * 0.4);
+            } else if (alanKey === "perception") {
+              skor = Math.round(accuracy * 70 + reactionScore * 0.3);
+            } else if (alanKey === "executive") {
+              skor = Math.round(accuracy * 50 + reactionScore * 0.5);
+            } else if (alanKey === "logic") {
+              skor = Math.round(accuracy * 80 + reactionScore * 0.2);
+            } else {
+              skor = Math.round(accuracy * 70 + reactionScore * 0.3);
+            }
+            return skor;
+          }
+          
+          return 0;
+        })
         .filter(s => s > 0);
+        
       alanSkorlari[alanKey] = skorlar.length > 0 
         ? Math.round(skorlar.reduce((a, b) => a + b, 0) / skorlar.length)
         : 0;
     });
+    
+    console.log("📊 Radar grafik alan skorları:", alanSkorlari);
 
     const labels = alanlar.map(k => BRAIN_AREAS[k]?.ad || k);
     const values = alanlar.map(k => alanSkorlari[k]);
@@ -294,13 +427,38 @@ function ogrenmeHiziGrafik(data) {
     if (!canvas || !window.Chart || data.length === 0) return;
 
     const ogrenmeHizlari = data
-      .map(item => ({
-        tarih: new Date(item.tarih).toLocaleDateString("tr-TR"),
-        hiz: item.temel_skor?.ogrenmeHizi || null
-      }))
-      .filter(item => item.hiz !== null);
+      .map(item => {
+        // Geriye uyumluluk: hem ogrenmeHizi hem learning_velocity kontrol et
+        const hiz = item.temel_skor?.ogrenmeHizi || 
+                   item.temel_skor?.learning_velocity ||
+                   item.ogrenmeHizi ||
+                   item.learning_velocity ||
+                   null;
+        
+        // Eğer hala null ise, trials'dan hesapla
+        let calculatedHiz = null;
+        if (hiz === null && item.trials && Array.isArray(item.trials) && item.trials.length > 0) {
+          const dogruTrials = item.trials.filter(t => t.correct);
+          const total = item.trials.length;
+          if (total > 0) {
+            const accuracy = dogruTrials.length / total;
+            const avgReaction = item.trials.reduce((sum, t) => sum + (t.reaction_ms || 0), 0) / total;
+            // Öğrenme hızı hesaplama (basit versiyon)
+            calculatedHiz = Math.round(accuracy * 100 * (1 - Math.min(avgReaction / 2000, 0.5)));
+          }
+        }
+        
+        return {
+          tarih: item.tarih ? new Date(item.tarih).toLocaleDateString("tr-TR") : "Tarih yok",
+          hiz: hiz !== null ? hiz : calculatedHiz
+        };
+      })
+      .filter(item => item.hiz !== null && item.hiz !== undefined);
 
-    if (ogrenmeHizlari.length === 0) return;
+    if (ogrenmeHizlari.length === 0) {
+      console.warn("⚠ Öğrenme hızı verisi bulunamadı");
+      return;
+    }
 
     // Önceki chart'ı destroy et (varsa)
     const existingChart = Chart.getChart(canvas);
@@ -352,7 +510,43 @@ function alanTablo(data) {
   alanlar.forEach(alanKey => {
     const alanAd = BRAIN_AREAS[alanKey]?.ad || alanKey;
     const skorlar = data
-      .map(item => item.coklu_alan?.[alanKey] || 0)
+      .map(item => {
+        // Önce yeni formattan al
+        if (item.coklu_alan && item.coklu_alan[alanKey]) {
+          return item.coklu_alan[alanKey];
+        }
+        
+        // Eski format kontrolü (skorlar objesi)
+        if (item.skorlar && item.skorlar[alanKey]) {
+          return item.skorlar[alanKey];
+        }
+        
+        // Eğer hiç veri yoksa, trials'dan hesapla
+        if (item.trials && Array.isArray(item.trials) && item.trials.length > 0) {
+          const total = item.trials.length;
+          const dogru = item.trials.filter(t => t.correct).length;
+          const accuracy = total > 0 ? dogru / total : 0;
+          const avgReaction = item.trials.reduce((sum, t) => sum + (t.reaction_ms || 1000), 0) / total;
+          const reactionScore = Math.max(0, Math.min(100, 100 - (avgReaction / 20)));
+          
+          // Alan bazlı skor hesaplama (basit versiyon)
+          let skor = 0;
+          if (alanKey === "attention") {
+            skor = Math.round(accuracy * 60 + reactionScore * 0.4);
+          } else if (alanKey === "perception") {
+            skor = Math.round(accuracy * 70 + reactionScore * 0.3);
+          } else if (alanKey === "executive") {
+            skor = Math.round(accuracy * 50 + reactionScore * 0.5);
+          } else if (alanKey === "logic") {
+            skor = Math.round(accuracy * 80 + reactionScore * 0.2);
+          } else {
+            skor = Math.round(accuracy * 70 + reactionScore * 0.3);
+          }
+          return skor;
+        }
+        
+        return 0;
+      })
       .filter(s => s > 0);
     
     const sonSkor = skorlar.length > 0 ? skorlar[skorlar.length - 1] : 0;
@@ -375,7 +569,8 @@ function alanTablo(data) {
     </tr>`;
   });
 
-  tbody.innerHTML = html;
+  tbody.innerHTML = html || "<tr><td colspan='5'>Veri bulunamadı.</td></tr>";
+  console.log("📊 Alan tablosu oluşturuldu,", alanlar.length, "alan");
 }
 
 // -------------------------------------------------------------
@@ -437,7 +632,43 @@ function gucluVeZayifAnaliz(data) {
 
   alanlar.forEach(alanKey => {
     const skorlar = data
-      .map(item => item.coklu_alan?.[alanKey] || 0)
+      .map(item => {
+        // Önce yeni formattan al
+        if (item.coklu_alan && item.coklu_alan[alanKey]) {
+          return item.coklu_alan[alanKey];
+        }
+        
+        // Eski format kontrolü (skorlar objesi)
+        if (item.skorlar && item.skorlar[alanKey]) {
+          return item.skorlar[alanKey];
+        }
+        
+        // Eğer hiç veri yoksa, trials'dan hesapla
+        if (item.trials && Array.isArray(item.trials) && item.trials.length > 0) {
+          const total = item.trials.length;
+          const dogru = item.trials.filter(t => t.correct).length;
+          const accuracy = total > 0 ? dogru / total : 0;
+          const avgReaction = item.trials.reduce((sum, t) => sum + (t.reaction_ms || 1000), 0) / total;
+          const reactionScore = Math.max(0, Math.min(100, 100 - (avgReaction / 20)));
+          
+          // Alan bazlı skor hesaplama (basit versiyon)
+          let skor = 0;
+          if (alanKey === "attention") {
+            skor = Math.round(accuracy * 60 + reactionScore * 0.4);
+          } else if (alanKey === "perception") {
+            skor = Math.round(accuracy * 70 + reactionScore * 0.3);
+          } else if (alanKey === "executive") {
+            skor = Math.round(accuracy * 50 + reactionScore * 0.5);
+          } else if (alanKey === "logic") {
+            skor = Math.round(accuracy * 80 + reactionScore * 0.2);
+          } else {
+            skor = Math.round(accuracy * 70 + reactionScore * 0.3);
+          }
+          return skor;
+        }
+        
+        return 0;
+      })
       .filter(s => s > 0);
     alanSkorlari[alanKey] = skorlar.length > 0 
       ? Math.round(skorlar.reduce((a, b) => a + b, 0) / skorlar.length)
@@ -523,8 +754,10 @@ tarihFiltre?.addEventListener("change", filtrele);
 // -------------------------------------------------------------
 // 16) BAŞLAT
 // -------------------------------------------------------------
-if (role === ROLES.OGRETMEN) {
+if (role === ROLES.OGRETMEN || role === ROLES.INSTITUTION || role === ROLES.ADMIN) {
   yukleFirestoreGecmis();
+} else if (role === ROLES.OGRENCI) {
+  yukleOgrenciGecmis();
 } else {
   yukleLocalGecmis();
 }

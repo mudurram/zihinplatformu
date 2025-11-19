@@ -61,10 +61,11 @@ export class GameEngine {
   // ====================================================================
   // 📝 Trial Kaydet
   // ====================================================================
-  recordTrial({ correct, reaction_ms }) {
+  recordTrial({ correct, reaction_ms, ...extraData }) {
     if (this.gameFinished) return; // oyun bitmişse işleme alma
 
-    this.trials.push({ correct: !!correct, reaction_ms });
+    const trial = { correct: !!correct, reaction_ms, ...extraData };
+    this.trials.push(trial);
 
     if (correct) this.score++;
     else this.mistakes++;
@@ -213,11 +214,17 @@ function buildResultPayload({
     "";
 
   const accuracy = calcAccuracy(score, mistakes);
+  const learningVelocity = calcLearningVelocity(score, mistakes, timeLimit, timeElapsed);
+  const reactionAvg = rawComponents.reaction_speed || 0;
+  
   const temelSkor = {
     dogru: score,
     yanlis: mistakes,
-    reaction_avg: rawComponents.reaction_speed || 0,
-    learning_velocity: calcLearningVelocity(score, mistakes, timeLimit, timeElapsed)
+    sure: timeElapsed || timeLimit, // Geçen süre (saniye)
+    ortalamaTepki: reactionAvg, // ms cinsinden ortalama tepki süresi
+    reaction_avg: reactionAvg, // Geriye uyumluluk için
+    ogrenmeHizi: learningVelocity, // 0-100 arası öğrenme hızı
+    learning_velocity: learningVelocity // Geriye uyumluluk için
   };
 
   const fullResult = {

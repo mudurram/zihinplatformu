@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kurum — Zihin Platformu</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="router.js"></script>
+  <script type="module" src="header.js"></script>
+  <script type="module" src="kurum.js"></script>
+</head>
+<body>
+  <div class="container" style="padding-top:90px;">
+    <div class="panel-wrapper">
+      <h2 style="color:#1e3d59;margin-bottom:20px;">🏢 Kurum Bilgileri</h2>
+      
+      <!-- Mevcut Kurum -->
+      <div id="mevcutKurum" style="display:none;background:#e8f5e9;padding:20px;border-radius:12px;margin-bottom:30px;border:2px solid #4caf50;">
+        <h3 style="margin-top:0;color:#1e3d59;">✅ Bağlı Kurum</h3>
+        <p id="kurumAdi" style="font-size:18px;font-weight:600;color:#2e7d32;margin:10px 0;"></p>
+        <button onclick="kurumdanAyril()" style="padding:10px 20px;background:#e74c3c;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;margin-top:10px;">Kurumdan Ayrıl</button>
+      </div>
+      
+      <!-- Kurum Ekle -->
+      <div id="kurumEkle" style="display:none;background:#f0f8ff;padding:20px;border-radius:12px;border:2px solid #4a90e2;">
+        <h3 style="margin-top:0;color:#1e3d59;">➕ Kurum Ekle</h3>
+        <p style="color:#666;font-size:14px;margin-bottom:15px;">
+          Kullanıcı adını girerek bir kuruma bağlanabilirsiniz.
+        </p>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+          <input 
+            type="text" 
+            id="kurumUsernameInput" 
+            placeholder="Kurum kullanıcı adı girin"
+            style="flex:1;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+          <button 
+            id="kurumEkleBtn" 
+            style="padding:12px 24px;background:#4a90e2;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;"
+            onmouseover="this.style.background='#3578c6'"
+            onmouseout="this.style.background='#4a90e2'"
+          >
+            📤 Bağlan
+          </button>
+        </div>
+        <div id="kurumMesaji" style="font-size:14px;font-weight:500;"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

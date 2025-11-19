@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hesap Bilgileri — Zihin Platformu</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="router.js"></script>
+  <script type="module" src="header.js"></script>
+  <script type="module" src="hesap-bilgileri.js"></script>
+</head>
+<body>
+  <div class="container" style="padding-top:90px;">
+    <div class="panel-wrapper">
+      <h2 style="color:#1e3d59;margin-bottom:30px;">⚙️ Hesap Bilgileri</h2>
+      
+      <!-- Kullanıcı Adı -->
+      <div style="background:#f0f8ff;padding:20px;border-radius:12px;margin-bottom:20px;border:2px solid #4a90e2;">
+        <h3 style="margin-top:0;color:#1e3d59;margin-bottom:15px;">👤 Kullanıcı Adı</h3>
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:5px;color:#666;font-size:14px;">Kullanıcı Adı</label>
+          <input 
+            type="text" 
+            id="kullaniciAdi" 
+            placeholder="Kullanıcı adınızı girin"
+            style="width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+        </div>
+        <button 
+          id="kullaniciAdiDegistirBtn" 
+          style="padding:12px 24px;background:#4a90e2;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;width:100%;"
+          onmouseover="this.style.background='#3578c6'"
+          onmouseout="this.style.background='#4a90e2'"
+        >
+          💾 Kullanıcı Adını Güncelle
+        </button>
+        <div id="kullaniciAdiMesaji" style="font-size:14px;font-weight:500;margin-top:10px;"></div>
+      </div>
+
+      <!-- Email -->
+      <div style="background:#f0f8ff;padding:20px;border-radius:12px;margin-bottom:20px;border:2px solid #4a90e2;">
+        <h3 style="margin-top:0;color:#1e3d59;margin-bottom:15px;">📧 E-Posta</h3>
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:5px;color:#666;font-size:14px;">Yeni E-Posta</label>
+          <input 
+            type="email" 
+            id="yeniEmail" 
+            placeholder="Yeni e-posta adresinizi girin"
+            style="width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+        </div>
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:5px;color:#666;font-size:14px;">Şifre (Doğrulama için)</label>
+          <input 
+            type="password" 
+            id="emailSifre" 
+            placeholder="Mevcut şifrenizi girin"
+            style="width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+        </div>
+        <button 
+          id="emailDegistirBtn" 
+          style="padding:12px 24px;background:#4a90e2;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;width:100%;"
+          onmouseover="this.style.background='#3578c6'"
+          onmouseout="this.style.background='#4a90e2'"
+        >
+          📧 E-Posta Adresini Güncelle
+        </button>
+        <div id="emailMesaji" style="font-size:14px;font-weight:500;margin-top:10px;"></div>
+      </div>
+      
+      <!-- Şifre Değiştir -->
+      <div style="background:#f0f8ff;padding:20px;border-radius:12px;margin-bottom:20px;border:2px solid #4a90e2;">
+        <h3 style="margin-top:0;color:#1e3d59;margin-bottom:15px;">🔐 Şifre Değiştir</h3>
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:5px;color:#666;font-size:14px;">Mevcut Şifre</label>
+          <input 
+            type="password" 
+            id="mevcutSifre" 
+            placeholder="Mevcut şifrenizi girin"
+            style="width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+        </div>
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:5px;color:#666;font-size:14px;">Yeni Şifre</label>
+          <input 
+            type="password" 
+            id="yeniSifre" 
+            placeholder="Yeni şifrenizi girin"
+            style="width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+        </div>
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:5px;color:#666;font-size:14px;">Yeni Şifre (Tekrar)</label>
+          <input 
+            type="password" 
+            id="yeniSifreTekrar" 
+            placeholder="Yeni şifrenizi tekrar girin"
+            style="width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+        </div>
+        <button 
+          id="sifreDegistirBtn" 
+          style="padding:12px 24px;background:#4a90e2;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;width:100%;"
+          onmouseover="this.style.background='#3578c6'"
+          onmouseout="this.style.background='#4a90e2'"
+        >
+          🔐 Şifre Değiştir
+        </button>
+        <div id="sifreMesaji" style="font-size:14px;font-weight:500;margin-top:10px;"></div>
+      </div>
+      
+      <!-- Kurum Bilgileri (Sadece Kurum Rolü İçin) -->
+      <div id="kurumBilgileri" style="display:none;background:#f0f8ff;padding:20px;border-radius:12px;margin-bottom:20px;border:2px solid #4a90e2;">
+        <h3 style="margin-top:0;color:#1e3d59;margin-bottom:15px;">🏢 Kurum Bilgileri</h3>
+        
+        <!-- Kurum Adı -->
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:5px;color:#666;font-size:14px;">Kurum Adı</label>
+          <input 
+            type="text" 
+            id="kurumAdi" 
+            placeholder="Kurum adınızı girin"
+            style="width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+        </div>
+        
+        <!-- Telefon 1 -->
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:5px;color:#666;font-size:14px;">Telefon 1</label>
+          <input 
+            type="tel" 
+            id="kurumTelefon1" 
+            placeholder="Telefon numaranızı girin"
+            style="width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+        </div>
+        
+        <!-- Telefon 2 -->
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:5px;color:#666;font-size:14px;">Telefon 2</label>
+          <input 
+            type="tel" 
+            id="kurumTelefon2" 
+            placeholder="İkinci telefon numaranızı girin (opsiyonel)"
+            style="width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+        </div>
+        
+        <!-- Adres -->
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:5px;color:#666;font-size:14px;">Adres</label>
+          <textarea 
+            id="kurumAdres" 
+            placeholder="Kurum adresinizi girin"
+            rows="3"
+            style="width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;resize:vertical;"
+          ></textarea>
+        </div>
+        
+        <!-- Yetkili -->
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:5px;color:#666;font-size:14px;">Yetkili</label>
+          <input 
+            type="text" 
+            id="kurumYetkili" 
+            placeholder="Yetkili kişi adını girin"
+            style="width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+        </div>
+        
+        <button 
+          id="kurumBilgileriGuncelleBtn" 
+          style="padding:12px 24px;background:#4a90e2;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;width:100%;"
+          onmouseover="this.style.background='#3578c6'"
+          onmouseout="this.style.background='#4a90e2'"
+        >
+          💾 Kurum Bilgilerini Güncelle
+        </button>
+        <div id="kurumBilgileriMesaji" style="font-size:14px;font-weight:500;margin-top:10px;"></div>
+      </div>
+
+      <!-- Hesap Sil -->
+      <div style="background:#ffeaea;padding:20px;border-radius:12px;border:2px solid #e74c3c;">
+        <h3 style="margin-top:0;color:#1e3d59;margin-bottom:15px;">🗑️ Hesabı Sil</h3>
+        <p style="color:#666;font-size:14px;margin-bottom:15px;">
+          Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz silinecektir.
+        </p>
+        <button 
+          onclick="hesabiSil()" 
+          style="padding:12px 24px;background:#e74c3c;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;width:100%;"
+          onmouseover="this.style.background='#c0392b'"
+          onmouseout="this.style.background='#e74c3c'"
+        >
+          🗑️ Hesabı Sil
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

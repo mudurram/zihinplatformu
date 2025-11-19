@@ -160,7 +160,10 @@ function cevapVer(renk, zemin) {
   // GAME ENGINE Trial Kaydı
   engine.recordTrial({
     correct: dogruMu,
-    reaction_ms: tepki
+    reaction_ms: tepki,
+    hedefRenk: zemin.ad, // Hedef renk (zemin rengi)
+    secilenRenk: renk.ad, // Seçilen renk
+    renkKodu: zemin.kod // Renk kodu (görselleştirme için)
   });
 
   yeniSoru();

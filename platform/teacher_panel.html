@@ -146,6 +146,7 @@
     <div class="sekme-grup">
       <button class="sekme-btn active" data-sekme="ogrenciler">📚 Öğrenciler</button>
       <button class="sekme-btn" data-sekme="talepler">📩 Talepler</button>
+      <button class="sekme-btn" data-sekme="kurum">🏢 Kurum</button>
       <button class="sekme-btn" data-sekme="mesajlar">💬 Mesajlaşma</button>
     </div>
 
@@ -159,39 +160,122 @@
 
     <!-- TALEPLER SEKMESİ -->
     <div id="sekme-talepler" class="sekme-icerik">
-      <!-- Öğrenciye Talep Gönder -->
+      <!-- Davet Gönder -->
       <div style="background:#f0f8ff;padding:20px;border-radius:12px;margin-bottom:20px;border:2px solid #4a90e2;">
-        <h3 style="margin-top:0;color:#1e3d59;">➕ Öğrenciye Talep Gönder</h3>
+        <h3 style="margin-top:0;color:#1e3d59;">➕ Davet Gönder</h3>
         <p style="color:#666;font-size:14px;margin-bottom:15px;">
-          Öğrencinin kullanıcı adını girerek bağlantı talebi gönderebilirsiniz.
+          Kullanıcı adını girerek öğrencileri davet edebilirsiniz.
         </p>
         <div style="display:flex;gap:10px;align-items:center;">
           <input 
             type="text" 
-            id="ogrenciUsernameInput" 
-            placeholder="Öğrenci kullanıcı adı (örn: ali.ogrenci)"
+            id="davetUsernameInput" 
+            placeholder="Kullanıcı adı girin (örn: ali.ogrenci)"
             style="flex:1;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
           />
           <button 
-            id="ogrenciTalepGonderBtn" 
+            id="davetGonderBtn" 
             style="padding:12px 24px;background:#4a90e2;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;"
             onmouseover="this.style.background='#3578c6'"
             onmouseout="this.style.background='#4a90e2'"
           >
-            📤 Talep Gönder
+            📤 Davet Gönder
           </button>
         </div>
-        <div id="ogrenciTalepMesaji" style="margin-top:10px;font-size:14px;font-weight:500;"></div>
+        <div id="davetMesaji" style="margin-top:10px;font-size:14px;font-weight:500;"></div>
       </div>
 
-      <!-- Bekleyen Talepler -->
-      <div>
-        <h3 style="color:#1e3d59;">📥 Bekleyen Talepler</h3>
+      <!-- Alınan Talepler -->
+      <div style="margin-bottom:30px;">
+        <h3 style="color:#1e3d59;">📥 Alınan Davetler</h3>
         <p style="font-size:15px;color:#555;margin-bottom:15px;">
           Öğrencilerden veya kurumlardan gelen davetleri buradan yönetebilirsiniz.
         </p>
-        <ul id="bekleyenTalepler" class="talep-listesi">
-          <li>Henüz talep yok</li>
+        <ul id="ogretmenAlinanTalepler" class="talep-listesi">
+          <li>Yükleniyor...</li>
+        </ul>
+      </div>
+
+      <!-- Gönderilen Talepler -->
+      <div>
+        <h3 style="color:#1e3d59;">📤 Gönderilen Davetler</h3>
+        <p style="font-size:15px;color:#555;margin-bottom:15px;">
+          Öğrencilere veya kurumlara gönderdiğiniz davetlerin durumunu buradan takip edebilirsiniz.
+        </p>
+        <ul id="ogretmenGonderilenTalepler" class="talep-listesi">
+          <li>Yükleniyor...</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- KURUM SEKMESİ -->
+    <div id="sekme-kurum" class="sekme-icerik">
+      <!-- Mevcut Kurum Bilgisi -->
+      <div id="mevcutKurumBilgisi" style="background:#e8f5e9;padding:20px;border-radius:12px;margin-bottom:20px;border:2px solid #4caf50;display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+          <div style="flex:1;">
+            <h3 style="margin-top:0;color:#1e3d59;">✅ Bağlı Kurum</h3>
+            <p id="kurumAdi" style="font-size:16px;font-weight:600;color:#2e7d32;margin:10px 0;"></p>
+            <p style="font-size:14px;color:#666;margin:0;">
+              Bu kuruma bağlısınız. Kurum yöneticileri öğrencilerinizin analizlerini görüntüleyebilir.
+            </p>
+          </div>
+          <button 
+            id="kurumSilBtn"
+            onclick="kurumdanAyril()"
+            style="padding:10px 20px;background:#e74c3c;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:0.2s;white-space:nowrap;margin-left:15px;"
+            onmouseover="this.style.background='#c0392b'"
+            onmouseout="this.style.background='#e74c3c'"
+          >
+            🗑️ Kurumu Sil
+          </button>
+        </div>
+      </div>
+
+      <!-- Kurum Daveti Gönder -->
+      <div style="background:#f0f8ff;padding:20px;border-radius:12px;margin-bottom:20px;border:2px solid #4a90e2;">
+        <h3 style="margin-top:0;color:#1e3d59;">➕ Kurum Daveti Gönder</h3>
+        <p style="color:#666;font-size:14px;margin-bottom:15px;">
+          Kurum kullanıcı adını girerek kuruma başvuru yapabilirsiniz. Kurum ilişkisi isteğe bağlıdır; bireysel olarak da çalışabilirsiniz.
+        </p>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input 
+            type="text" 
+            id="kurumDavetUsernameInput" 
+            placeholder="Kurum kullanıcı adı girin (örn: okul.kurum)"
+            style="flex:1;padding:12px;border-radius:8px;border:1px solid #ddd;font-size:15px;"
+          />
+          <button 
+            id="kurumDavetGonderBtn" 
+            style="padding:12px 24px;background:#4a90e2;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;"
+            onmouseover="this.style.background='#3578c6'"
+            onmouseout="this.style.background='#4a90e2'"
+          >
+            📤 Başvuru Gönder
+          </button>
+        </div>
+        <div id="kurumDavetMesaji" style="margin-top:10px;font-size:14px;font-weight:500;"></div>
+      </div>
+
+      <!-- Alınan Kurum Davetleri -->
+      <div style="margin-bottom:30px;">
+        <h3 style="color:#1e3d59;">📥 Alınan Kurum Davetleri</h3>
+        <p style="font-size:15px;color:#555;margin-bottom:15px;">
+          Kurumlardan gelen davetleri buradan yönetebilirsiniz.
+        </p>
+        <ul id="ogretmenKurumAlinanTalepler" class="talep-listesi">
+          <li>Yükleniyor...</li>
+        </ul>
+      </div>
+
+      <!-- Gönderilen Kurum Başvuruları -->
+      <div>
+        <h3 style="color:#1e3d59;">📤 Gönderilen Kurum Başvuruları</h3>
+        <p style="font-size:15px;color:#555;margin-bottom:15px;">
+          Kurumlara gönderdiğiniz başvuruların durumunu buradan takip edebilirsiniz.
+        </p>
+        <ul id="ogretmenKurumGonderilenTalepler" class="talep-listesi">
+          <li>Yükleniyor...</li>
         </ul>
       </div>
     </div>
@@ -199,21 +283,95 @@
     <!-- MESAJLAŞMA SEKMESİ -->
     <div id="sekme-mesajlar" class="sekme-icerik">
       <h3>💬 Mesajlaşma</h3>
-      <p style="font-size:14px;color:#666;margin-bottom:15px;">
-        Öğrencilerle mesajlaşmak için önce bir öğrenci seçin.
-      </p>
       
-      <div id="mesajOgrenciSecim" style="margin-bottom:20px;">
-        <select id="mesajOgrenciSelect" style="width:100%;padding:10px;border-radius:8px;">
-          <option value="">Öğrenci seçin...</option>
-        </select>
+      <!-- Role Seçimi -->
+      <div style="margin-bottom:20px;">
+        <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">Mesaj Göndermek İstediğiniz Rol:</label>
+        <div style="display:flex;gap:15px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="radio" name="mesajRolSecimi" value="ogrenci" id="rolOgrenci" style="cursor:pointer;">
+            <span>👩‍🎓 Öğrenci</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="radio" name="mesajRolSecimi" value="kurum" id="rolKurum" style="cursor:pointer;">
+            <span>🏢 Kurum</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="radio" name="mesajRolSecimi" value="herikisi" id="rolHerIkisi" style="cursor:pointer;">
+            <span>👥 Her İkisi</span>
+          </label>
+        </div>
       </div>
 
-      <div id="mesajAlani" style="display:none;">
+      <!-- Kullanıcı Seçim Alanı -->
+      <div id="mesajKullaniciSecimAlani" style="display:none;margin-bottom:20px;">
+        <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">Alıcı Seçimi:</label>
+        
+        <!-- Kullanıcı Adı ile Arama -->
+        <div style="margin-bottom:15px;">
+          <input 
+            type="text" 
+            id="mesajKullaniciAdiInput" 
+            placeholder="Kullanıcı adı girin (örn: ahmet.ogrenci)"
+            style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;"
+          >
+          <button 
+            id="mesajKullaniciAdiAraBtn" 
+            style="margin-top:8px;padding:8px 16px;background:#27ae60;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px;"
+          >
+            🔍 Ara ve Seç
+          </button>
+        </div>
+
+        <!-- VEYA Liste ile Seçim -->
+        <div style="margin-top:15px;">
+          <label style="display:block;margin-bottom:8px;font-size:13px;color:#666;">VEYA listeden seçin:</label>
+          <select id="mesajKullaniciSelect" style="width:100%;padding:10px;border-radius:8px;font-size:14px;">
+            <option value="">Kullanıcı seçin...</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Mesaj Gönderme Alanı -->
+      <div id="mesajGondermeAlani" style="display:none;margin-top:20px;">
+        <div style="background:#f0f7ff;padding:12px;border-radius:8px;margin-bottom:15px;border-left:4px solid #4a90e2;">
+          <strong>Alıcı:</strong> <span id="mesajAlıcıBilgisi" style="color:#4a90e2;"></span>
+        </div>
+
         <div id="mesajKutu" class="mesaj-kutu"></div>
-        <div class="mesaj-input-grup">
-          <input type="text" id="mesajInput" class="mesaj-input" placeholder="Mesajınızı yazın...">
-          <button id="mesajGonderBtn" class="mesaj-gonder-btn">Gönder</button>
+        
+        <div style="display:flex;gap:10px;">
+          <textarea 
+            id="mesajInput" 
+            rows="3"
+            style="flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;resize:vertical;font-family:inherit;" 
+            placeholder="Mesajınızı yazın..."
+          ></textarea>
+          <button 
+            id="mesajGonderBtn" 
+            style="padding:10px 20px;background:#4a90e2;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;align-self:flex-end;"
+          >
+            📤 Gönder
+          </button>
+        </div>
+      </div>
+
+      <!-- Mesaj Arşivi -->
+      <div style="margin-top:30px;border-top:2px solid #e0e0e0;padding-top:20px;">
+        <h4 style="color:#1e3d59;margin-bottom:15px;">📚 Mesaj Arşivi</h4>
+        <div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;">
+          <button id="arsivGonderilenBtn" style="padding:8px 16px;background:#27ae60;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;">
+            📤 Gönderilen Mesajlar
+          </button>
+          <button id="arsivGelenBtn" style="padding:8px 16px;background:#3498db;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;">
+            📥 Gelen Mesajlar
+          </button>
+          <button id="arsivSilinenBtn" style="padding:8px 16px;background:#e74c3c;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;">
+            🗑️ Silinen Mesajlar
+          </button>
+        </div>
+        <div id="mesajArsivAlani" style="max-height:300px;overflow-y:auto;border:1px solid #ddd;border-radius:8px;padding:15px;background:#f9f9f9;">
+          <p style="text-align:center;color:#999;">Arşiv görüntülemek için yukarıdaki butonlardan birini seçin.</p>
         </div>
       </div>
     </div>
