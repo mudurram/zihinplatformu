@@ -4,6 +4,7 @@ body.eslemeOyun {
   background: linear-gradient(135deg, #a8edea, #fed6e3);
   margin: 0;
   padding: 0;
+  padding-top: 70px; /* Header için alan - Fixed header */
   text-align: center;
   user-select: none;
 }

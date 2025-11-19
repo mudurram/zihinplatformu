@@ -53,13 +53,20 @@ try {
   }
 } catch (err) {
   console.error("❌ Firebase başlatılamadı:", err);
+  // Hata durumunda fallback - boş bir app objesi oluştur
+  // Bu durumda auth ve db undefined olacak ama crash olmayacak
+  app = null;
 }
 
 // =============================================================
 // 4) Servisler: Auth + Firestore
 // =============================================================
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+if (!app) {
+  console.error("❌ Firebase app başlatılamadı - auth ve db kullanılamaz");
+}
+
+export const auth = app ? getAuth(app) : null;
+export const db = app ? getFirestore(app) : null;
 
 // Sağlık kontrolü logları
 if (auth) console.log("🔥 Auth hazır (v7.2)");

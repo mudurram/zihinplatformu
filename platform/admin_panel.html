@@ -7,6 +7,9 @@
 
   <!-- Ortak Stil -->
   <link rel="stylesheet" href="style.css">
+  
+  <!-- Header Script -->
+  <script type="module" src="header.js"></script>
 
   <style>
     body {
@@ -83,29 +86,15 @@
     }
   </style>
 
-  <!-- Yönetim Scripti -->
-  <script type="module" src="../management/admin_panel.js" defer></script>
-  <script type="module">
-    import { logout } from "../auth/auth.js";
-
-    // Çıkış fonksiyonu globalde kullanılacak
-    window.cikisYap = async function () {
-      await logout();
-      window.location.href = "../auth/login.html";
-    };
-  </script>
+  <!-- Admin Panel Scripti -->
+  <script type="module" src="router.js"></script>
+  <script type="module" src="admin_panel.js"></script>
 
 </head>
 
 <body>
 
-  <!-- Üst Panel -->
-  <header class="ust-panel">
-    <div class="kullanici-bilgi">
-      <strong>Admin Paneli</strong>
-    </div>
-    <button class="cikis-btn" onclick="cikisYap()">Çıkış Yap</button>
-  </header>
+  <!-- Header header.js tarafından otomatik eklenecek -->
 
   <div class="panel-wrapper">
     <h2>🛠 Kullanıcı Yönetimi</h2>

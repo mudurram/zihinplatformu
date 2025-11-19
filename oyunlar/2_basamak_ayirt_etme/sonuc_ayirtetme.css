@@ -9,6 +9,7 @@ body {
   background: linear-gradient(135deg, #d7eaff, #ffe4fc);
   margin: 0;
   padding: 0;
+  padding-top: 70px; /* Header için alan - Fixed header */
   text-align: center;
   color: #243447;
 }

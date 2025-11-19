@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Akademik Performans | Zihin Platformu</title>
+
+  <!-- Ortak Stil -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Header Script -->
+  <script type="module" src="header.js"></script>
+
+  <style>
+    .akademik-wrapper {
+      width: 95%;
+      max-width: 1200px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #1e3d59;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .ders-kart {
+      background: #f7f9fc;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-left: 6px solid #4a90e2;
+    }
+
+    .ders-baslik {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1e3d59;
+      margin-bottom: 15px;
+    }
+
+    .tahmin-skor {
+      font-size: 48px;
+      font-weight: 700;
+      color: #4a90e2;
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .baglanti-listesi {
+      list-style: none;
+      padding: 0;
+      margin: 15px 0;
+    }
+
+    .baglanti-listesi li {
+      padding: 8px;
+      margin: 5px 0;
+      background: #e8f5e9;
+      border-radius: 6px;
+      border-left: 3px solid #4caf50;
+    }
+
+    .chart-section {
+      margin-top: 35px;
+      background: #fdfdfd;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+    }
+
+    canvas {
+      width: 100% !important;
+      max-height: 400px;
+    }
+
+    .nav-bar {
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      background: #f3f4f6;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .nav-bar button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      background: #4a90e2;
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .nav-bar button:hover {
+      background: #3578c6;
+    }
+
+    .tablo {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    .tablo th, .tablo td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .tablo th {
+      background: #f5f5f5;
+      font-weight: 600;
+    }
+
+    .ai-oneri {
+      background: #e8f5e9;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      border-left: 4px solid #4caf50;
+    }
+
+    .guclu-alan {
+      color: #4caf50;
+      font-weight: 600;
+    }
+
+    .destek-alan {
+      color: #ff9800;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ÜST MENÜ -->
+  <div class="nav-bar" id="navBar"></div>
+
+  <div class="akademik-wrapper">
+
+    <h2>📚 Akademik Performans Analizi</h2>
+
+    <!-- DERS KARTLARI -->
+    <div id="dersKartlari"></div>
+
+    <!-- DERS-BİLİŞSEL BAĞLANTI TABLOSU -->
+    <div class="chart-section">
+      <h3 style="text-align:center;margin-bottom:15px;">🔗 Ders–Bilişsel Bağlantı Tablosu</h3>
+      <table class="tablo" id="baglantiTablo">
+        <thead>
+          <tr>
+            <th>Ders</th>
+            <th>İlgili Zihin Alanları</th>
+            <th>Ölçülen Beceriler</th>
+            <th>Kanıta Dayalı Sonuç</th>
+          </tr>
+        </thead>
+        <tbody id="baglantiTabloBody"></tbody>
+      </table>
+    </div>
+
+    <!-- AKADEMİK GÜÇLÜ ALANLAR -->
+    <div class="chart-section">
+      <h3 style="text-align:center;margin-bottom:15px;">✅ Akademik Güçlü Alanlar</h3>
+      <div id="akademikGuclu"></div>
+    </div>
+
+    <!-- AKADEMİK DESTEK ALANLARI -->
+    <div class="chart-section">
+      <h3 style="text-align:center;margin-bottom:15px;">📈 Akademik Destek Alanları</h3>
+      <div id="akademikDestek"></div>
+    </div>
+
+    <!-- AI AKADEMİK ÖNERİ -->
+    <div class="chart-section">
+      <h3 style="text-align:center;margin-bottom:15px;">🤖 AI Akademik Öneri Motoru</h3>
+      <div id="aiAkademikOneri" class="ai-oneri">
+        <p>Analiz yapılıyor...</p>
+      </div>
+    </div>
+
+    <!-- DERS SKORLARI GRAFİĞİ -->
+    <div class="chart-section">
+      <h3 style="text-align:center;margin-bottom:15px;">📊 Tahmini Ders Skorları</h3>
+      <canvas id="dersSkorlariChart"></canvas>
+    </div>
+
+  </div>
+
+  <!-- NavBar artık header.js tarafından yönetiliyor -->
+
+  <!-- AKADEMİK MOTORU -->
+  <script type="module" src="akademik.js"></script>
+
+</body>
+</html>
+

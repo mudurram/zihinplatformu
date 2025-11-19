@@ -7,6 +7,305 @@
 console.log("globalConfig.js yüklendi ✅");
 
 // =============================================================
+// 🧠 Zihin Alanı Kataloğu — Sprint 1 veri modeli
+// =============================================================
+export const BRAIN_AREAS = {
+  attention: {
+    id: "attention",
+    ad: "Dikkat",
+    renk: "#f39c12",
+    tanim: "Seçici, sürdürülen, bölünmüş dikkat ve tepki kontrolü.",
+    gunlukHayat: "Günlük hayatta dikkat gerektiren görevlerde başarılı olma, odaklanma ve dikkat dağınıklığını önleme."
+  },
+  memory: {
+    id: "memory",
+    ad: "Hafıza",
+    renk: "#9b59b6",
+    tanim: "Görsel, işitsel, çalışma ve sıralama hafızası.",
+    gunlukHayat: "Bilgileri hatırlama, öğrenilenleri saklama ve gerektiğinde geri çağırma becerisi."
+  },
+  perception: {
+    id: "perception",
+    ad: "Algısal İşlemleme",
+    renk: "#1abc9c",
+    tanim: "Görsel tarama, mekansal seçicilik ve hızlı işlemleme.",
+    gunlukHayat: "Görsel ve işitsel bilgileri hızlı ve doğru işleme, detayları fark etme."
+  },
+  executive: {
+    id: "executive",
+    ad: "Yürütücü İşlev",
+    renk: "#e67e22",
+    tanim: "Planlama, kural değiştirme, inhibisyon ve karar verme.",
+    gunlukHayat: "Görevleri planlama, organize olma, dürtüleri kontrol etme ve hedefe odaklanma."
+  },
+  logic: {
+    id: "logic",
+    ad: "Mantıksal Düşünme",
+    renk: "#2ecc71",
+    tanim: "İlişki kurma, akıl yürütme ve örüntü tanıma.",
+    gunlukHayat: "Problem çözme, mantıksal bağlantılar kurma ve analitik düşünme."
+  },
+  literacy: {
+    id: "literacy",
+    ad: "Okuma - Dil",
+    renk: "#3498db",
+    tanim: "Kelime tanıma, akıcı okuma, anlamlandırma.",
+    gunlukHayat: "Okuma akıcılığı, kelime bilgisi ve dil becerilerinde başarı."
+  },
+  dyslexia: {
+    id: "dyslexia",
+    ad: "Disleksi Destek",
+    renk: "#8e44ad",
+    tanim: "Harf-ses eşleme, fonolojik farkındalık ve görsel takip.",
+    gunlukHayat: "Okuma zorluklarını aşma, harf-ses ilişkilerini anlama ve görsel takip becerisi."
+  },
+  writing: {
+    id: "writing",
+    ad: "Yazı - Motor",
+    renk: "#c0392b",
+    tanim: "İnce motor, çizgi yönü, harf formasyonu.",
+    gunlukHayat: "Yazı yazma becerisi, el-göz koordinasyonu ve ince motor kontrolü."
+  },
+  math: {
+    id: "math",
+    ad: "Matematik",
+    renk: "#16a085",
+    tanim: "Sayı belleği, mantıksal çözüm, zihinden işlem.",
+    gunlukHayat: "Matematiksel işlemler, sayı kavramı ve problem çözme becerisi."
+  },
+  emotional: {
+    id: "emotional",
+    ad: "Duygusal Farkındalık",
+    renk: "#d35400",
+    tanim: "Yüz ifadeleri, duygu adlandırma, yoğunluk analizi.",
+    gunlukHayat: "Duyguları tanıma, ifade etme ve yönetme becerisi."
+  },
+  social: {
+    id: "social",
+    ad: "Sosyal Biliş",
+    renk: "#2980b9",
+    tanim: "Empati, ortak dikkat, niyet okuma, zihin kuramı.",
+    gunlukHayat: "Sosyal ilişkiler, empati kurma ve sosyal durumları anlama."
+  },
+  comprehension: {
+    id: "comprehension",
+    ad: "Anlama",
+    renk: "#7f8c8d",
+    tanim: "Okuduğunu, dinlediğini ve görsel içerikleri anlama.",
+    gunlukHayat: "Okuduğunu ve dinlediğini anlama, bilgileri yorumlama ve çıkarım yapma."
+  }
+};
+
+export const SUBSKILLS = {
+  attention: [
+    { id: "secici_dikkat", ad: "Seçici Dikkat" },
+    { id: "surekli_dikkat", ad: "Sürdürülen Dikkat" },
+    { id: "bolunmus_dikkat", ad: "Bölünmüş Dikkat" },
+    { id: "inhibisyon", ad: "İnhibisyon / Kontrol" },
+    { id: "hizli_tepki", ad: "Hızlı Tepki" },
+    { id: "esleme_dikkati", ad: "Eşleme Dikkati" },
+    { id: "ayirt_etme", ad: "Ayırt Etme" }
+  ],
+  memory: [
+    { id: "gorsel_hafiza", ad: "Görsel Hafıza" },
+    { id: "sozel_hafiza", ad: "Sözel Hafıza" },
+    { id: "calisma_bellegi", ad: "Çalışma Belleği" },
+    { id: "isitsel_hafiza", ad: "İşitsel Hafıza" },
+    { id: "cagrisimsal_hafiza", ad: "Çağrışımsal Hafıza" },
+    { id: "mekansal_hafiza", ad: "Mekansal Hafıza" },
+    { id: "sirali_hafiza", ad: "Sıralı Hafıza" }
+  ],
+  perception: [
+    { id: "gorsel_tarama", ad: "Görsel Tarama" },
+    { id: "mekansal_secicilik", ad: "Mekansal Seçicilik" },
+    { id: "isitsel_ayirt", ad: "İşitsel Ayırt" },
+    { id: "hizli_gorsel_islem", ad: "Hızlı Görsel İşleme" },
+    { id: "sekil_zemin", ad: "Şekil-Zemin Ayırımı" },
+    { id: "gorsel_motor", ad: "Görsel Motor Entegrasyon" }
+  ],
+  executive: [
+    { id: "planlama", ad: "Planlama" },
+    { id: "kural_degistirme", ad: "Kural Değiştirme" },
+    { id: "tepki_baskilama", ad: "Tepki Baskılama" },
+    { id: "problem_cozme", ad: "Problem Çözme" },
+    { id: "karar_verme", ad: "Karar Verme" }
+  ],
+  logic: [
+    { id: "iliski_kurma", ad: "İlişki Kurma" },
+    { id: "akil_yurutme", ad: "Akıl Yürütme" },
+    { id: "oruntu_tanima", ad: "Örüntü Tanıma" },
+    { id: "siniflama", ad: "Sınıflama" },
+    { id: "kosullu_mantik", ad: "Koşullu Mantık" }
+  ],
+  literacy: [
+    { id: "sozcuk_tanima", ad: "Sözcük Tanıma" },
+    { id: "akici_okuma", ad: "Akıcı Okuma" },
+    { id: "anlamlandirma", ad: "Anlamlandırma" },
+    { id: "ses_harf", ad: "Ses-Harf Farkındalığı" },
+    { id: "sozcuk_bilgisi", ad: "Sözcük Bilgisi" },
+    { id: "dilbilgisi", ad: "Dilbilgisel Yapı" }
+  ],
+  dyslexia: [
+    { id: "harf_karistirma", ad: "Harf Karıştırma" },
+    { id: "gorsel_takip", ad: "Görsel Takip" },
+    { id: "fonolojik", ad: "Fonolojik Farkındalık" },
+    { id: "ran", ad: "Hızlı İsimlendirme" }
+  ],
+  writing: [
+    { id: "ince_motor", ad: "İnce Motor" },
+    { id: "cizgi_yonu", ad: "Çizgi Yönü" },
+    { id: "sekil_stabilitesi", ad: "Şekil Stabilitesi" },
+    { id: "harf_formasyonu", ad: "Harf Formasyonu" },
+    { id: "yazi_akiciligi", ad: "Yazı Akıcılığı" }
+  ],
+  math: [
+    { id: "sayi_nesne", ad: "Sayı-Nesne Eşleme" },
+    { id: "toplama_stratejisi", ad: "Toplama Stratejisi" },
+    { id: "mantiksal_cozum", ad: "Mantıksal Çözüm" },
+    { id: "temel_aritmetik", ad: "Temel Aritmetik" },
+    { id: "sayi_oruntusu", ad: "Sayı Örüntüsü" },
+    { id: "zihinden_islem", ad: "Zihinden İşlem" }
+  ],
+  emotional: [
+    { id: "yuz_ifadesi", ad: "Yüz İfadesi Algı" },
+    { id: "duygu_adlandirma", ad: "Duygu Adlandırma" },
+    { id: "duygu_durum", ad: "Duygu-Durum Eşleme" },
+    { id: "duygu_siddeti", ad: "Duygu Şiddeti" },
+    { id: "empati_tepkisi", ad: "Empati Tepkisi" }
+  ],
+  social: [
+    { id: "empati", ad: "Empati" },
+    { id: "ortak_dikkat", ad: "Ortak Dikkat" },
+    { id: "niyet_okuma", ad: "Niyet Okuma" },
+    { id: "zihin_kurami", ad: "Zihin Kuramı" },
+    { id: "sosyal_ipucu", ad: "Sosyal İpucu Algı" }
+  ],
+  comprehension: [
+    { id: "okudugunu_anlama", ad: "Okuduğunu Anlama" },
+    { id: "dinledigini_anlama", ad: "Dinlediğini Anlama" },
+    { id: "sozel_anlama", ad: "Sözel Anlama" },
+    { id: "gorsel_anlama", ad: "Görsel Anlama" },
+    { id: "mantiksal_anlama", ad: "Mantıksal Anlama" }
+  ]
+};
+
+export const PERFORMANCE_KEYS = {
+  temel: ["dogru", "yanlis", "sure", "reaction_avg", "learning_velocity"],
+  zihinselAlanlar: Object.keys(BRAIN_AREAS),
+  hataTurleri: ["impulsivite", "karistirma", "dikkatsizlik"],
+  oyunOzel: ["wpm", "pattern_score", "memory_span", "strategy_type"]
+};
+
+// =============================================================
+// 🎮 OYUN HARİTASI — Her oyun hangi alanlara veri gönderir
+// =============================================================
+export const GAME_MAP = {
+  renk_esleme: {
+    id: "renk_esleme",
+    ad: "Renk / Şekil Eşleme",
+    kategori: "Dikkat",
+    alan: "attention",
+    altBeceri: "esleme_dikkati",
+    // Bu oyun hangi zihinsel alanlara veri gönderir (3-7 modül)
+    moduller: ["attention", "perception"],
+    // Firebase'e kaydedilecek performans metrikleri
+    performansKeys: ["match_accuracy", "match_time", "visual_discrimination_score"],
+    path: "../oyunlar/1_basamak_esleme/esleme.html",
+    // Oyun özel beceriler (Oyun Bazlı Özel Performans Sekmesi için)
+    oyunOzelBeceriler: [
+      { id: "renk_ayirt", ad: "Renk Ayırt Etme" },
+      { id: "sekil_tanima", ad: "Şekil Tanıma" },
+      { id: "gorsel_kalip", ad: "Görsel Kalıp Tanıma" },
+      { id: "kategori_esleme", ad: "Kategori Eşleme" }
+    ],
+    // Hata türleri bu oyunda ölçülebilir
+    hataTurleri: ["dikkatsizlik", "karistirma"]
+  },
+  ayirt_etme: {
+    id: "ayirt_etme",
+    ad: "Benzer - Farklı",
+    kategori: "Dikkat",
+    alan: "attention",
+    altBeceri: "ayirt_etme",
+    // Bu oyun hangi zihinsel alanlara veri gönderir (3-7 modül)
+    moduller: ["attention", "perception"],
+    // Firebase'e kaydedilecek performans metrikleri
+    performansKeys: ["difference_detect_accuracy", "micro_discrimination", "visual_discrimination"],
+    path: "../oyunlar/2_basamak_ayirt_etme/ayirtetme.html",
+    // Oyun özel beceriler (Oyun Bazlı Özel Performans Sekmesi için)
+    oyunOzelBeceriler: [
+      { id: "kucuk_fark_bulma", ad: "Küçük Fark Bulma" },
+      { id: "yon_bilinci", ad: "Yön Bilinci" },
+      { id: "detay_tarama", ad: "Detay Tarama" }
+    ],
+    // Hata türleri bu oyunda ölçülebilir
+    hataTurleri: ["karistirma", "dikkatsizlik"]
+  },
+  hizli_tiklama: {
+    id: "hizli_tiklama",
+    ad: "Hızlı Tıklama",
+    kategori: "Dikkat",
+    alan: "attention",
+    altBeceri: "hizli_tepki",
+    moduller: ["attention", "executive"],
+    performansKeys: ["reaction_time", "processing_speed"],
+    path: "../oyunlar/hizli_tiklama/index.html",
+    oyunOzelBeceriler: [
+      { id: "tepki_hizi", ad: "Tepki Hızı" },
+      { id: "islem_hizi", ad: "İşlem Hızı" }
+    ],
+    hataTurleri: ["impulsivite"],
+    status: "planned"
+  }
+};
+
+// =============================================================
+// 📊 GÜNLÜK HAYAT KARŞILIĞI EŞLEŞTİRMELERİ
+// =============================================================
+export const GUNLUK_HAYAT_KARSILIKLARI = {
+  tepki_suresi: {
+    metrik: "reaction_avg",
+    karşılık: "Karar verme hızı",
+    aciklama: "Günlük hayatta hızlı karar verme ve tepki gösterme becerisi"
+  },
+  hata_tipi: {
+    metrik: "hata_turleri",
+    karşılık: "Dikkatsizlik/Acelecilik ayırımı",
+    aciklama: "Hata türüne göre günlük davranışlardaki dikkat seviyesi"
+  },
+  calisma_bellegi: {
+    metrik: "memory_span",
+    karşılık: "Yönerge takibi",
+    aciklama: "Günlük hayatta verilen yönergeleri hatırlama ve uygulama"
+  },
+  wpm: {
+    metrik: "wpm",
+    karşılık: "Okuma hızı / Sınav başarısı",
+    aciklama: "Okuma hızı akademik başarıyı doğrudan etkiler"
+  },
+  mantik: {
+    metrik: "logic_score",
+    karşılık: "Problem çözme",
+    aciklama: "Günlük problemleri mantıksal düşünerek çözme becerisi"
+  },
+  gorsel_tarama: {
+    metrik: "visual_scanning",
+    karşılık: "Satır takibi / Harf atlama",
+    aciklama: "Okuma sırasında satır takibi ve harf atlama sorunları"
+  },
+  duygusal: {
+    metrik: "emotional_recognition",
+    karşılık: "Akran ilişkileri",
+    aciklama: "Sosyal durumlarda duyguları anlama ve uygun tepki verme"
+  },
+  sosyal: {
+    metrik: "social_cognition",
+    karşılık: "Uygun tepki",
+    aciklama: "Sosyal durumlarda uygun davranış sergileme"
+  }
+};
+
+// =============================================================
 // 0) ROL SABITLERI — Router.js ile birebir uyumlu
 // =============================================================
 export const ROLES = {
@@ -47,6 +346,8 @@ export const GLOBAL = {
     AKTIF_KULLANICI: "aktifKullanici",
     AKTIF_OGRENCI: "aktifOgrenci",
     AKTIF_OGRENCI_ID: "aktifOgrenciId",
+    AKTIF_ALAN: "aktifAlan",
+    AKTIF_ALT_BECERI: "aktifAltBeceri",
 
     // Oyun Sistemi
     AKTIF_OYUN: "aktifOyun",
@@ -72,25 +373,28 @@ export const GLOBAL = {
   // -----------------------------------------------------------
   // 4) OYUN KODLARI
   // -----------------------------------------------------------
-  OYUN_KODLARI: {
+  OYUN_KODLARI: Object.freeze({
     RENK_ESLEME: "renk_esleme",
-    AYIRT_ETME: "ayirt_etme"
-  },
+    AYIRT_ETME: "ayirt_etme",
+    HIZLI_TIKLAMA: "hizli_tiklama"
+  }),
 
   // -----------------------------------------------------------
   // 5) OYUN YOLLARI
   // -----------------------------------------------------------
   OYUN_YOLLARI: {
-    renk_esleme: "../oyunlar/1_basamak_esleme/esleme.html",
-    ayirt_etme: "../oyunlar/2_basamak_ayirt_etme/ayirtetme.html"
+    renk_esleme: GAME_MAP.renk_esleme.path,
+    ayirt_etme: GAME_MAP.ayirt_etme.path,
+    hizli_tiklama: GAME_MAP.hizli_tiklama.path
   },
 
   // -----------------------------------------------------------
   // 6) OYUN ADLARI
   // -----------------------------------------------------------
   OYUN_ADLARI: {
-    renk_esleme: "Renk Eşleme",
-    ayirt_etme: "Ayırt Etme"
+    renk_esleme: GAME_MAP.renk_esleme.ad,
+    ayirt_etme: GAME_MAP.ayirt_etme.ad,
+    hizli_tiklama: GAME_MAP.hizli_tiklama.ad
   },
 
   // -----------------------------------------------------------
@@ -107,19 +411,29 @@ export const GLOBAL = {
   SONUC_SEMASI: {
     oyun: "",
     level: "",
+    alan: "",
+    altBeceri: "",
     dogru: 0,
     yanlis: 0,
     sure: 0,
     tarih: "",
     beceriler: [],
-
     skorlar: {
       reaction_speed: 0,
       inhibitory_control: 0,
       sustained_attention: 0
     },
-
-    // Yeni meta
+    temel_skor: {
+      dogru: 0,
+      yanlis: 0,
+      reaction_avg: 0,
+      learning_velocity: 0
+    },
+    coklu_alan: {},
+    oyun_ozel: {},
+    hata_turleri: [],
+    wpm: null,
+    trendMeta: {},
     institutionID: "",
     teacherIDs: [],
     studentID: "",
@@ -139,16 +453,20 @@ export const GLOBAL = {
   // 10) ROL DİZİNİ
   // -----------------------------------------------------------
   ROLES: ROLES,
+  BRAIN_AREAS: BRAIN_AREAS,
+  SUBSKILLS: SUBSKILLS,
+  PERFORMANCE_KEYS: PERFORMANCE_KEYS,
+  GAME_MAP: GAME_MAP,
 
   // -----------------------------------------------------------
   // 11) PANEL ROUTES
   // -----------------------------------------------------------
   ROUTES: {
-    [ROLES.OGRENCI]: "../platform/index.html",
-    [ROLES.OGRETMEN]: "../platform/teacher_panel.html",
-    [ROLES.ADMIN]: "../platform/admin_panel.html",
-    [ROLES.EDITOR]: "../platform/editor_panel.html",
-    [ROLES.INSTITUTION]: "../platform/institution_panel.html"
+    [ROLES.OGRENCI]: "./index.html",
+    [ROLES.OGRETMEN]: "./teacher_panel.html",
+    [ROLES.ADMIN]: "./admin_panel.html",
+    [ROLES.EDITOR]: "./editor_panel.html",
+    [ROLES.INSTITUTION]: "./institution_panel.html"
   }
 };
 

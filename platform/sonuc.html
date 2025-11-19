@@ -11,19 +11,59 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- Header Script -->
+  <script type="module" src="header.js"></script>
+  
+  <!-- Sekme Değiştirme Fonksiyonu (Inline - Module'dan önce) -->
+  <script>
+    // Sekme değiştirme fonksiyonu - sonuc.js yüklenmeden önce erişilebilir olmalı
+    window.sekmeDegistir = function(sekmeId, btnElement) {
+      console.log("🔵 sekmeDegistir çağrıldı:", sekmeId);
+      
+      // Tüm sekmeleri pasif yap
+      document.querySelectorAll(".sekme-btn").forEach(b => {
+        b.classList.remove("active");
+      });
+      
+      document.querySelectorAll(".sekme-icerik").forEach(s => {
+        s.classList.remove("active");
+        s.style.display = "none";
+      });
+      
+      // Tıklanan sekmeyi aktif yap
+      if (btnElement) {
+        btnElement.classList.add("active");
+      }
+      
+      const sekmeIcerik = document.getElementById("sekme-" + sekmeId);
+      console.log("Aranan ID:", "sekme-" + sekmeId);
+      console.log("Bulunan element:", sekmeIcerik);
+      
+      if (sekmeIcerik) {
+        sekmeIcerik.classList.add("active");
+        sekmeIcerik.style.display = "block";
+        console.log("✅ Sekme aktif edildi:", sekmeId);
+      } else {
+        console.error("❌ Sekme içeriği bulunamadı:", "sekme-" + sekmeId);
+        // Tüm sekme içeriklerini listele
+        const tumSekmeler = document.querySelectorAll(".sekme-icerik");
+        console.log("Mevcut sekme içerikleri:", Array.from(tumSekmeler).map(s => s.id));
+      }
+    };
+  </script>
+  
   <!-- Sonuç Motoru -->
   <script type="module" src="sonuc.js" defer></script>
 
   <style>
     .sonuc-kutu {
       width: 90%;
-      max-width: 700px;
+      max-width: 900px;
       background: #ffffffcc;
       margin: 25px auto;
       padding: 25px;
       border-radius: 18px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-      text-align: center;
     }
 
     .sonuc-baslik {
@@ -31,6 +71,45 @@
       font-weight: 700;
       color: #243447;
       margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* Sekme Yapısı */
+    .sekme-grup {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e0e0e0;
+      flex-wrap: wrap;
+    }
+
+    .sekme-btn {
+      padding: 12px 20px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      color: #666;
+      transition: 0.2s;
+    }
+
+    .sekme-btn:hover {
+      color: #1e88e5;
+    }
+
+    .sekme-btn.active {
+      color: #1e88e5;
+      border-bottom-color: #1e88e5;
+    }
+
+    .sekme-icerik {
+      display: none;
+    }
+
+    .sekme-icerik.active {
+      display: block;
     }
 
     .sonuc-kart {
@@ -46,10 +125,12 @@
       justify-content: space-between;
       gap: 15px;
       margin-top: 15px;
+      flex-wrap: wrap;
     }
 
     .bilesen {
       flex: 1;
+      min-width: 150px;
       background: #fafafa;
       padding: 12px;
       border-radius: 12px;
@@ -72,6 +153,32 @@
       margin-top: 20px;
     }
 
+    .gunluk-hayat {
+      background: #e8f5e9;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #2e7d32;
+    }
+
+    .tablo {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    .tablo th, .tablo td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .tablo th {
+      background: #f5f5f5;
+      font-weight: 600;
+    }
+
     .yorum-alani {
       background: #fff;
       padding: 16px;
@@ -79,6 +186,14 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.06);
       margin-top: 20px;
       text-align: left;
+    }
+
+    .yorum-yazma-alani {
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 12px;
+      margin-top: 20px;
+      border: 1px solid #e0e0e0;
     }
 
     #ogretmenYorumMetin {
@@ -90,6 +205,86 @@
       background: #f3f3f3;
       resize: vertical;
       font-size: 14px;
+    }
+
+    .yorum-input {
+      width: 100%;
+      min-height: 100px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      padding: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    .yorum-gonder-btn {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .yorum-gonder-btn:hover {
+      background: #3578c6;
+    }
+
+    .yorum-listesi {
+      margin-top: 20px;
+    }
+
+    .yorum-item {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border-left: 4px solid #4a90e2;
+    }
+
+    .yorum-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .yorum-ogretmen {
+      font-weight: 600;
+      color: #1e88e5;
+    }
+
+    .yorum-tarih {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .yorum-text {
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .yorum-duzenle-btn, .yorum-sil-btn {
+      padding: 4px 8px;
+      margin-left: 5px;
+      font-size: 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .yorum-duzenle-btn {
+      background: #ffc107;
+      color: #333;
+    }
+
+    .yorum-sil-btn {
+      background: #f44336;
+      color: white;
     }
 
     /* Üst Menü */
@@ -119,58 +314,111 @@
 
 <body>
 
-  <!-- ÜST GEZİNME -->
-  <header class="ust-panel">
-    <button class="geri-btn" onclick="window.location.href='index.html'">🏠 Ana Menü</button>
-    <button class="geri-btn" onclick="window.location.href='analiz.html'">📊 Genel Analiz</button>
-  </header>
+  <!-- Header header.js tarafından otomatik eklenecek -->
 
   <!-- ANA SONUÇ ALANI -->
   <div class="sonuc-kutu">
 
     <h2 id="oyunBaslik" class="sonuc-baslik">Oyun Sonucu</h2>
 
-    <!-- SKOR BİLGİLERİ -->
-    <div class="sonuc-kart">
-      <p><strong>Doğru:</strong> <span id="dogru">-</span></p>
-      <p><strong>Yanlış:</strong> <span id="yanlis">-</span></p>
-      <p><strong>Tarih:</strong> <span id="tarih">-</span></p>
+    <!-- SEKMELER -->
+    <div class="sekme-grup">
+      <button class="sekme-btn active" data-sekme="temel" onclick="sekmeDegistir('temel', this)">1. Temel Skor</button>
+      <button class="sekme-btn" data-sekme="coklu" onclick="sekmeDegistir('coklu', this)">2. Çoklu Alan</button>
+      <button class="sekme-btn" data-sekme="oyun-ozel" onclick="sekmeDegistir('oyun-ozel', this)">3. Oyun Özel</button>
+      <button class="sekme-btn" data-sekme="performans" onclick="sekmeDegistir('performans', this)">4. Zihin Alanları</button>
     </div>
 
-    <!-- 3 BİLİŞSEL BİLEŞEN -->
-    <div class="bilesen-grup">
-      <div class="bilesen">
-        <h4>Tepki Hızı</h4>
-        <p id="reactionSpeed" class="bilesenDeger">-</p>
+    <!-- 1. TEMEL SKOR SEKMESİ -->
+    <div id="sekme-temel" class="sekme-icerik active">
+      <div class="sonuc-kart">
+        <h3>📊 Temel Performans</h3>
+        <p><strong>Doğru:</strong> <span id="dogru">-</span></p>
+        <p><strong>Yanlış:</strong> <span id="yanlis">-</span></p>
+        <p><strong>Süre:</strong> <span id="sure">-</span></p>
+        <p><strong>Ortalama Tepki:</strong> <span id="ortalamaTepki">-</span></p>
+        <p><strong>Öğrenme Hızı:</strong> <span id="ogrenmeHizi">-</span></p>
+        <p><strong>Tarih:</strong> <span id="tarih">-</span></p>
       </div>
 
-      <div class="bilesen">
-        <h4>İnhibisyon</h4>
-        <p id="inhibControl" class="bilesenDeger">-</p>
+      <div class="bilesen-grup">
+        <div class="bilesen">
+          <h4>Tepki Hızı</h4>
+          <p id="reactionSpeed" class="bilesenDeger">-</p>
+        </div>
+        <div class="bilesen">
+          <h4>İnhibisyon</h4>
+          <p id="inhibControl" class="bilesenDeger">-</p>
+        </div>
+        <div class="bilesen">
+          <h4>Dikkat Sürekliliği</h4>
+          <p id="sustainedAttention" class="bilesenDeger">-</p>
+        </div>
       </div>
 
-      <div class="bilesen">
-        <h4>Dikkat Sürekliliği</h4>
-        <p id="sustainedAttention" class="bilesenDeger">-</p>
+      <div class="grafik-kutu">
+        <h3>Skor Dağılımı</h3>
+        <canvas id="skorGrafik"></canvas>
+      </div>
+
+      <div id="gunlukHayatTemel" class="gunluk-hayat" style="display:none;"></div>
+    </div>
+
+    <!-- 2. ÇOKLU ALAN SEKMESİ -->
+    <div id="sekme-coklu" class="sekme-icerik">
+      <div class="sonuc-kart">
+        <h3>🧠 Çoklu Zihinsel Alan Analizi</h3>
+        <div id="cokluAlanListe"></div>
+      </div>
+      <div class="grafik-kutu">
+        <h3>12 Alan Radar Grafiği</h3>
+        <canvas id="cokluAlanRadar"></canvas>
+      </div>
+      <div id="gunlukHayatCoklu" class="gunluk-hayat" style="display:none;"></div>
+    </div>
+
+    <!-- 3. OYUN ÖZEL SEKMESİ -->
+    <div id="sekme-oyun-ozel" class="sekme-icerik">
+      <div class="sonuc-kart">
+        <h3>🎮 Oyun Bazlı Özel Performans</h3>
+        <div id="oyunOzelListe"></div>
+      </div>
+      <div id="gunlukHayatOyun" class="gunluk-hayat" style="display:none;"></div>
+    </div>
+
+    <!-- 4. ZİHİN ALANLARI PERFORMANS SEKMESİ -->
+    <div id="sekme-performans" class="sekme-icerik">
+      <div class="sonuc-kart">
+        <h3>📈 Zihin Alanları Performans Tablosu</h3>
+        <table class="tablo" id="performansTablo">
+          <thead>
+            <tr>
+              <th>Alan</th>
+              <th>Son Skor</th>
+              <th>Ortalama</th>
+              <th>Trend</th>
+              <th>Günlük Hayat</th>
+            </tr>
+          </thead>
+          <tbody id="performansTabloBody"></tbody>
+        </table>
       </div>
     </div>
 
-    <!-- SKOR ÇUBUK GRAFİĞİ -->
-    <div class="grafik-kutu">
-      <h3>Skor Dağılımı</h3>
-      <canvas id="skorGrafik"></canvas>
-    </div>
-
-    <!-- RADAR GRAFİĞİ -->
-    <div class="grafik-kutu">
-      <h3>Bilişsel Profil Haritası</h3>
-      <canvas id="radarGrafik"></canvas>
-    </div>
-
-    <!-- ÖĞRETMEN YORUMU -->
+    <!-- ÖĞRETMEN YORUMLARI -->
     <div class="yorum-alani">
-      <h3>👨‍🏫 Öğretmen Yorumu</h3>
-      <textarea id="ogretmenYorumMetin" readonly></textarea>
+      <h3>💬 Öğretmen Yorumları</h3>
+      
+      <!-- YORUM YAZMA ALANI (Sadece öğretmen için) -->
+      <div id="yorumYazmaAlani" class="yorum-yazma-alani" style="display:none;">
+        <textarea id="yorumInput" class="yorum-input" placeholder="Bu oyun sonucu hakkında yorumunuzu yazın..."></textarea>
+        <button id="yorumGonderBtn" class="yorum-gonder-btn">Yorum Gönder</button>
+      </div>
+
+      <!-- YORUM LİSTESİ -->
+      <div id="yorumListesi" class="yorum-listesi">
+        <p style="color:#999;text-align:center;">Yorumlar yükleniyor...</p>
+      </div>
     </div>
 
   </div>

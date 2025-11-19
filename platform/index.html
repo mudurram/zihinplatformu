@@ -8,9 +8,73 @@
   <!-- GLOBAL CSS -->
   <link rel="stylesheet" href="style.css">
 
+  <style>
+    .modal-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 20px;
+    }
+
+    .modal-card {
+      background: #fff;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 960px;
+      padding: 24px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      border: none;
+      background: transparent;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .modal-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 20px;
+      margin-top: 16px;
+    }
+
+    .modal-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .modal-list li {
+      background: #f4f6fb;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .modal-list li:hover {
+      background: #e2e8ff;
+    }
+  </style>
+
   <!-- ANA MENÜ SCRIPTLERİ (SIRA ÖNEMLİ!) -->
   <script type="module" src="router.js"></script>
+  <script type="module" src="header.js"></script>
   <script type="module" src="main.js"></script>
+  <script type="module" src="index.js"></script>
 
   <script type="module">
     import { ROLES } from "./router.js";
@@ -39,16 +103,6 @@
       document.getElementById("kullaniciRol").textContent =
         "Rol: " + (rolYazi[role] || role);
 
-      // ================================
-      // 🎯 ROL BAZLI MENÜ GÖRÜNÜRLÜĞÜ
-      // ================================
-      const ogretmenBtn = document.getElementById("ogretmenPanelBtn");
-      const adminBtn = document.getElementById("adminPanelBtn");
-      const editorBtn = document.getElementById("editorPanelBtn");
-
-      if (role !== ROLES.OGRETMEN && ogretmenBtn) ogretmenBtn.style.display = "none";
-      if (role !== ROLES.ADMIN && adminBtn) adminBtn.style.display = "none";
-      if (role !== ROLES.EDITOR && editorBtn) editorBtn.style.display = "none";
     });
 
     // ================================
@@ -73,13 +127,7 @@
   <!-- ========================= -->
   <!-- 🔷 ÜST KULLANICI PANELİ -->
   <!-- ========================= -->
-  <header class="ust-panel">
-    <div class="kullanici-bilgi">
-      <span id="kullaniciAdi">Kullanıcı: -</span>
-      <span id="kullaniciRol">Rol: -</span>
-    </div>
-    <button class="cikis-btn" onclick="cikisYap()">Çıkış Yap</button>
-  </header>
+  <!-- Header header.js tarafından otomatik eklenecek -->
 
   <!-- ========================= -->
   <!-- 🔶 ANA MENÜ BAŞLIK -->
@@ -90,75 +138,35 @@
   <!-- ========================= -->
   <!-- 🔵 ANA MENÜ MODÜL KARTLARI -->
   <!-- ========================= -->
-  <div class="menu-grid">
-
-    <!-- DİKKAT -->
-    <div class="menu-kart" onclick="menuGit('dikkat_menu.html')">
-      <h2>🎯 Dikkat</h2>
-      <p>Odaklanma, hız, inhibisyon oyunları</p>
-    </div>
-
-    <!-- HAFIZA (Pasif) -->
-    <div class="menu-kart pasif">
-      <h2>🧩 Hafıza</h2>
-      <p>(Yakında eklenecek)</p>
-    </div>
-
-    <!-- ALGILAMA (Pasif) -->
-    <div class="menu-kart pasif">
-      <h2>👁️ Algısal İşleme</h2>
-      <p>(Yakında eklenecek)</p>
-    </div>
-
-    <!-- YÜRÜTÜCÜ İŞLEVLAR (Pasif) -->
-    <div class="menu-kart pasif">
-      <h2>🧠 Yürütücü İşlevler</h2>
-      <p>(Yakında eklenecek)</p>
-    </div>
-
-    <!-- MATEMATİK (Pasif) -->
-    <div class="menu-kart pasif">
-      <h2>🔢 Matematiksel İşlem</h2>
-      <p>(Yakında eklenecek)</p>
-    </div>
-
-    <!-- OKUMA & DİL (Pasif) -->
-    <div class="menu-kart pasif">
-      <h2>📚 Okuma & Dil</h2>
-      <p>(Yakında eklenecek)</p>
-    </div>
-
+  <div id="alanGrid" class="menu-grid">
+    <!-- JS ile doldurulacak -->
   </div>
 
-  <!-- ========================= -->
-  <!-- 🟩 ÖĞRETMEN PANELİ -->
-  <!-- ========================= -->
-  <div class="menu-grid" id="ogretmenPanelBtn">
-    <div class="menu-kart" onclick="menuGit('teacher_panel.html')">
-      <h2>👩‍🏫 Öğretmen Paneli</h2>
-      <p>Öğrenci seçimi, analiz, raporlama</p>
-    </div>
-  </div>
 
-  <!-- ========================= -->
-  <!-- 🟥 ADMIN PANELİ -->
-  <!-- ========================= -->
-  <div class="menu-grid" id="adminPanelBtn">
-    <div class="menu-kart" onclick="menuGit('admin_panel.html')">
-      <h2>🛠 Admin Paneli</h2>
-      <p>Kullanıcı yönetimi, rol atama</p>
-    </div>
-  </div>
-
-  <!-- ========================= -->
-  <!-- 🟦 EDITÖR PANELİ -->
-  <!-- ========================= -->
-  <div class="menu-grid" id="editorPanelBtn">
-    <div class="menu-kart" onclick="menuGit('editor_panel.html')">
-      <h2>📝 Editör Paneli</h2>
-      <p>Oyun içerik düzenleme</p>
-    </div>
-  </div>
 
 </body>
+
+<!-- Alt alan ve oyun modalı -->
+<div id="altAlanModal" class="modal-wrapper" style="display:none;">
+  <div class="modal-card">
+    <button class="modal-close" onclick="modalKapat()">×</button>
+    <h2 id="modalBaslik">Zihin Alanı</h2>
+    <p id="modalTanim"></p>
+    <div class="modal-content">
+      <div class="modal-column">
+        <h3>Alt Beceriler</h3>
+        <ul id="altAlanListesi" class="modal-list">
+          <li>Seçim yapın.</li>
+        </ul>
+      </div>
+      <div class="modal-column">
+        <h3>Uygun Oyunlar</h3>
+        <ul id="oyunListesi" class="modal-list">
+          <li>Alt beceri seçildiğinde listelenir.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
 </html>

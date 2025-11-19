@@ -77,16 +77,35 @@
   <div class="register-box">
     <h2>📝 Yeni Hesap Oluştur</h2>
 
+    <input type="text" id="username" placeholder="Kullanıcı adı">
     <input type="email" id="email" placeholder="E-posta" autocomplete="on">
     <input type="password" id="password" placeholder="Şifre">
 
-    <!-- Rol seçimi (GLOBAL.ROLES ile tam uyumlu) -->
+    <!-- Rol seçimi -->
     <select id="role">
       <option value="ogrenci">Öğrenci</option>
       <option value="ogretmen">Öğretmen</option>
-      <option value="editor">Editör</option>
-      <option value="admin">Admin</option>
+      <option value="institution">Kurum</option>
     </select>
+
+    <input type="text" id="fullName" placeholder="Ad Soyad">
+    <input type="tel" id="phone" placeholder="Telefon (opsiyonel)">
+
+    <div id="studentExtras" class="role-block" style="display:none">
+      <input type="text" id="studentInstitution" placeholder="Kurum kodu (ops)">
+      <input type="text" id="studentTeacher" placeholder="Öğretmen kullanıcı adı (ops)">
+    </div>
+
+    <div id="teacherExtras" class="role-block" style="display:none">
+      <input type="text" id="teacherInstitution" placeholder="Kurum kodu (ops)">
+    </div>
+
+    <div id="institutionExtras" class="role-block" style="display:none">
+      <input type="text" id="institutionName" placeholder="Kurum adı">
+      <input type="text" id="institutionCode" placeholder="Kurum kodu">
+      <input type="text" id="institutionAddress" placeholder="Adres">
+      <input type="tel" id="institutionPhone" placeholder="Kurum telefonu">
+    </div>
 
     <button id="registerBtn">Kayıt Ol</button>
 
@@ -99,28 +118,70 @@
   <!-- 📌 REGISTER JS (GLOBAL UYUMLU IMPORT) -->
   <!-- ====================================================== -->
   <script type="module">
-    import { register } from "../auth/auth.js";
+    import { register } from "./auth.js";
 
-    const btn = document.getElementById("registerBtn");
-    const email = document.getElementById("email");
-    const password = document.getElementById("password");
-    const role = document.getElementById("role");
+    const fields = {
+      username: document.getElementById("username"),
+      email: document.getElementById("email"),
+      password: document.getElementById("password"),
+      role: document.getElementById("role"),
+      fullName: document.getElementById("fullName"),
+      phone: document.getElementById("phone"),
+      studentInstitution: document.getElementById("studentInstitution"),
+      studentTeacher: document.getElementById("studentTeacher"),
+      teacherInstitution: document.getElementById("teacherInstitution"),
+      institutionName: document.getElementById("institutionName"),
+      institutionCode: document.getElementById("institutionCode"),
+      institutionAddress: document.getElementById("institutionAddress"),
+      institutionPhone: document.getElementById("institutionPhone")
+    };
 
-    btn.onclick = async () => {
+    const roleBlocks = {
+      ogrenci: document.getElementById("studentExtras"),
+      ogretmen: document.getElementById("teacherExtras"),
+      institution: document.getElementById("institutionExtras")
+    };
 
-      // Boş alan kontrolü (kırılmaz)
-      if (!email.value.trim() || !password.value.trim()) {
-        alert("⚠ Lütfen tüm alanları doldurun.");
+    fields.role.addEventListener("change", () => {
+      Object.values(roleBlocks).forEach(block => block.style.display = "none");
+      const block = roleBlocks[fields.role.value];
+      if (block) block.style.display = "block";
+    });
+
+    document.getElementById("registerBtn").onclick = async () => {
+      if (!fields.username.value.trim() || !fields.email.value.trim() || !fields.fullName.value.trim()) {
+        alert("⚠ Lütfen zorunlu alanları doldurun.");
         return;
       }
-
-      // Minimum güvenlik
-      if (password.value.length < 6) {
+      if (fields.password.value.length < 6) {
         alert("⚠ Şifre en az 6 karakter olmalıdır.");
         return;
       }
 
-      const sonuc = await register(email.value.trim(), password.value.trim(), role.value);
+      const payload = {
+        username: fields.username.value.trim(),
+        email: fields.email.value.trim(),
+        fullName: fields.fullName.value.trim(),
+        phone: fields.phone.value.trim() || null,
+        role: fields.role.value,
+        meta: {}
+      };
+
+      if (payload.role === "ogrenci") {
+        payload.meta.institutionCode = fields.studentInstitution.value.trim() || null;
+        payload.meta.teacherUsername = fields.studentTeacher.value.trim() || null;
+      } else if (payload.role === "ogretmen") {
+        payload.meta.institutionCode = fields.teacherInstitution.value.trim() || null;
+      } else if (payload.role === "institution") {
+        payload.meta.institution = {
+          name: fields.institutionName.value.trim(),
+          code: fields.institutionCode.value.trim(),
+          address: fields.institutionAddress.value.trim(),
+          phone: fields.institutionPhone.value.trim()
+        };
+      }
+
+      const sonuc = await register(payload, fields.password.value.trim());
 
       if (sonuc.success) {
         alert("✔ Kayıt başarılı! Giriş ekranına yönlendiriliyorsunuz.");

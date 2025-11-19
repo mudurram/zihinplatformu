@@ -1,0 +1,221 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----------------------------------------------------------
+    // 🔐 Helpers
+    // ----------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function currentUid() {
+      return isSignedIn() ? request.auth.uid : null;
+    }
+
+    function userPath(uid) {
+      return "/databases/$(database)/documents/profiles/" + uid;
+    }
+
+    function hasProfile(uid) {
+      return uid != null && exists(path(userPath(uid)));
+    }
+
+    function profileData(uid) {
+      return hasProfile(uid) ? get(path(userPath(uid))).data : {};
+    }
+
+    function myData() {
+      return profileData(currentUid());
+    }
+
+    function myRole() {
+      return myData().role;
+    }
+
+    function isRole(role) {
+      return isSignedIn() && myRole() == role;
+    }
+
+    function isAdmin() {
+      return isRole("admin");
+    }
+
+    function isTeacher() {
+      return isRole("ogretmen");
+    }
+
+    function isStudent() {
+      return isRole("ogrenci");
+    }
+
+    function isInstitutionRole() {
+      return isRole("institution");
+    }
+
+    function teacherHasStudent(studentId) {
+      return isTeacher() && myData().students[studentId] == "kabul";
+    }
+
+    function studentHasTeacher(teacherId) {
+      return isStudent() && myData().teachers[teacherId] == "kabul";
+    }
+
+    function sameInstitution(uid) {
+      return myData().institution.id != null
+          && profileData(uid).institution.id == myData().institution.id;
+    }
+
+    function requestParticipant(data) {
+      return currentUid() == data.fromId || currentUid() == data.toId;
+    }
+
+    function isInstitutionAdmin(instId) {
+      return isInstitutionRole()
+          && myData().institution.id == instId
+          && myData().institution.status == "kabul";
+    }
+
+    // ----------------------------------------------------------
+    // 📁 profiles/{uid}
+    // ----------------------------------------------------------
+    match /profiles/{uid} {
+      allow create: if isSignedIn()
+        && currentUid() == uid;
+
+      allow read: if isSignedIn()
+        && (
+          currentUid() == uid
+          || teacherHasStudent(uid)
+          || studentHasTeacher(uid)
+          || isAdmin()
+          || (sameInstitution(uid) && isInstitutionRole())
+        );
+
+      allow update: if isSignedIn()
+        && currentUid() == uid;
+
+      allow delete: if false;
+
+      // connections alt koleksiyonu
+      match /connections/{connId} {
+        allow read, write: if isSignedIn()
+          && (
+            currentUid() == uid
+            || teacherHasStudent(uid)
+            || studentHasTeacher(uid)
+          );
+      }
+
+      // oyun sonuçları
+      match /oyunSonuclari/{docId} {
+        allow create: if isSignedIn()
+          && (
+            (isStudent() && currentUid() == uid)
+            || (isTeacher() && teacherHasStudent(uid))
+          );
+
+        allow read: if isSignedIn()
+          && (
+            currentUid() == uid
+            || teacherHasStudent(uid)
+            || isAdmin()
+          );
+
+        allow update, delete: if false;
+      }
+
+
+      // yorumlar
+      match /yorumlar/{docId} {
+        function isCommentOwner() {
+          return isSignedIn() && resource.data.teacherId == currentUid();
+        }
+
+        allow create: if isSignedIn()
+          && isTeacher()
+          && teacherHasStudent(uid)
+          && request.resource.data.teacherId == currentUid();
+
+        allow read: if isSignedIn()
+          && (
+            teacherHasStudent(uid)
+            || currentUid() == uid
+          );
+
+        allow update: if isSignedIn()
+          && isCommentOwner()
+          && request.resource.data.teacherId == currentUid();
+
+        allow delete: if isSignedIn()
+          && isCommentOwner();
+      }
+    }
+
+    // ----------------------------------------------------------
+    // 📨 requests/{requestId}
+    // ----------------------------------------------------------
+    match /requests/{requestId} {
+      allow create: if isSignedIn()
+        && request.auth.uid == request.resource.data.fromId;
+
+      allow read: if isSignedIn()
+        && requestParticipant(resource.data);
+
+      allow update: if isSignedIn()
+        && requestParticipant(resource.data);
+
+      allow delete: if false;
+    }
+
+    // ----------------------------------------------------------
+    // 💬 messages/{chatId}/messages/{messageId}
+    // ----------------------------------------------------------
+    match /messages/{chatId} {
+      // Chat ID formatı: teacherId_studentId (sıralı)
+      function isChatParticipant() {
+        let parts = chatId.split("_");
+        return parts.size() == 2
+          && (currentUid() == parts[0] || currentUid() == parts[1]);
+      }
+
+      allow read: if isSignedIn() && isChatParticipant();
+
+      match /messages/{messageId} {
+        allow create: if isSignedIn()
+          && isChatParticipant()
+          && request.resource.data.from == currentUid();
+
+        allow read: if isSignedIn() && isChatParticipant();
+
+        allow update, delete: if false;
+      }
+    }
+
+    // ----------------------------------------------------------
+    // 🏢 institutions/{instId}
+    // ----------------------------------------------------------
+    match /institutions/{instId} {
+      allow read: if isSignedIn()
+        && (
+          isAdmin()
+          || isInstitutionAdmin(instId)
+          || sameInstitution(currentUid())
+        );
+
+      allow create: if false;
+
+      allow update: if isAdmin() || isInstitutionAdmin(instId);
+
+      allow delete: if false;
+    }
+
+    // ----------------------------------------------------------
+    // 🚫 Varsayılan
+    // ----------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

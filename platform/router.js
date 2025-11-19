@@ -22,12 +22,21 @@ export const ROLE_ROUTES = {
 // 2) OTOMATİK YÖNLENDİRME MOTORU
 // =============================================================
 export function yonlendir(role) {
-  const hedef = ROLE_ROUTES[role];
+  let hedef = ROLE_ROUTES[role];
 
   if (!hedef) {
     console.warn("⚠ Tanımsız rol:", role);
     window.location.href = "./index.html";
     return;
+  }
+
+  // Eğer çağrıldığı yer auth/ klasöründen ise, yolu düzelt
+  const currentPath = window.location.pathname;
+  if (currentPath.includes("/auth/") || currentPath.includes("\\auth\\")) {
+    // auth/ klasöründen çağrıldıysa ../platform/ ekle
+    if (!hedef.startsWith("../") && !hedef.startsWith("http")) {
+      hedef = "../platform/" + hedef.replace("./", "");
+    }
   }
 
   console.log(`➡ Rol yönlendirme → ${role} → ${hedef}`);

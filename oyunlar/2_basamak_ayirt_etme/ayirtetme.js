@@ -29,9 +29,13 @@ const yanlisSes = new Audio(GLOBAL.SES.YANLIS);
 // ==========================================================
 // 🎮 GAME ENGINE BAŞLAT
 // ==========================================================
+// Oyun meta bilgisini al
+const gameMeta = GLOBAL.GAME_MAP?.[GLOBAL.OYUN_KODLARI.AYIRT_ETME] || null;
+
 let engine = new GameEngine({
   gameName: GLOBAL.OYUN_KODLARI.AYIRT_ETME,
-  timeLimit: 30
+  timeLimit: 30,
+  gameMeta: gameMeta
 });
 
 // ==========================================================
@@ -41,17 +45,20 @@ let secenekSayisi = 2;
 
 document.addEventListener("DOMContentLoaded", () => {
   const popup = document.getElementById("seviyePopup");
-  popup.classList.add("show");
+  if (popup) popup.classList.add("show");
 
   document.querySelectorAll(".seviyeBtn").forEach(btn => {
     btn.addEventListener("click", () => {
       secenekSayisi = Number(btn.dataset.seviye);
-      popup.classList.remove("show");
+      if (popup) popup.classList.remove("show");
       oyunBaslat();
     });
   });
 
-  document.getElementById("bitirBtn").onclick = () => engine.endGame();
+  const bitirBtn = document.getElementById("bitirBtn");
+  if (bitirBtn) {
+    bitirBtn.onclick = () => engine.endGame();
+  }
 });
 
 // ==========================================================
@@ -66,9 +73,13 @@ function oyunBaslat() {
 // 🔄 UI Güncelleme
 // ==========================================================
 function updateUI(score, mistakes, timeLeft) {
-  document.getElementById("skor").textContent = score;
-  document.getElementById("yanlis").textContent = mistakes;
-  document.getElementById("sure").textContent = timeLeft;
+  const skorEl = document.getElementById("skor");
+  const yanlisEl = document.getElementById("yanlis");
+  const sureEl = document.getElementById("sure");
+  
+  if (skorEl) skorEl.textContent = score;
+  if (yanlisEl) yanlisEl.textContent = mistakes;
+  if (sureEl) sureEl.textContent = timeLeft;
 }
 
 // ==========================================================
@@ -93,11 +104,13 @@ function yeniSoru() {
 
   // Hedef kutu
   const hedef = document.getElementById("hedefKutu");
-  hedef.style.backgroundColor = zemin.kod;
+  if (hedef) hedef.style.backgroundColor = zemin.kod;
 
   const kelimeEl = document.getElementById("renkYazi");
-  kelimeEl.textContent = yaziRenk.ad;
-  kelimeEl.style.color = yaziRenk.kod;
+  if (kelimeEl) {
+    kelimeEl.textContent = yaziRenk.ad;
+    kelimeEl.style.color = yaziRenk.kod;
+  }
 
   // Tepki süresi başlangıcı
   soruStart = performance.now();
@@ -112,6 +125,8 @@ function yeniSoru() {
   }
 
   const alan = document.getElementById("secenekAlani");
+  if (!alan) return;
+  
   alan.innerHTML = "";
 
   secenekler.forEach(renk => {

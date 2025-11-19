@@ -86,7 +86,7 @@ if (!oyunGrid) {
     // GLOBAL üzerinden oyun adı
     const oyunAdi =
       GLOBAL.OYUN_ADLARI?.[oyunKodu] ||
-      oyunKodu.replace(/_/g, " ").toUpperCase();
+      (oyunKodu ? oyunKodu.replace(/_/g, " ").toUpperCase() : "Bilinmeyen Oyun");
 
     // Kart bileşeni
     const kart = document.createElement("div");

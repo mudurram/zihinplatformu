@@ -10,6 +10,10 @@
 import { auth, db } from "../data/firebaseConfig.js";
 import { ROLES } from "../platform/globalConfig.js";
 import { yonlendir } from "../platform/router.js";
+import {
+  createStudentTeacherRequest,
+  createInstitutionTeacherRequest
+} from "../data/requestService.js";
 
 import {
   signInWithEmailAndPassword,
@@ -35,6 +39,11 @@ console.log("auth.js yüklendi ✔");
 // =============================================================
 export async function login(usernameOrEmail, password) {
   try {
+    if (!auth || !db) {
+      console.error("❌ Firebase başlatılamadı!");
+      return { success: false, message: "Sistem hatası. Lütfen sayfayı yenileyin." };
+    }
+
     let email = usernameOrEmail.trim();
 
     // Kullanıcı adı ile giriş (email yoksa)
@@ -93,23 +102,104 @@ export async function login(usernameOrEmail, password) {
 // =============================================================
 // 🟢 2) REGISTER — Yeni Kullanıcı
 // =============================================================
-export async function register(email, password, role = ROLES.OGRENCI) {
+export async function register(formData, password) {
   try {
+    if (!auth || !db) {
+      console.error("❌ Firebase başlatılamadı!");
+      return { success: false, message: "Sistem hatası. Lütfen sayfayı yenileyin." };
+    }
+
+    const email = formData.email;
+    const role = formData.role || ROLES.OGRENCI;
+
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const uid = res.user.uid;
 
-    await setDoc(doc(db, "profiles", uid), {
+    const baseProfile = {
+      username: formData.username,
       email,
+      fullName: formData.fullName,
       role,
-      username: email.split("@")[0],
+      phone: formData.phone || null,
+      teachers: {},
+      students: {},
+      institution: { id: null, status: null },
+      pendingRequests: [],
       createdAt: new Date().toISOString()
-    });
+    };
+
+    // Role based enrichments
+    if (role === ROLES.OGRENCI) {
+      baseProfile.teachers = {};
+      if (formData.meta?.teacherUsername) {
+        baseProfile.pendingRequests.push({
+          type: "student_teacher",
+          teacherUsername: formData.meta.teacherUsername,
+          createdAt: Date.now()
+        });
+      }
+      if (formData.meta?.institutionCode) {
+        baseProfile.institution = { id: formData.meta.institutionCode, status: "beklemede" };
+      }
+    } else if (role === ROLES.OGRETMEN) {
+      baseProfile.students = {};
+      if (formData.meta?.institutionCode) {
+        baseProfile.institution = { id: formData.meta.institutionCode, status: "beklemede" };
+      }
+    } else if (role === ROLES.INSTITUTION) {
+      baseProfile.institutionProfile = {
+        name: formData.meta?.institution?.name || "",
+        code: formData.meta?.institution?.code || "",
+        address: formData.meta?.institution?.address || "",
+        phone: formData.meta?.institution?.phone || ""
+      };
+    }
+
+    await setDoc(doc(db, "profiles", uid), baseProfile);
+
+    await handlePostRegisterRequests({ uid, role, meta: formData.meta });
 
     return { success: true };
 
   } catch (err) {
+    console.error("register error", err);
     return { success: false, message: err.message };
   }
+}
+
+async function handlePostRegisterRequests({ uid, role, meta }) {
+  if (!meta) return;
+
+  if (role === ROLES.OGRENCI && meta.teacherUsername) {
+    // Öğretmen username → UID lookup
+    const teacherUid = await findUserByUsername(meta.teacherUsername);
+    if (teacherUid) {
+      await createStudentTeacherRequest(uid, teacherUid);
+    }
+  }
+
+  if ((role === ROLES.OGRENCI || role === ROLES.OGRETMEN) && meta.institutionCode) {
+    const instId = await findInstitutionByCode(meta.institutionCode);
+    if (instId) {
+      await createInstitutionTeacherRequest(uid, instId);
+    }
+  }
+}
+
+async function findUserByUsername(username) {
+  if (!username) return null;
+  const q = query(collection(db, "profiles"), where("username", "==", username));
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return snap.docs[0].id;
+}
+
+async function findInstitutionByCode(code) {
+  if (!code) return null;
+  const q = query(collection(db, "institutions"), where("code", "==", code));
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return snap.docs[0].id;
 }
 
 

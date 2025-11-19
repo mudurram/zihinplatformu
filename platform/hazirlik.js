@@ -3,7 +3,7 @@
 // Final v7.1 • Ultra Stabil • GLOBAL Tam Uyumlu
 // =============================================================
 
-import { GLOBAL, ROLES } from "./globalConfig.js";
+import { GLOBAL, ROLES, BRAIN_AREAS, SUBSKILLS } from "./globalConfig.js";
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -30,10 +30,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------------------------------------------------------
   // 2) SEÇİLEN OYUN KODUNU AL
   // ---------------------------------------------------------
-  const oyunKodu =
-    localStorage.getItem("secilenOyunKodu") ||
-    localStorage.getItem("secilenOyun") ||
-    localStorage.getItem("seciliOyun");
+  guncelleUstPanel();
+
+  const oyunKodu = getAktifOyunKodu();
 
   if (!oyunKodu) {
     console.warn("⚠ Oyun kodu bulunamadı.");
@@ -41,28 +40,33 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // ---------------------------------------------------------
-  // 3) GLOBAL ÜZERİNDEN OYUN ADI & PATH
-  // ---------------------------------------------------------
-  const oyunYolu = GLOBAL.OYUN_YOLLARI?.[oyunKodu] || null;
-
-  const oyunAdi =
-    GLOBAL.OYUN_ADLARI?.[oyunKodu] ||
-    oyunKodu.replace(/_/g, " ").toUpperCase();
-
-  if (!oyunYolu) {
-    console.warn("⚠ GLOBAL.OYUN_YOLLARI içinde tanım bulunamadı:", oyunKodu);
+  const oyun = (GLOBAL.GAME_MAP || {})[oyunKodu];
+  if (!oyun) {
+    console.warn("⚠ GAME_MAP içinde oyun bulunamadı:", oyunKodu);
     yazdir("Tanımlanamayan Oyun", "Bu oyun sistemde kayıtlı değil.");
     return;
   }
 
-  // ---------------------------------------------------------
-  // 4) HAZIRLIK METNİ
-  // ---------------------------------------------------------
-  const aciklamaText =
-    "Bu oyun Zihin Platformu dikkat modüllerinden biridir. Başlamak için hazırlanın.";
+  const oyunYolu = oyun.path;
+  const alan = BRAIN_AREAS[oyun.alan];
+  const alt =
+    (SUBSKILLS[oyun.alan] || []).find(sub => sub.id === oyun.altBeceri) || {};
 
-  yazdir(oyunAdi, aciklamaText);
+  const perfList = (oyun.performans || []).map(p => `<span class="badge">${p}</span>`).join(" ");
+  const modulList = (oyun.moduller || [])
+    .map(mod => BRAIN_AREAS[mod]?.ad || mod)
+    .join(", ");
+
+  const aciklamaHTML = `
+    <b>${oyun.ad}</b> oyunu için hazırlık tamam.<br><br>
+    Hedef Alan: <b>${alan?.ad || "-"}</b><br>
+    Alt Beceriler: <b>${alt?.ad || "-"}</b><br>
+    Ölçülen Performanslar: ${perfList || "-"}<br>
+    Desteklenen Modüller: ${modulList || "-"}<br><br>
+    Hazırlık süresi: <b>30 sn</b> • Oyun süresi oyuna göre dinamik.
+  `;
+
+  yazdir(oyun.ad, aciklamaHTML, true);
 
   // ---------------------------------------------------------
   // 5) BAŞLAT BUTONU — OYUNU BAŞLAT
@@ -81,12 +85,44 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------------------------------------------------------
   // 6) YAZDIRMA FONKSİYONU (SAFE, XSS KORUMALI)
   // ---------------------------------------------------------
-  function yazdir(baslik, aciklama) {
+  function yazdir(baslik, aciklama, isHtml = false) {
     const baslikEl = document.getElementById("hazirlikBaslik");
     const acikEl = document.getElementById("hazirlikMetni");
 
     if (baslikEl) baslikEl.textContent = baslik;
-    if (acikEl) acikEl.textContent = aciklama;
+    if (acikEl) {
+      if (isHtml) {
+        acikEl.innerHTML = aciklama;
+      } else {
+        acikEl.textContent = aciklama;
+      }
+    }
+  }
+
+  function getAktifOyunKodu() {
+    return (
+      localStorage.getItem(GLOBAL.LS_KEYS.AKTIF_OYUN) ||
+      localStorage.getItem("secilenOyunKodu") ||
+      localStorage.getItem("secilenOyun") ||
+      localStorage.getItem("seciliOyun")
+    );
+  }
+
+  function guncelleUstPanel() {
+    const adEl = document.getElementById("kullaniciAdi");
+    const rolEl = document.getElementById("kullaniciRol");
+    const email = localStorage.getItem("loggedUser") || "-";
+    const role = localStorage.getItem("role") || "-";
+    const rolYazi = {
+      ogrenci: "Öğrenci",
+      ogretmen: "Öğretmen",
+      admin: "Admin",
+      editor: "Editör",
+      institution: "Kurum"
+    };
+
+    if (adEl) adEl.textContent = `Kullanıcı: ${email}`;
+    if (rolEl) rolEl.textContent = `Rol: ${rolYazi[role] || role}`;
   }
 
 });

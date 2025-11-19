@@ -10,6 +10,7 @@ body {
   text-align: center;
   margin: 0;
   padding: 0;
+  padding-top: 70px; /* Header için alan - Fixed header */
   user-select: none;
   min-height: 100vh;
   display: flex;

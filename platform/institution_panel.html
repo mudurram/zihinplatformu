@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kurum Paneli | Zihin Platformu</title>
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Header Script -->
+  <script type="module" src="header.js"></script>
+  <style>
+    .panel-wrapper { margin-bottom: 32px; }
+    .talep-listesi { list-style:none; padding:0; margin:0; }
+    .talep-listesi li {
+      background:#fff;
+      border-radius:12px;
+      box-shadow:0 2px 14px rgba(0,0,0,0.08);
+      margin-bottom:12px;
+      padding:16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+    .talep-info { font-size:15px; color:#333; }
+    .talep-btn-grup button {
+      border:none;
+      padding:8px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:14px;
+    }
+    .talep-btn-grup button[data-status="kabul"] { background:#27ae60; color:#fff; }
+    .talep-btn-grup button[data-status="red"] { background:#c0392b; color:#fff; }
+  </style>
+</head>
+<body>
+
+  <!-- Header header.js tarafından otomatik eklenecek -->
+
+  <div class="panel-wrapper">
+    <h2>📩 Öğretmen Talepleri</h2>
+    <p>Kurumunuza katılmak isteyen öğretmenler burada listelenir.</p>
+    <ul id="kurumTalepListesi" class="talep-listesi">
+      <li>Henüz talep yok.</li>
+    </ul>
+  </div>
+
+  <div class="panel-wrapper">
+    <h2>👩‍🏫 Aktif Öğretmenler</h2>
+    <ul id="kurumOgretmenListesi" class="talep-listesi">
+      <li>Kayıtlı öğretmen bulunmuyor.</li>
+    </ul>
+  </div>
+
+  <div class="panel-wrapper">
+    <h2>➕ Öğretmen Davet Et</h2>
+    <p>Kullanıcı adını girerek öğretmenleri davet edin.</p>
+    <div class="form-group">
+      <input type="text" id="ogretmenUsernameInput" placeholder="Öğretmen kullanıcı adı">
+      <button id="ogretmenDavetBtn">Davet Gönder</button>
+    </div>
+  </div>
+
+  <script type="module" src="router.js"></script>
+  <script type="module" src="institution_panel.js"></script>
+</body>
+</html>
+

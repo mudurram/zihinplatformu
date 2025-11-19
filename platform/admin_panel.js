@@ -8,7 +8,7 @@ console.log("🛠 admin_panel.js yüklendi");
 // 📌 Firebase + Router
 // -------------------------------------------------------------
 import { db } from "../data/firebaseConfig.js";
-import { ROLES } from "../platform/router.js";
+import { ROLES } from "./router.js";
 
 import {
   collection,
@@ -19,6 +19,11 @@ import {
 
 import { logout } from "../auth/auth.js";
 
+// -------------------------------------------------------------
+// Router kontrolü
+// -------------------------------------------------------------
+import { yonlendir } from "./router.js";
+
 
 // -------------------------------------------------------------
 // 1) ROL DOĞRULAMA — sadece admin girebilir
@@ -27,7 +32,7 @@ const role = localStorage.getItem("role");
 
 if (role !== ROLES.ADMIN) {
   alert("⛔ Bu sayfaya yalnızca admin erişebilir.");
-  window.location.href = "../auth/login.html";
+  yonlendir(role || ROLES.OGRENCI);
   throw new Error("Admin yetkisi yok.");
 }
 
@@ -37,9 +42,20 @@ if (role !== ROLES.ADMIN) {
 // -------------------------------------------------------------
 async function listeleKullanicilar() {
   const div = document.getElementById("kullaniciListesi");
+  if (!div) {
+    console.warn("⚠ kullaniciListesi elementi bulunamadı.");
+    return;
+  }
+  
   div.innerHTML = "<p>Yükleniyor...</p>";
 
   try {
+    if (!db) {
+      console.error("❌ Firestore başlatılamadı!");
+      div.innerHTML = "<p>Veritabanı bağlantısı yok.</p>";
+      return;
+    }
+
     const ref = collection(db, "profiles");
     const snap = await getDocs(ref);
 
@@ -94,9 +110,20 @@ listeleKullanicilar();
 // 3) ROL GÜNCELLEME
 // -------------------------------------------------------------
 window.rolKaydet = async function (uid) {
-  const yeniRol = document.getElementById(`rol_${uid}`).value;
+  const rolSelect = document.getElementById(`rol_${uid}`);
+  if (!rolSelect) {
+    alert("Rol seçim alanı bulunamadı.");
+    return;
+  }
+  
+  const yeniRol = rolSelect.value;
 
   try {
+    if (!db) {
+      alert("Veritabanı bağlantısı yok.");
+      return;
+    }
+
     const ref = doc(db, "profiles", uid);
     await updateDoc(ref, { role: yeniRol });
 
@@ -114,5 +141,5 @@ window.rolKaydet = async function (uid) {
 // -------------------------------------------------------------
 window.cikisYap = async function () {
   await logout();
-  window.location.href = "../auth/login.html";
+  window.location.href = "login.html";
 };
