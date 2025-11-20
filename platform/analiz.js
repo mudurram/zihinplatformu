@@ -300,11 +300,22 @@ function listele(data) {
 
     kart.onclick = () => {
       localStorage.setItem("sonOyun", item.oyun);
+      localStorage.setItem("sonOyunSonuc", JSON.stringify(item));
       window.location.href = (GLOBAL.PLATFORM || "./") + "sonuc.html";
     };
 
     sonucListe.appendChild(kart);
   });
+  
+  // Analiz fonksiyonlarını çağır
+  radarGrafik(data);
+  trendGrafik(data);
+  ogrenmeHiziGrafik(data);
+  alanTablo(data);
+  hataTurleriGrafik(data);
+  gucluVeZayifAnaliz(data);
+  aiOneriMotoru(data);
+  heatmapOlustur(data);
 }
 
 // -------------------------------------------------------------
@@ -574,6 +585,122 @@ function alanTablo(data) {
 }
 
 // -------------------------------------------------------------
+// 10) HEATMAP - Oyun → Zihinsel Alan Eşleşmesi
+// -------------------------------------------------------------
+function heatmapOlustur(data) {
+  const container = document.getElementById("heatmapContainer");
+  if (!container) return;
+  
+  if (data.length === 0) {
+    container.innerHTML = "<p style='text-align:center;color:#999;'>Heatmap için veri yok.</p>";
+    return;
+  }
+  
+  // Oyunları ve alanları topla
+  const oyunlar = {};
+  const alanlar = Object.keys(BRAIN_AREAS || {});
+  
+  data.forEach(item => {
+    const oyunKod = item.oyun || "bilinmeyen";
+    const oyunAdi = GLOBAL.OYUN_ADLARI?.[oyunKod] || oyunKod;
+    
+    if (!oyunlar[oyunKod]) {
+      oyunlar[oyunKod] = {
+        ad: oyunAdi,
+        alanlar: {}
+      };
+    }
+    
+    // Oyunun modüllerini al
+    const oyunMeta = GLOBAL.GAME_MAP?.[oyunKod] || {};
+    const moduller = oyunMeta.moduller || [];
+    
+    // Modül adlarını BRAIN_AREAS key'lerine çevir
+    const modulMap = {
+      "attention": "attention", "dikkat": "attention",
+      "perception": "perception", "algisal_islemleme": "perception", "algisal": "perception",
+      "executive": "executive", "yuruteci_islev": "executive", "yuruteci": "executive",
+      "logic": "logic", "mantik": "logic", "mantiksal": "logic",
+      "memory": "memory", "hafiza": "memory",
+      "literacy": "literacy", "okuma": "literacy",
+      "dyslexia": "dyslexia", "disleksi": "dyslexia",
+      "writing": "writing", "yazi": "writing",
+      "math": "math", "matematik": "math",
+      "emotional": "emotional", "duygusal": "emotional",
+      "social": "social", "sosyal": "social",
+      "comprehension": "comprehension", "anlama": "comprehension"
+    };
+    
+    moduller.forEach(modul => {
+      const alanKey = modulMap[modul] || modul;
+      if (BRAIN_AREAS[alanKey]) {
+        if (!oyunlar[oyunKod].alanlar[alanKey]) {
+          oyunlar[oyunKod].alanlar[alanKey] = 0;
+        }
+        
+        // Oyunun bu alana katkısını hesapla
+        const skor = item.coklu_alan?.[alanKey] || 0;
+        if (skor > 0) {
+          oyunlar[oyunKod].alanlar[alanKey] = Math.max(oyunlar[oyunKod].alanlar[alanKey], skor);
+        }
+      }
+    });
+  });
+  
+  // Heatmap tablosu oluştur
+  let html = "<div style='overflow-x:auto;'>";
+  html += "<table class='tablo' style='margin-top:15px;'>";
+  html += "<thead><tr><th>Oyun</th>";
+  
+  // Sadece kullanılan alanları göster
+  const kullanilanAlanlar = new Set();
+  Object.values(oyunlar).forEach(oyun => {
+    Object.keys(oyun.alanlar).forEach(alan => kullanilanAlanlar.add(alan));
+  });
+  
+  const gosterilecekAlanlar = Array.from(kullanilanAlanlar).filter(alan => BRAIN_AREAS[alan]);
+  
+  gosterilecekAlanlar.forEach(alanKey => {
+    const alanAd = BRAIN_AREAS[alanKey]?.ad || alanKey;
+    html += `<th>${alanAd}</th>`;
+  });
+  html += "</tr></thead><tbody>";
+  
+  Object.entries(oyunlar).forEach(([oyunKod, oyunInfo]) => {
+    html += `<tr><td><strong>${oyunInfo.ad}</strong></td>`;
+    gosterilecekAlanlar.forEach(alanKey => {
+      const skor = oyunInfo.alanlar[alanKey] || 0;
+      const yuzde = Math.round(skor);
+      // Skora göre renk ve nokta sayısı
+      let renk = "#e0e0e0";
+      let nokta = "";
+      if (skor >= 80) {
+        renk = "#4caf50";
+        nokta = "●●●●";
+      } else if (skor >= 60) {
+        renk = "#8bc34a";
+        nokta = "●●●";
+      } else if (skor >= 40) {
+        renk = "#ffc107";
+        nokta = "●●";
+      } else if (skor > 0) {
+        renk = "#ff9800";
+        nokta = "●";
+      }
+      
+      html += `<td style='text-align:center;background:${renk}20;'>
+        <span style='color:${renk};font-size:18px;'>${nokta}</span>
+        <br><small style='color:#666;'>${yuzde}%</small>
+      </td>`;
+    });
+    html += "</tr>";
+  });
+  
+  html += "</tbody></table></div>";
+  container.innerHTML = html;
+}
+
+// -------------------------------------------------------------
 // 11) HATA TÜRLERİ DAĞILIMI
 // -------------------------------------------------------------
 function hataTurleriGrafik(data) {
@@ -588,7 +715,11 @@ function hataTurleriGrafik(data) {
     };
 
     data.forEach(item => {
-      const hatalar = item.temel_skor?.hataTurleri || {};
+      // Yeni format: hataTurleriDetay (eşleme oyunu için)
+      const hatalar = item.temel_skor?.hataTurleri || 
+                      item.temel_skor?.hataTurleriDetay || 
+                      item.oyunDetaylari?.hataTurleriDetay || 
+                      {};
       hataToplam.impulsivite += hatalar.impulsivite || 0;
       hataToplam.karistirma += hatalar.karistirma || 0;
       hataToplam.dikkatsizlik += hatalar.dikkatsizlik || 0;
@@ -697,21 +828,131 @@ function gucluVeZayifAnaliz(data) {
 // -------------------------------------------------------------
 // 13) AI ÖNERİ MOTORU
 // -------------------------------------------------------------
-function aiOneri(data) {
+function aiOneriMotoru(data) {
   const oneriDiv = document.getElementById("aiOneri");
   if (!oneriDiv || data.length === 0) {
     if (oneriDiv) oneriDiv.innerHTML = "<p>Analiz için yeterli veri yok.</p>";
     return;
   }
 
-  const son = data.at(-1);
-  if (!son) {
-    if (oneriDiv) oneriDiv.innerHTML = "<p>Analiz için yeterli veri yok.</p>";
-    return;
+  // Tüm verilerden AI önerileri oluştur
+  let oneriler = [];
+  
+  // Güçlü ve zayıf alanları belirle
+  const alanSkorlari = {};
+  const alanlar = Object.keys(BRAIN_AREAS || {});
+  
+  alanlar.forEach(alanKey => {
+    const skorlar = data
+      .map(item => item.coklu_alan?.[alanKey] || 0)
+      .filter(s => s > 0);
+    alanSkorlari[alanKey] = skorlar.length > 0 
+      ? Math.round(skorlar.reduce((a, b) => a + b, 0) / skorlar.length)
+      : 0;
+  });
+  
+  const siralanmis = Object.entries(alanSkorlari)
+    .sort((a, b) => b[1] - a[1]);
+  
+  const guclu = siralanmis.filter(([_, skor]) => skor >= 70).slice(0, 3);
+  const zayif = siralanmis.filter(([_, skor]) => skor < 50).slice(-3).reverse();
+  
+  // Her alan için öneri oluştur
+  zayif.forEach(([alanKey, skor]) => {
+    const alanAd = BRAIN_AREAS[alanKey]?.ad || alanKey;
+    let oneri = "";
+    
+    if (alanKey === "attention" || alanKey === "dikkat") {
+      oneri = `Dikkat için: Süreli kısa görevler, dikkat noktası sabitleme çalışmaları önerilir.`;
+    } else if (alanKey === "memory" || alanKey === "hafiza") {
+      oneri = `Bellek için: Ardışık tekrar oyunları, yönerge takip çalışmaları önerilir.`;
+    } else if (alanKey === "perception" || alanKey === "algisal") {
+      oneri = `Görsel algı için: Görsel tarama oyunları, şekil-zemin ayırma egzersizleri önerilir.`;
+    } else if (alanKey === "executive" || alanKey === "yuruteci") {
+      oneri = `Yürütücü işlev için: Planlama oyunları, kural değiştirme çalışmaları önerilir.`;
+    } else if (alanKey === "logic" || alanKey === "mantik") {
+      oneri = `Mantık için: Örüntü tanıma oyunları, ilişki kurma çalışmaları önerilir.`;
+    } else {
+      oneri = `${alanAd} için: Bu alana özel oyunlar ve egzersizler önerilir.`;
+    }
+    
+    oneriler.push(`• ${oneri}`);
+  });
+  
+  // Hata türlerine göre öneriler
+  const hataToplam = {
+    impulsivite: 0,
+    karistirma: 0,
+    dikkatsizlik: 0,
+    kategori_hatasi: 0
+  };
+  
+  data.forEach(item => {
+    // Yeni format: hataTurleriDetay (eşleme oyunu için)
+    const hatalar = item.temel_skor?.hataTurleri || 
+                    item.temel_skor?.hataTurleriDetay || 
+                    item.oyunDetaylari?.hataTurleriDetay || 
+                    {};
+    hataToplam.impulsivite += hatalar.impulsivite || 0;
+    hataToplam.karistirma += hatalar.karistirma || 0;
+    hataToplam.dikkatsizlik += hatalar.dikkatsizlik || 0;
+    hataToplam.kategori_hatasi += hatalar.kategori_hatasi || 0;
+  });
+  
+  const toplamHata = hataToplam.impulsivite + hataToplam.karistirma + hataToplam.dikkatsizlik + hataToplam.kategori_hatasi;
+  
+  if (toplamHata > 0) {
+    const impulsiviteYuzde = Math.round((hataToplam.impulsivite / toplamHata) * 100);
+    const dikkatsizlikYuzde = Math.round((hataToplam.dikkatsizlik / toplamHata) * 100);
+    
+    if (impulsiviteYuzde > 40) {
+      oneriler.push(`• İmpulsivite baskın → Daha yavaş tempolu dikkat oyunları önerilir.`);
+    }
+    if (dikkatsizlikYuzde > 40) {
+      oneriler.push(`• Dikkatsizlik baskın → Odaklanma çalışmaları ve süreli görevler önerilir.`);
+    }
+    
+    const karistirmaYuzde = Math.round((hataToplam.karistirma / toplamHata) * 100);
+    if (karistirmaYuzde > 40) {
+      oneriler.push(`• Karıştırma hatası yüksek → Görsel ayırt etme oyunları, figür-zemin ayırma egzersizleri önerilir.`);
+    }
+    
+    const kategoriHatasiYuzde = Math.round((hataToplam.kategori_hatasi / toplamHata) * 100);
+    if (kategoriHatasiYuzde > 30) {
+      oneriler.push(`• Kategori hatası yüksek → Sınıflandırma oyunları, kategori eşleme çalışmaları önerilir.`);
+    }
   }
   
-  const oneri = aiAdvice(son);
-  oneriDiv.innerHTML = `<p>${oneri.replace(/\n/g, "<br>")}</p>`;
+  // Eşleme oyunu için özel öneriler (bolumSkorlari kontrolü)
+  data.forEach(item => {
+    if (item.oyun === "renk_esleme" || item.oyun === "1_basamak_esleme") {
+      const bolumSkorlari = item.oyunDetaylari?.bolumSkorlari || {};
+      
+      // Bölüm bazlı zayıf alanlar için öneriler
+      if (bolumSkorlari.renk && bolumSkorlari.renk.toplam > 0 && 
+          bolumSkorlari.renk.dogru / bolumSkorlari.renk.toplam < 0.6) {
+        oneriler.push("• Renk eşleme zayıf: Renk ayırt etme oyunları, renk kategorileri çalışmaları önerilir.");
+      }
+      if (bolumSkorlari.sekil && bolumSkorlari.sekil.toplam > 0 && 
+          bolumSkorlari.sekil.dogru / bolumSkorlari.sekil.toplam < 0.6) {
+        oneriler.push("• Şekil eşleme zayıf: Şekil tanıma oyunları, görsel kalıp algısı çalışmaları önerilir.");
+      }
+      if (bolumSkorlari.golge && bolumSkorlari.golge.toplam > 0 && 
+          bolumSkorlari.golge.dogru / bolumSkorlari.golge.toplam < 0.6) {
+        oneriler.push("• Gölge eşleme zayıf: Figür-zemin ayırma oyunları, görsel algı çalışmaları önerilir.");
+      }
+      if (bolumSkorlari.parca && bolumSkorlari.parca.toplam > 0 && 
+          bolumSkorlari.parca.dogru / bolumSkorlari.parca.toplam < 0.6) {
+        oneriler.push("• Parça-bütün eşleme zayıf: Görsel tamamlama oyunları, bütünsel algı çalışmaları önerilir.");
+      }
+    }
+  });
+  
+  if (oneriler.length === 0) {
+    oneriler.push("• Genel performans iyi görünüyor. Düzenli pratik ile gelişim devam edecektir.");
+  }
+  
+  oneriDiv.innerHTML = oneriler.map(o => `<p>${o}</p>`).join("");
 }
 
 // -------------------------------------------------------------

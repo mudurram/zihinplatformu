@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zihin Platformu – Tam Öğrenci Profili</title>
+
+  <!-- Ortak Stil -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    .profil-wrapper {
+      width: 95%;
+      max-width: 1400px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #1e3d59;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .profil-section {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 10px;
+      border-left: 4px solid #4a90e2;
+    }
+
+    .profil-section h3 {
+      color: #1e3d59;
+      margin-bottom: 15px;
+      font-size: 20px;
+    }
+
+    .chart-section {
+      margin-top: 20px;
+      background: #fdfdfd;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+    }
+
+    canvas {
+      width: 100% !important;
+      max-height: 400px;
+    }
+
+    .tablo {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    .tablo th, .tablo td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .tablo th {
+      background: #f5f5f5;
+      font-weight: 600;
+    }
+
+    .guclu-zayif {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .guclu-zayif > div {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    .ai-plan {
+      background: #e8f5e9;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      border-left: 4px solid #4caf50;
+    }
+
+    .profil-kart {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header header.js tarafından otomatik eklenecek -->
+  <script type="module" src="header.js"></script>
+
+  <div class="profil-wrapper">
+
+    <h2>👤 Tam Öğrenci Profili</h2>
+
+    <!-- 12 ALAN RADAR GRAFİĞİ -->
+    <div class="chart-section">
+      <h3 style="text-align:center;margin-bottom:15px;">🧠 12 Zihin Alanı Radar Grafiği</h3>
+      <canvas id="radarChart"></canvas>
+    </div>
+
+    <!-- 12 ALAN PUANLARI TABLOSU -->
+    <div class="profil-section">
+      <h3>📊 12 Alan Puanları</h3>
+      <table class="tablo" id="alanTablo">
+        <thead>
+          <tr>
+            <th>Alan</th>
+            <th>Puan</th>
+            <th>Seviye</th>
+            <th>Günlük Hayat</th>
+          </tr>
+        </thead>
+        <tbody id="alanTabloBody"></tbody>
+      </table>
+    </div>
+
+    <!-- ÖĞRENME HIZI PROFİLİ -->
+    <div class="profil-section">
+      <h3>⚡ Öğrenme Hızı Profili</h3>
+      <div class="chart-section">
+        <canvas id="ogrenmeHiziChart"></canvas>
+      </div>
+      <div id="ogrenmeHiziBilgi" style="margin-top:15px;"></div>
+    </div>
+
+    <!-- GÜÇLÜ YÖN HARİTASI -->
+    <div class="profil-section">
+      <h3>💪 Güçlü Yön Haritası</h3>
+      <div id="gucluYonler" class="profil-kart"></div>
+    </div>
+
+    <!-- GELİŞTİRİLECEK YÖNLER -->
+    <div class="profil-section">
+      <h3>📈 Geliştirilecek Yönler</h3>
+      <div id="gelistirilecekYonler" class="profil-kart"></div>
+    </div>
+
+    <!-- AKADEMİK PROFİL -->
+    <div class="profil-section">
+      <h3>📚 Akademik Profil</h3>
+      <div id="akademikProfil" class="profil-kart"></div>
+    </div>
+
+    <!-- SOSYAL-DUYGUSAL PROFİL -->
+    <div class="profil-section">
+      <h3>❤️ Sosyal-Duygusal Profil</h3>
+      <div id="sosyalDuygusalProfil" class="profil-kart"></div>
+    </div>
+
+    <!-- GÜNLÜK HAYAT ETKİSİ -->
+    <div class="profil-section">
+      <h3>💡 Günlük Hayat Etkisi</h3>
+      <div id="gunlukHayatEtkisi" class="profil-kart"></div>
+    </div>
+
+    <!-- AI GELİŞİM PLANI -->
+    <div class="profil-section">
+      <h3>🤖 AI Gelişim Planı</h3>
+      <div id="aiGelisimPlani" class="ai-plan"></div>
+    </div>
+
+  </div>
+
+  <!-- NavBar artık header.js tarafından yönetiliyor -->
+
+  <!-- PROFİL MOTORU -->
+  <script type="module" src="profil.js"></script>
+
+</body>
+</html>
+

@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>Renk Eşleme | Zihin Platformu</title>
+  <title>Eşleme Oyunu | Zihin Platformu</title>
 
   <!-- Stil -->
   <link rel="stylesheet" href="esleme.css" />
@@ -26,40 +26,53 @@
   <!-- Header header.js tarafından otomatik eklenecek -->
   
   <!-- Bitir butonu için alan -->
-  <div style="position: fixed; top: 70px; right: 20px; z-index: 9999;">
-    <button id="bitirBtn" style="padding: 12px 20px; background: #e53935; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">⛔ Bitir</button>
+  <div id="bitirBtnContainer" style="position: fixed; top: 70px; right: 20px; z-index: 9999; display: none;">
+    <button id="bitirBtn" class="bitir-btn">⛔ Bitir</button>
   </div>
 
   <!-- ========================================================= -->
-  <!-- 🔵 Oyun Bilgi Alanı -->
+  <!-- 🏠 ANA MENÜ (4 Bölüm Seçimi) -->
   <!-- ========================================================= -->
-  <div class="info-bar" style="margin-top: 20px; font-size: 18px; font-weight: 500;">
-    Süre: <span id="sure">30</span> |
-    Skor: <span id="skor">0</span> |
-    Yanlış: <span id="yanlis">0</span>
+  <div id="anaMenu" class="ana-menu show">
+    <div class="ana-menu-content">
+      <h2 class="ana-menu-baslik">Eşleme Oyunu</h2>
+      <p class="ana-menu-aciklama">Bir bölüm seçin ve oyuna başlayın</p>
+      
+      <div class="bolum-kartlari">
+        <div class="bolum-kart" data-bolum="renk">
+          <div class="kart-icon">🎨</div>
+          <h3>Renk Eşleme</h3>
+          <p>Renkleri eşleştir</p>
+        </div>
+        
+        <div class="bolum-kart" data-bolum="sekil">
+          <div class="kart-icon">🔺</div>
+          <h3>Şekil Eşleme</h3>
+          <p>Şekilleri eşleştir</p>
+        </div>
+        
+        <div class="bolum-kart" data-bolum="golge">
+          <div class="kart-icon">🖼️</div>
+          <h3>Nesne - Gölge</h3>
+          <p>Nesneleri gölgeleriyle eşleştir</p>
+        </div>
+        
+        <div class="bolum-kart" data-bolum="parca">
+          <div class="kart-icon">🧩</div>
+          <h3>Parça - Bütün</h3>
+          <p>Parçaları bütünlerle eşleştir</p>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <!-- ========================================================= -->
-  <!-- 🔵 BAŞLIK -->
-  <!-- ========================================================= -->
-  <h2 class="oyun-baslik">Yazılı Renkle Aynı Rengi Seç</h2>
-
-  <!-- ========================================================= -->
-  <!-- 🎯 HEDEF KELİME -->
-  <!-- ========================================================= -->
-  <h1 id="hedefKelime" class="renkKelime">RENK</h1>
-
-  <!-- ========================================================= -->
-  <!-- 🎯 SEÇENEKLER -->
-  <!-- ========================================================= -->
-  <div id="secenekAlani" class="secenek-container"></div>
 
   <!-- ========================================================= -->
   <!-- 🔵 SEVİYE POPUP -->
   <!-- ========================================================= -->
-  <div id="seviyePopup" class="popup show">
+  <div id="seviyePopup" class="popup">
     <div class="popup-content">
       <h3>Seviye Seç</h3>
+      <p id="seciliBolumAdi" class="secili-bolum-text"></p>
 
       <button class="seviyeBtn" data-seviye="2">Kolay (2 seçenek)</button>
       <button class="seviyeBtn" data-seviye="3">Orta (3 seçenek)</button>
@@ -67,8 +80,52 @@
     </div>
   </div>
 
+  <!-- ========================================================= -->
+  <!-- ▶️ BAŞLAT DÜĞMESİ -->
+  <!-- ========================================================= -->
+  <div id="baslatPopup" class="popup">
+    <div class="popup-content baslat-content">
+      <h3 style="margin-bottom: 30px; color: #1b2d4a; font-size: 28px;">Oyun Hazır!</h3>
+      <button id="baslatBtn" class="baslat-btn">
+        <span class="baslat-icon">▶</span>
+        <span class="baslat-text">Başlat</span>
+      </button>
+      <p style="margin-top: 20px; color: #666; font-size: 16px;">Oyunu başlatmak için tıklayın</p>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 🎮 OYUN ALANI -->
+  <!-- ========================================================= -->
+  <div id="oyunAlani" class="oyun-alani" style="display: none;">
+    
+    <!-- Oyun Bilgi Alanı -->
+    <div class="info-bar">
+      Süre: <span id="sure">30</span> |
+      Skor: <span id="skor">0</span> |
+      Yanlış: <span id="yanlis">0</span>
+    </div>
+
+    <!-- Başlık -->
+    <h2 id="oyunBaslik" class="oyun-baslik">Eşleştirme Oyunu</h2>
+
+    <!-- Üst Bölüm: Hedef Alanı -->
+    <div id="hedefAlani" class="hedef-alani">
+      <!-- Renk için -->
+      <div id="hedefRenk" class="hedef-renk" style="display: none;">
+        <span id="renkAdi" class="renk-adi">RENK</span>
+        <div id="renkOrnegi" class="renk-ornegi"></div>
+      </div>
+      
+      <!-- Şekil, Gölge, Parça için -->
+      <div id="hedefGorsel" class="hedef-gorsel" style="display: none;">
+        <div id="hedefResim"></div>
+      </div>
+    </div>
+
+    <!-- Alt Bölüm: Seçenek Alanı -->
+    <div id="secenekAlani" class="secenek-container"></div>
+  </div>
+
 </body>
 </html>
-
-
-

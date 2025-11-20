@@ -44,27 +44,61 @@ let engine = new GameEngine({
 let secenekSayisi = 2;
 
 document.addEventListener("DOMContentLoaded", () => {
-  const popup = document.getElementById("seviyePopup");
-  if (popup) popup.classList.add("show");
+  const seviyePopup = document.getElementById("seviyePopup");
+  const baslatPopup = document.getElementById("baslatPopup");
+  const baslatBtn = document.getElementById("baslatBtn");
 
+  if (seviyePopup) seviyePopup.classList.add("show");
+
+  // Seviye seçimi yapıldığında
   document.querySelectorAll(".seviyeBtn").forEach(btn => {
     btn.addEventListener("click", () => {
       secenekSayisi = Number(btn.dataset.seviye);
-      if (popup) popup.classList.remove("show");
-      oyunBaslat();
+      if (seviyePopup) seviyePopup.classList.remove("show");
+      // Başlat popup'ını göster
+      if (baslatPopup) baslatPopup.classList.add("show");
     });
   });
 
+  // Başlat düğmesine tıklandığında
+  if (baslatBtn) {
+    baslatBtn.addEventListener("click", () => {
+      if (baslatPopup) baslatPopup.classList.remove("show");
+      oyunBaslat();
+    });
+  }
+
   const bitirBtn = document.getElementById("bitirBtn");
   if (bitirBtn) {
-    bitirBtn.onclick = () => engine.endGame();
+    bitirBtn.onclick = () => {
+      console.log("⛔ Bitir düğmesine tıklandı");
+      if (engine && !engine.gameFinished) {
+        // Kısa bir gecikme ile endGame çağır
+        setTimeout(() => {
+          if (engine) {
+            engine.endGame();
+          }
+        }, 100);
+      }
+    };
   }
+  
+  // Oyun bitiş callback'ini ayarla
+  engine.setOnEndCallback(() => {
+    console.log("⏰ Süre bitti, oyun sonu analizi hazırlanıyor...");
+  });
 });
 
 // ==========================================================
 // ▶️ OYUN BAŞLAT
 // ==========================================================
+let oyunBaslangicZamani = 0;
+
 function oyunBaslat() {
+  // Oyun başlangıç zamanını set et
+  oyunBaslangicZamani = performance.now();
+  console.log("🎮 Ayırt etme oyunu başlatıldı, başlangıç zamanı:", oyunBaslangicZamani);
+  
   engine.start(updateUI);
   yeniSoru();
 }
@@ -157,13 +191,35 @@ function cevapVer(renk, zemin) {
     yanlisSes.play();
   }
 
+  // Hata türü analizi
+  let hataTuru = null;
+  if (!dogruMu) {
+    if (tepki < 300) {
+      hataTuru = "impulsivite"; // Çok hızlı cevap → yanlış
+    } else if (tepki >= 800) {
+      hataTuru = "dikkatsizlik"; // Normal hız + yanlış (bariz doğruyu kaçırma)
+    } else {
+      hataTuru = "karistirma"; // Benzer renk seçimi
+    }
+  }
+  
+  // Zorluk seviyesi
+  const zorlukSeviyesi = secenekSayisi === 2 ? "Kolay" : 
+                         secenekSayisi === 3 ? "Orta" : "Zor";
+  
   // GAME ENGINE Trial Kaydı
   engine.recordTrial({
     correct: dogruMu,
     reaction_ms: tepki,
     hedefRenk: zemin.ad, // Hedef renk (zemin rengi)
     secilenRenk: renk.ad, // Seçilen renk
-    renkKodu: zemin.kod // Renk kodu (görselleştirme için)
+    renkKodu: zemin.kod, // Renk kodu (görselleştirme için)
+    soruBaslamaZamani: soruStart,
+    cevapZamani: performance.now(),
+    zorlukSeviyesi: zorlukSeviyesi,
+    secenekSayisi: secenekSayisi,
+    hataTuru: hataTuru,
+    oyunBaslangicZamani: oyunBaslangicZamani
   });
 
   yeniSoru();

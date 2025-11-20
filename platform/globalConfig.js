@@ -202,24 +202,59 @@ export const PERFORMANCE_KEYS = {
 export const GAME_MAP = {
   renk_esleme: {
     id: "renk_esleme",
-    ad: "Renk / Şekil Eşleme",
+    ad: "Eşleme Oyunu (4 Bölüm)",
     kategori: "Dikkat",
     alan: "attention",
     altBeceri: "esleme_dikkati",
     // Bu oyun hangi zihinsel alanlara veri gönderir (3-7 modül)
-    moduller: ["attention", "perception"],
+    moduller: ["attention", "perception", "memory", "executive", "logic", "literacy", "social"],
     // Firebase'e kaydedilecek performans metrikleri
-    performansKeys: ["match_accuracy", "match_time", "visual_discrimination_score"],
+    performansKeys: [
+      "match_accuracy", 
+      "match_time", 
+      "visual_discrimination_score",
+      "renk_esleme_skor",
+      "sekil_esleme_skor",
+      "golge_esleme_skor",
+      "parca_butun_skor",
+      "kategori_esleme",
+      "gorsel_tamamlama"
+    ],
     path: "../oyunlar/1_basamak_esleme/esleme.html",
     // Oyun özel beceriler (Oyun Bazlı Özel Performans Sekmesi için)
     oyunOzelBeceriler: [
       { id: "renk_ayirt", ad: "Renk Ayırt Etme" },
       { id: "sekil_tanima", ad: "Şekil Tanıma" },
       { id: "gorsel_kalip", ad: "Görsel Kalıp Tanıma" },
-      { id: "kategori_esleme", ad: "Kategori Eşleme" }
+      { id: "kategori_esleme", ad: "Kategori Eşleme" },
+      { id: "gorsel_tamamlama", ad: "Görsel Tamamlama (Parça-Bütün)" },
+      { id: "figur_zemin", ad: "Figür-Zemin Ayırma (Gölge)" },
+      { id: "benzer_farkli", ad: "Benzer-Farklı Ayırt Etme" },
+      { id: "detay_tarama", ad: "Detay Tarama Hızı" }
     ],
     // Hata türleri bu oyunda ölçülebilir
-    hataTurleri: ["dikkatsizlik", "karistirma"]
+    hataTurleri: ["dikkatsizlik", "karistirma", "impulsivite"],
+    // Çoklu alan skorları için ağırlıklar (0-1 arası)
+    sonucMetrics: {
+      coklu_alan: {
+        attention: 0.9,
+        perception: 0.95,
+        memory: 0.7,
+        executive: 0.8,
+        logic: 0.75,
+        literacy: 0.6,
+        social: 0.5
+      },
+      oyun_ozel: [
+        "renk_esleme_skor",
+        "sekil_esleme_skor", 
+        "golge_esleme_skor",
+        "parca_butun_skor",
+        "match_accuracy",
+        "match_time",
+        "visual_discrimination_score"
+      ]
+    }
   },
   ayirt_etme: {
     id: "ayirt_etme",

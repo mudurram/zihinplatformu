@@ -112,6 +112,21 @@ async function yukleFirestoreSonuc() {
 // Öğrenci için LocalStorage'dan veri çek
 function yukleLocalSonuc() {
   try {
+    // Önce sonOyunSonuc'u kontrol et (daha güncel)
+    const sonOyunSonucStr = localStorage.getItem("sonOyunSonuc");
+    if (sonOyunSonucStr) {
+      try {
+        const sonOyunSonuc = JSON.parse(sonOyunSonucStr);
+        if (sonOyunSonuc && typeof sonOyunSonuc === 'object') {
+          console.log("📦 localStorage'dan sonOyunSonuc okundu:", sonOyunSonuc);
+          return sonOyunSonuc;
+        }
+      } catch (err) {
+        console.warn("⚠ sonOyunSonuc parse hatası:", err);
+      }
+    }
+    
+    // sonOyunSonuc yoksa oyunGecmisi'nden son kaydı al
     const gecmisStr = localStorage.getItem("oyunGecmisi");
     if (gecmisStr) {
       gecmis = JSON.parse(gecmisStr);
@@ -120,22 +135,34 @@ function yukleLocalSonuc() {
         gecmis = [];
       } else {
         console.log("📦 localStorage'dan oyunGecmisi okundu:", gecmis.length, "kayıt");
+        if (gecmis.length > 0) {
+          const sonKayit = gecmis[gecmis.length - 1];
+          console.log("📦 Son kayıt:", sonKayit);
+          return sonKayit;
+        }
       }
     } else {
       console.warn("⚠ localStorage'da oyunGecmisi bulunamadı.");
       gecmis = [];
     }
   } catch (err) {
-    console.error("❌ oyunGecmisi parse hatası:", err);
-    console.warn("⚠ oyunGecmisi bozuk → sıfırlandı.");
+    console.error("❌ localStorage okuma hatası:", err);
+    console.warn("⚠ localStorage verileri bozuk → sıfırlandı.");
     gecmis = [];
   }
 
-  return gecmis.at(-1) || null;
+  return null;
 }
 
 // Öğrenci için Firestore'dan sonuç çek
 async function yukleOgrenciSonuc() {
+  // Önce localStorage'dan kontrol et (daha hızlı)
+  const localSonuc = yukleLocalSonuc();
+  if (localSonuc) {
+    console.log("📦 Öğrenci sonucu localStorage'dan yüklendi:", localSonuc);
+    return localSonuc;
+  }
+  
   try {
     if (db && uid) {
       const yol = collection(
@@ -165,17 +192,17 @@ async function yukleOgrenciSonuc() {
 
 // Veri yükleme - rol bazlı
 if (role === ROLES.OGRETMEN || role === ROLES.INSTITUTION || role === ROLES.ADMIN) {
-  // Öğretmen/Kurum/Admin için Firestore'dan yükle
-  yukleFirestoreSonuc().then(firestoreSonuc => {
-    if (firestoreSonuc) {
-      son = firestoreSonuc;
-      console.log("📊 Son oyun sonucu (Firestore):", son);
-      baslatSayfa();
-    } else {
-      // Firestore'da yoksa localStorage'dan dene
-      son = yukleLocalSonuc();
-      if (son) {
-        console.log("📊 Son oyun sonucu (LocalStorage):", son);
+  // Öğretmen/Kurum/Admin için önce localStorage (daha hızlı), sonra Firestore
+  son = yukleLocalSonuc();
+  if (son) {
+    console.log("📊 Son oyun sonucu (LocalStorage - öncelikli):", son);
+    baslatSayfa();
+  } else {
+    // Firestore'dan dene
+    yukleFirestoreSonuc().then(firestoreSonuc => {
+      if (firestoreSonuc) {
+        son = firestoreSonuc;
+        console.log("📊 Son oyun sonucu (Firestore):", son);
         baslatSayfa();
       } else {
         alert("Henüz bir oyun sonucu kayıtlı değil.");
@@ -187,10 +214,10 @@ if (role === ROLES.OGRETMEN || role === ROLES.INSTITUTION || role === ROLES.ADMI
           window.location.href = "analiz.html";
         }
       }
-    }
-  });
+    });
+  }
 } else if (role === ROLES.OGRENCI) {
-  // Öğrenci için önce Firestore, sonra LocalStorage
+  // Öğrenci için önce localStorage, sonra Firestore
   yukleOgrenciSonuc().then(ogrenciSonuc => {
     if (ogrenciSonuc) {
       son = ogrenciSonuc;
@@ -275,8 +302,9 @@ function yukleTemelSkor() {
   console.log("Elementler:", { dogruEl, yanlisEl, sureEl, ortalamaTepkiEl, ogrenmeHiziEl, tarihEl });
 
   // Doğru ve yanlış sayıları
-  const dogruSayi = son.dogru ?? temelSkor.dogru ?? 0;
-  const yanlisSayi = son.yanlis ?? temelSkor.yanlis ?? 0;
+  // Önce oyunDetaylari'ndan, sonra temel_skor'dan, sonra ana objeden
+  const dogruSayi = son.oyunDetaylari?.toplamDogru ?? temelSkor.dogru ?? son.dogru ?? 0;
+  const yanlisSayi = son.oyunDetaylari?.toplamYanlis ?? temelSkor.yanlis ?? son.yanlis ?? 0;
   
   if (dogruEl) {
     dogruEl.textContent = dogruSayi;
@@ -293,8 +321,8 @@ function yukleTemelSkor() {
   }
   
   // Süre (saniye cinsinden)
-  // Önce temel_skor'dan, sonra ana objeden, sonra timeElapsed'dan
-  let sureDegeri = temelSkor.sure || son.sure || son.timeElapsed || 0;
+  // Önce oyunDetaylari'ndan, sonra temel_skor'dan, sonra ana objeden
+  let sureDegeri = son.oyunDetaylari?.toplamOyunSuresi ?? temelSkor.toplamOyunSuresi ?? temelSkor.sure ?? son.sure ?? son.timeElapsed ?? 0;
   
   // Eğer hiçbiri yoksa, timeLimit'ten hesapla (varsa)
   if (!sureDegeri && son.timeLimit) {
@@ -307,16 +335,31 @@ function yukleTemelSkor() {
   }
   
   // Ortalama tepki süresi (ms cinsinden)
-  // Önce temel_skor'dan, sonra trials'dan hesapla
-  let ortalamaTepkiMs = temelSkor.ortalamaTepki || temelSkor.reaction_avg || null;
+  // Önce oyunDetaylari'ndan, sonra temel_skor'dan, sonra trials'dan hesapla
+  let ortalamaTepkiMs = son.oyunDetaylari?.ortalamaTepkiSuresi ?? temelSkor.ortalamaTepki ?? temelSkor.reaction_avg ?? null;
+  
+  // En hızlı ve en yavaş tepki süreleri
+  let enHizliTepkiMs = null;
+  let enYavasTepkiMs = null;
   
   // Eğer temel_skor'da yoksa, trials'dan hesapla
   if (!ortalamaTepkiMs && Array.isArray(son.trials) && son.trials.length > 0) {
-    const dogruTrials = son.trials.filter(t => t.correct && typeof t.reaction_ms === "number");
+    const dogruTrials = son.trials.filter(t => t.correct && typeof t.reaction_ms === "number" && t.reaction_ms > 0);
     if (dogruTrials.length > 0) {
-      const toplam = dogruTrials.reduce((sum, t) => sum + (t.reaction_ms || 0), 0);
-      ortalamaTepkiMs = Math.round(toplam / dogruTrials.length);
+      const tepkiler = dogruTrials.map(t => t.reaction_ms);
+      const toplam = tepkiler.reduce((sum, t) => sum + t, 0);
+      ortalamaTepkiMs = Math.round(toplam / tepkiler.length);
+      enHizliTepkiMs = Math.min(...tepkiler);
+      enYavasTepkiMs = Math.max(...tepkiler);
       console.log("Ortalama tepki trials'dan hesaplandı:", ortalamaTepkiMs);
+    }
+  } else if (Array.isArray(son.trials) && son.trials.length > 0) {
+    // Ortalama varsa ama en hızlı/yavaş yoksa, trials'dan al
+    const dogruTrials = son.trials.filter(t => t.correct && typeof t.reaction_ms === "number" && t.reaction_ms > 0);
+    if (dogruTrials.length > 0) {
+      const tepkiler = dogruTrials.map(t => t.reaction_ms);
+      enHizliTepkiMs = Math.min(...tepkiler);
+      enYavasTepkiMs = Math.max(...tepkiler);
     }
   }
   
@@ -325,20 +368,41 @@ function yukleTemelSkor() {
     console.log("Ortalama tepki yazıldı:", ortalamaTepkiMs);
   }
   
+  // En hızlı tepki
+  const enHizliTepkiEl = document.getElementById("enHizliTepki");
+  if (enHizliTepkiEl) {
+    enHizliTepkiEl.textContent = enHizliTepkiMs ? `${Math.round(enHizliTepkiMs)} ms` : "-";
+  }
+  
+  // En yavaş tepki
+  const enYavasTepkiEl = document.getElementById("enYavasTepki");
+  if (enYavasTepkiEl) {
+    enYavasTepkiEl.textContent = enYavasTepkiMs ? `${Math.round(enYavasTepkiMs)} ms` : "-";
+  }
+  
   // Öğrenme hızı (0-100 arası)
+  // Önce temel_skor'dan al (zaten hesaplanmış)
   let ogrenmeHiziDegeri = temelSkor.ogrenmeHizi || temelSkor.learning_velocity || null;
   
-  // Eğer temel_skor'da yoksa, hesapla
-  if (ogrenmeHiziDegeri === null && Array.isArray(son.trials) && son.trials.length >= 4) {
-    const ilkYari = son.trials.slice(0, Math.floor(son.trials.length / 2));
-    const ikinciYari = son.trials.slice(Math.floor(son.trials.length / 2));
-    const ilkDogru = ilkYari.filter(t => t.correct).length;
-    const ikinciDogru = ikinciYari.filter(t => t.correct).length;
-    const ilkOrt = ilkYari.length > 0 ? ilkDogru / ilkYari.length : 0;
-    const ikinciOrt = ikinciYari.length > 0 ? ikinciDogru / ikinciYari.length : 0;
-    const gelisim = ikinciOrt - ilkOrt;
-    ogrenmeHiziDegeri = Math.round(Math.max(0, Math.min(100, 50 + gelisim * 100)));
-    console.log("Öğrenme hızı hesaplandı:", ogrenmeHiziDegeri);
+  // Eğer temel_skor'da yoksa, oyunDetaylari'dan veya hesapla
+  if (ogrenmeHiziDegeri === null) {
+    // oyunDetaylari'dan ilk/son yarı bilgilerini kullan
+    if (son.oyunDetaylari?.ilkYariDogruOrani !== undefined && son.oyunDetaylari?.sonYariDogruOrani !== undefined) {
+      const gelisim = (son.oyunDetaylari.sonYariDogruOrani - son.oyunDetaylari.ilkYariDogruOrani) / 100;
+      const hizEtkisi = son.oyunDetaylari.tepkiEgilimi === "hizlanma" ? 0.2 : son.oyunDetaylari.tepkiEgilimi === "yavaslama" ? -0.2 : 0;
+      ogrenmeHiziDegeri = Math.round(Math.max(0, Math.min(100, 50 + gelisim * 50 + hizEtkisi * 50)));
+      console.log("Öğrenme hızı oyunDetaylari'dan hesaplandı:", ogrenmeHiziDegeri);
+    } else if (Array.isArray(son.trials) && son.trials.length >= 4) {
+      const ilkYari = son.trials.slice(0, Math.floor(son.trials.length / 2));
+      const ikinciYari = son.trials.slice(Math.floor(son.trials.length / 2));
+      const ilkDogru = ilkYari.filter(t => t.correct).length;
+      const ikinciDogru = ikinciYari.filter(t => t.correct).length;
+      const ilkOrt = ilkYari.length > 0 ? ilkDogru / ilkYari.length : 0;
+      const ikinciOrt = ikinciYari.length > 0 ? ikinciDogru / ikinciYari.length : 0;
+      const gelisim = ikinciOrt - ilkOrt;
+      ogrenmeHiziDegeri = Math.round(Math.max(0, Math.min(100, 50 + gelisim * 100)));
+      console.log("Öğrenme hızı hesaplandı:", ogrenmeHiziDegeri);
+    }
   }
   
   if (ogrenmeHiziEl) {
@@ -376,16 +440,97 @@ function yukleTemelSkor() {
     console.log("Dikkat sürekliliği yazıldı:", sustain);
   }
 
-  // Günlük hayat karşılığı (Temel)
+  // Başlangıç ve bitiş seviyesi
+  const baslangicSeviyesiEl = document.getElementById("baslangicSeviyesi");
+  const bitisSeviyesiEl = document.getElementById("bitisSeviyesi");
+  const zorlukAdaptasyonuEl = document.getElementById("zorlukAdaptasyonu");
+  
+  // Seviye bilgilerini önce oyunDetaylari'dan, sonra temel_skor'dan, sonra trials'dan al
+  let baslangicSeviyesi = son.oyunDetaylari?.baslangicSeviyesi ?? temelSkor.baslangicSeviyesi ?? "-";
+  let bitisSeviyesi = son.oyunDetaylari?.bitisSeviyesi ?? temelSkor.bitisSeviyesi ?? "-";
+  let zorlukAdaptasyonu = son.oyunDetaylari?.zorlukAdaptasyonu ?? temelSkor.zorlukAdaptasyonu ?? "-";
+  
+  // Eğer hala "-" ise, trials'dan hesapla
+  if (baslangicSeviyesi === "-" && Array.isArray(son.trials) && son.trials.length > 0) {
+    const ilkTrial = son.trials[0];
+    baslangicSeviyesi = ilkTrial?.zorlukSeviyesi || (ilkTrial?.secenekSayisi === 2 ? "Kolay" : 
+                        ilkTrial?.secenekSayisi === 3 ? "Orta" : 
+                        ilkTrial?.secenekSayisi === 4 ? "Zor" : "-");
+  }
+  
+  if (bitisSeviyesi === "-" && Array.isArray(son.trials) && son.trials.length > 0) {
+    const sonTrial = son.trials[son.trials.length - 1];
+    bitisSeviyesi = sonTrial?.zorlukSeviyesi || (sonTrial?.secenekSayisi === 2 ? "Kolay" : 
+                    sonTrial?.secenekSayisi === 3 ? "Orta" : 
+                    sonTrial?.secenekSayisi === 4 ? "Zor" : "-");
+  }
+  
+  // Zorluk adaptasyonu
+  if (zorlukAdaptasyonu === "-" && baslangicSeviyesi !== "-" && bitisSeviyesi !== "-") {
+    const seviyeMap = { "Kolay": 1, "Orta": 2, "Zor": 3 };
+    const baslangicDeger = seviyeMap[baslangicSeviyesi] || 2;
+    const bitisDeger = seviyeMap[bitisSeviyesi] || 2;
+    
+    if (bitisDeger > baslangicDeger) {
+      zorlukAdaptasyonu = "📈 Zorluk arttı (Gelişim var)";
+    } else if (bitisDeger < baslangicDeger) {
+      zorlukAdaptasyonu = "📉 Zorluk azaldı";
+    } else {
+      zorlukAdaptasyonu = "➖ Zorluk sabit kaldı";
+    }
+  }
+  
+  if (baslangicSeviyesiEl) baslangicSeviyesiEl.textContent = baslangicSeviyesi;
+  if (bitisSeviyesiEl) bitisSeviyesiEl.textContent = bitisSeviyesi;
+  if (zorlukAdaptasyonuEl) zorlukAdaptasyonuEl.textContent = zorlukAdaptasyonu;
+  
+  // Hata tipleri listesi ve grafik
+  // hataTurleri değişkenini yukleHataTipleri içinde hesaplanacak
+  yukleHataTipleri(temelSkor, son);
+  
+  // Günlük hayat karşılığı (Temel) - Genişletilmiş
+  // hataTurleri değişkenini yukleHataTipleri'nden sonra kullan
+  const hataTurleri = temelSkor.hataTurleriDetay || temelSkor.hataTurleri || {};
   const gunlukHayatTemel = document.getElementById("gunlukHayatTemel");
-  if (gunlukHayatTemel && ortalamaTepkiMs) {
-    const ms = ortalamaTepkiMs;
-    let yorum = "";
-    if (ms < 400) yorum = "⚡ Karar verme hızın çok iyi. Günlük hayatta hızlı tepki gerektiren durumlarda başarılısın.";
-    else if (ms < 600) yorum = "⚡ Karar verme hızın normal seviyede. Pratikle daha da gelişebilir.";
-    else yorum = "⚡ Karar verme hızın düşük. Acele etmeden düşünerek karar vermek faydalı olacaktır.";
-    gunlukHayatTemel.textContent = yorum;
-    gunlukHayatTemel.style.display = "block";
+  if (gunlukHayatTemel) {
+    let yorumlar = [];
+    
+    // Tepki süresi → Karar verme hızı
+    if (ortalamaTepkiMs) {
+      const ms = ortalamaTepkiMs;
+      if (ms < 400) {
+        yorumlar.push("⚡ <strong>Karar verme hızı:</strong> Çok iyi. Günlük hayatta hızlı tepki gerektiren durumlarda başarılısın.");
+      } else if (ms < 600) {
+        yorumlar.push("⚡ <strong>Karar verme hızı:</strong> Normal seviyede. Pratikle daha da gelişebilir.");
+      } else {
+        yorumlar.push("⚡ <strong>Karar verme hızı:</strong> Düşük. Acele etmeden düşünerek karar vermek faydalı olacaktır.");
+      }
+    }
+    
+    // Hata tipi → Acelecilik / dikkatsizlik ayrımı
+    if (hataTurleri && hataTurleri.toplam > 0) {
+      const impulsiviteYuzde = Math.round((hataTurleri.impulsivite / hataTurleri.toplam) * 100);
+      const dikkatsizlikYuzde = Math.round((hataTurleri.dikkatsizlik / hataTurleri.toplam) * 100);
+      
+      if (impulsiviteYuzde > 40) {
+        yorumlar.push("⚠️ <strong>Acelecilik:</strong> Hata türü analizi aceleci kararlar verdiğini gösteriyor. Sınıf içi performansta düşünmeden cevap verme görülebilir.");
+      }
+      if (dikkatsizlikYuzde > 40) {
+        yorumlar.push("⚠️ <strong>Dikkatsizlik:</strong> Dikkatsizlik hataları yüksek. Sınıf içi performansta sık dalgınlık görülebilir.");
+      }
+    }
+    
+    // Görsel tarama → Okuma sırasında satır takibi
+    const temelSkor = son.temel_skor || {};
+    const ogrenmeHizi = temelSkor.ogrenmeHizi || temelSkor.learning_velocity || 0;
+    if (ogrenmeHizi > 70) {
+      yorumlar.push("📚 <strong>Görsel tarama:</strong> Öğrenme hızı yüksek. Okuma sırasında satır takibi ve harf atlama sorunları azalabilir.");
+    }
+    
+    if (yorumlar.length > 0) {
+      gunlukHayatTemel.innerHTML = "<h4>💡 Günlük Hayat Karşılığı</h4>" + yorumlar.map(y => `<p>${y}</p>`).join("");
+      gunlukHayatTemel.style.display = "block";
+    }
   }
 
   // Bar Grafik
@@ -415,6 +560,131 @@ function yukleTemelSkor() {
   }
   
   console.log("✅ yukleTemelSkor tamamlandı");
+}
+
+// -------------------------------------------------------------
+// HATA TİPLERİ YÜKLEME
+// -------------------------------------------------------------
+function yukleHataTipleri(temelSkor, son) {
+  const hataTipleriListe = document.getElementById("hataTipleriListe");
+  const hataTurleriGrafikCanvas = document.getElementById("hataTurleriGrafik");
+  
+  // Hata türleri verilerini al
+  let hataTurleri = temelSkor.hataTurleriDetay || temelSkor.hataTurleri || {};
+  
+  // Eğer hataTurleri boşsa, trials'dan hesapla
+  if (!hataTurleri || Object.keys(hataTurleri).length === 0 || !hataTurleri.toplam) {
+    const trials = son.trials || [];
+    const hataliTrials = trials.filter(t => !t.correct);
+    hataTurleri = {
+      impulsivite: hataliTrials.filter(t => t.hataTuru === "impulsivite" || (t.reaction_ms < 300 && !t.correct)).length,
+      karistirma: hataliTrials.filter(t => t.hataTuru === "karistirma" || (t.reaction_ms >= 300 && t.reaction_ms < 800 && !t.correct)).length,
+      dikkatsizlik: hataliTrials.filter(t => t.hataTuru === "dikkatsizlik" || (t.reaction_ms >= 800 && !t.correct)).length,
+      kategori_hatasi: hataliTrials.filter(t => t.hataTuru === "kategori_hatasi").length,
+      toplam: hataliTrials.length
+    };
+  }
+  
+  // Hata tipleri listesi
+  if (hataTipleriListe) {
+    if (hataTurleri.toplam > 0) {
+      let html = "";
+      const hataTurleriMap = {
+        impulsivite: { ad: "İmpulsivite (Acelecilik)", renk: "#ffc107", icon: "⚡" },
+        dikkatsizlik: { ad: "Dikkatsizlik", renk: "#f44336", icon: "⚠️" },
+        karistirma: { ad: "Karıştırma", renk: "#ff9800", icon: "🔄" },
+        kategori_hatasi: { ad: "Kategori Hatası", renk: "#9c27b0", icon: "📂" }
+      };
+      
+      Object.entries(hataTurleriMap).forEach(([key, info]) => {
+        const sayi = hataTurleri[key] || 0;
+        const yuzde = hataTurleri.toplam > 0 ? Math.round((sayi / hataTurleri.toplam) * 100) : 0;
+        
+        if (sayi > 0) {
+          html += `
+            <div style="padding: 10px; margin: 8px 0; background: ${info.renk}15; border-left: 4px solid ${info.renk}; border-radius: 6px;">
+              <strong>${info.icon} ${info.ad}:</strong> ${sayi} hata (${yuzde}%)
+            </div>
+          `;
+        }
+      });
+      
+      if (html === "") {
+        html = "<p style='color:#4caf50;'>✅ Hiç hata yapılmadı, harika!</p>";
+      }
+      
+      hataTipleriListe.innerHTML = html;
+    } else {
+      hataTipleriListe.innerHTML = "<p style='color:#4caf50;'>✅ Hiç hata yapılmadı, harika!</p>";
+    }
+  }
+  
+  // Hata türleri grafiği
+  if (hataTurleriGrafikCanvas && window.Chart && hataTurleri.toplam > 0) {
+    // Önceki chart'ı destroy et (varsa)
+    const existingChart = Chart.getChart(hataTurleriGrafikCanvas);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    const labels = [];
+    const data = [];
+    const colors = [];
+    
+    if (hataTurleri.impulsivite > 0) {
+      labels.push("İmpulsivite");
+      data.push(hataTurleri.impulsivite);
+      colors.push("#ffc107");
+    }
+    if (hataTurleri.dikkatsizlik > 0) {
+      labels.push("Dikkatsizlik");
+      data.push(hataTurleri.dikkatsizlik);
+      colors.push("#f44336");
+    }
+    if (hataTurleri.karistirma > 0) {
+      labels.push("Karıştırma");
+      data.push(hataTurleri.karistirma);
+      colors.push("#ff9800");
+    }
+    if (hataTurleri.kategori_hatasi > 0) {
+      labels.push("Kategori Hatası");
+      data.push(hataTurleri.kategori_hatasi);
+      colors.push("#9c27b0");
+    }
+    
+    if (labels.length > 0) {
+      new Chart(hataTurleriGrafikCanvas, {
+        type: "doughnut",
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: colors,
+            borderWidth: 2,
+            borderColor: "#fff"
+          }]
+        },
+        options: {
+          plugins: {
+            legend: {
+              position: "bottom"
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  }
 }
 
 // -------------------------------------------------------------
@@ -472,19 +742,47 @@ function yukleCokluAlan() {
       console.warn("⚠ Gösterilecek alan bulunamadı!");
       cokluAlanListe.innerHTML = "<p>Bu oyun için çoklu alan verisi bulunamadı.</p>";
     } else {
-      // Eğer coklu_alan boşsa, oyun meta'dan hesapla
+      // Önce oyunDetaylari.zihinselAlanlar'dan veri al (eşleme oyunu için)
+      const zihinselAlanlar = son.oyunDetaylari?.zihinselAlanlar || {};
+      console.log("🧠 zihinselAlanlar:", zihinselAlanlar);
+      
+      // zihinselAlanlar key'lerini BRAIN_AREAS key'lerine map et
+      const zihinselAlanMap = {
+        "dikkat": "attention",
+        "algisal_islemleme": "perception",
+        "hafiza": "memory",
+        "yuruteci_islev": "executive",
+        "mantik": "logic",
+        "okuma_dil": "literacy",
+        "sosyal_bilis": "social"
+      };
+      
       let gosterilecekAlan = {};
       
-      // Önce mevcut coklu_alan'dan sadece gösterilecek alanları al
-      gosterilecekAlanlar.forEach(alanKey => {
-        if (cokluAlan[alanKey] !== undefined) {
-          gosterilecekAlan[alanKey] = cokluAlan[alanKey];
-        }
-      });
+      // Önce zihinselAlanlar'dan veri al (eğer varsa)
+      if (Object.keys(zihinselAlanlar).length > 0) {
+        console.log("✅ zihinselAlanlar verisi bulundu, kullanılıyor...");
+        Object.entries(zihinselAlanlar).forEach(([key, skor]) => {
+          const brainAreaKey = zihinselAlanMap[key];
+          if (brainAreaKey && gosterilecekAlanlar.includes(brainAreaKey)) {
+            gosterilecekAlan[brainAreaKey] = Math.round(skor);
+          }
+        });
+        console.log("✅ zihinselAlanlar'dan alınan skorlar:", gosterilecekAlan);
+      }
       
-      // Eğer hiç veri yoksa, hesapla
+      // Eğer zihinselAlanlar'dan veri alınamadıysa, mevcut coklu_alan'dan al
       if (Object.keys(gosterilecekAlan).length === 0) {
-        console.log("⚠ coklu_alan boş, oyun meta'dan hesaplanıyor...");
+        gosterilecekAlanlar.forEach(alanKey => {
+          if (cokluAlan[alanKey] !== undefined) {
+            gosterilecekAlan[alanKey] = cokluAlan[alanKey];
+          }
+        });
+      }
+      
+      // Eğer hala hiç veri yoksa, fallback hesaplama yap
+      if (Object.keys(gosterilecekAlan).length === 0) {
+        console.log("⚠ coklu_alan ve zihinselAlanlar boş, fallback hesaplama yapılıyor...");
         const total = (son.dogru || 0) + (son.yanlis || 0);
         const accuracy = total > 0 ? (son.dogru || 0) / total : 0;
         const temelSkor = son.temel_skor || {};
@@ -509,7 +807,7 @@ function yukleCokluAlan() {
           gosterilecekAlan[alanKey] = Math.max(0, Math.min(100, skor));
         });
         
-        console.log("✅ Hesaplanan coklu_alan:", gosterilecekAlan);
+        console.log("✅ Fallback hesaplanan coklu_alan:", gosterilecekAlan);
       }
       
       let html = "<ul style='list-style:none; padding:0;'>";
@@ -567,14 +865,40 @@ function yukleCokluAlan() {
       return BRAIN_AREAS[alanKey] !== undefined;
     });
 
-    // Eğer coklu_alan boşsa, hesapla
-    let gosterilecekAlanRadar = {};
-    gosterilecekAlanlarRadar.forEach(alanKey => {
-      if (cokluAlan[alanKey] !== undefined) {
-        gosterilecekAlanRadar[alanKey] = cokluAlan[alanKey];
-      }
-    });
+    // Önce zihinselAlanlar'dan veri al (eşleme oyunu için)
+    const zihinselAlanlarRadar = son.oyunDetaylari?.zihinselAlanlar || {};
+    const zihinselAlanMapRadar = {
+      "dikkat": "attention",
+      "algisal_islemleme": "perception",
+      "hafiza": "memory",
+      "yuruteci_islev": "executive",
+      "mantik": "logic",
+      "okuma_dil": "literacy",
+      "sosyal_bilis": "social"
+    };
     
+    let gosterilecekAlanRadar = {};
+    
+    // Önce zihinselAlanlar'dan veri al (eğer varsa)
+    if (Object.keys(zihinselAlanlarRadar).length > 0) {
+      Object.entries(zihinselAlanlarRadar).forEach(([key, skor]) => {
+        const brainAreaKey = zihinselAlanMapRadar[key];
+        if (brainAreaKey && gosterilecekAlanlarRadar.includes(brainAreaKey)) {
+          gosterilecekAlanRadar[brainAreaKey] = Math.round(skor);
+        }
+      });
+    }
+    
+    // Eğer zihinselAlanlar'dan veri alınamadıysa, mevcut coklu_alan'dan al
+    if (Object.keys(gosterilecekAlanRadar).length === 0) {
+      gosterilecekAlanlarRadar.forEach(alanKey => {
+        if (cokluAlan[alanKey] !== undefined) {
+          gosterilecekAlanRadar[alanKey] = cokluAlan[alanKey];
+        }
+      });
+    }
+    
+    // Eğer hala hiç veri yoksa, fallback hesaplama yap
     if (Object.keys(gosterilecekAlanRadar).length === 0) {
       const total = (son.dogru || 0) + (son.yanlis || 0);
       const accuracy = total > 0 ? (son.dogru || 0) / total : 0;
@@ -662,15 +986,41 @@ function yukleCokluAlan() {
     return BRAIN_AREAS[alanKey] !== undefined;
   });
   
+  // Önce zihinselAlanlar'dan veri al (eşleme oyunu için)
+  const zihinselAlanlarFinal = son.oyunDetaylari?.zihinselAlanlar || {};
+  const zihinselAlanMapFinal = {
+    "dikkat": "attention",
+    "algisal_islemleme": "perception",
+    "hafiza": "memory",
+    "yuruteci_islev": "executive",
+    "mantik": "logic",
+    "okuma_dil": "literacy",
+    "sosyal_bilis": "social"
+  };
+  
   // Sadece gösterilecek alanlar için veri topla
   let gosterilecekAlanFinal = {};
-  gosterilecekAlanlarFinal.forEach(alanKey => {
-    if (cokluAlan[alanKey] !== undefined) {
-      gosterilecekAlanFinal[alanKey] = cokluAlan[alanKey];
-    }
-  });
   
-  // Eğer coklu_alan boşsa, hesapla
+  // Önce zihinselAlanlar'dan veri al (eğer varsa)
+  if (Object.keys(zihinselAlanlarFinal).length > 0) {
+    Object.entries(zihinselAlanlarFinal).forEach(([key, skor]) => {
+      const brainAreaKey = zihinselAlanMapFinal[key];
+      if (brainAreaKey && gosterilecekAlanlarFinal.includes(brainAreaKey)) {
+        gosterilecekAlanFinal[brainAreaKey] = Math.round(skor);
+      }
+    });
+  }
+  
+  // Eğer zihinselAlanlar'dan veri alınamadıysa, mevcut coklu_alan'dan al
+  if (Object.keys(gosterilecekAlanFinal).length === 0) {
+    gosterilecekAlanlarFinal.forEach(alanKey => {
+      if (cokluAlan[alanKey] !== undefined) {
+        gosterilecekAlanFinal[alanKey] = cokluAlan[alanKey];
+      }
+    });
+  }
+  
+  // Eğer hala hiç veri yoksa, fallback hesaplama yap
   if (Object.keys(gosterilecekAlanFinal).length === 0) {
     const total = (son.dogru || 0) + (son.yanlis || 0);
     const accuracy = total > 0 ? (son.dogru || 0) / total : 0;
@@ -698,13 +1048,33 @@ function yukleCokluAlan() {
   }
   
   if (gunlukHayatCoklu && Object.keys(gosterilecekAlanFinal).length > 0) {
-    const enYuksek = Object.entries(gosterilecekAlanFinal).sort((a, b) => b[1] - a[1])[0];
-    if (enYuksek) {
-      const alanAd = BRAIN_AREAS[enYuksek[0]]?.ad || enYuksek[0];
-      gunlukHayatCoklu.textContent = `💡 En güçlü alanın: ${alanAd} (${Math.round(enYuksek[1])}/100). Bu alan günlük hayatta problem çözme ve öğrenme süreçlerinde avantaj sağlar.`;
-      gunlukHayatCoklu.style.display = "block";
-      console.log("✅ Günlük hayat karşılığı gösterildi");
-    }
+    let gunlukHayatMetni = "<h4 style='margin-top:0;'>💡 Günlük Hayat Karşılığı</h4>";
+    
+    // Her alan için açıklama
+    const alanAciklamalari = {
+      "attention": "Dikkat puanı düşük → görsel tarama ve tepki stabilitesi zayıflayabilir. Yüksek → odaklanma ve dikkat gerektiren görevlerde başarılı olursun.",
+      "perception": "Görsel algı puanı düşük → görsel bilgileri işlemede zorlanabilirsin. Yüksek → görsel görevlerde hızlı ve doğru tepki verirsin.",
+      "memory": "Bellek puanı yüksek → yönerge takipte güçlüdür. Düşük → çok adımlı görevlerde zorlanabilirsin.",
+      "executive": "Yürütücü işlev puanı yüksek → planlama ve problem çözmede başarılısın. Düşük → görevleri organize etmede zorlanabilirsin.",
+      "logic": "Mantık puanı yüksek → mantıksal düşünme ve problem çözmede güçlüsün. Düşük → mantıksal ilişkileri kurmada zorlanabilirsin.",
+      "literacy": "Okuma-dil puanı yüksek → okuma ve dil becerilerinde başarılısın. Düşük → okuma ve anlama görevlerinde destek gerekebilir.",
+      "social": "Sosyal biliş puanı yüksek → sosyal durumları anlama ve empati kurmada güçlüsün. Düşük → sosyal ipuçlarını algılamada zorlanabilirsin."
+    };
+    
+    Object.entries(gosterilecekAlanFinal).forEach(([alanKey, skor]) => {
+      const alanAd = BRAIN_AREAS[alanKey]?.ad || alanKey;
+      const aciklama = alanAciklamalari[alanKey] || "Bu alan günlük hayattaki bilişsel görevlerde önemlidir.";
+      const seviye = skor >= 70 ? "Yüksek" : skor >= 50 ? "Orta" : "Düşük";
+      const renk = skor >= 70 ? "#4caf50" : skor >= 50 ? "#ff9800" : "#f44336";
+      
+      gunlukHayatMetni += `<div style='padding:10px; margin:8px 0; background:${renk}15; border-left:4px solid ${renk}; border-radius:6px;'>
+        <strong>${alanAd} (${Math.round(skor)}/100 - ${seviye}):</strong> ${aciklama}
+      </div>`;
+    });
+    
+    gunlukHayatCoklu.innerHTML = gunlukHayatMetni;
+    gunlukHayatCoklu.style.display = "block";
+    console.log("✅ Günlük hayat karşılığı gösterildi");
   }
   
   console.log("✅ yukleCokluAlan tamamlandı");
@@ -765,6 +1135,32 @@ function yukleOyunOzel() {
           const sure = son.sure || son.timeElapsed || 30;
           oyunOzel.processing_speed = sure > 0 ? Math.round((total / sure) * 10) / 10 : 0;
           break;
+        // Eşleme oyunu özel metrikleri
+        case "renk_esleme_skor":
+          const renkTrials = trials.filter(t => t.bolum === "renk");
+          const renkDogru = renkTrials.filter(t => t.correct).length;
+          oyunOzel.renk_esleme_skor = renkTrials.length > 0 ? Math.round((renkDogru / renkTrials.length) * 100) : 0;
+          break;
+        case "sekil_esleme_skor":
+          const sekilTrials = trials.filter(t => t.bolum === "sekil");
+          const sekilDogru = sekilTrials.filter(t => t.correct).length;
+          oyunOzel.sekil_esleme_skor = sekilTrials.length > 0 ? Math.round((sekilDogru / sekilTrials.length) * 100) : 0;
+          break;
+        case "golge_esleme_skor":
+          const golgeTrials = trials.filter(t => t.bolum === "golge");
+          const golgeDogru = golgeTrials.filter(t => t.correct).length;
+          oyunOzel.golge_esleme_skor = golgeTrials.length > 0 ? Math.round((golgeDogru / golgeTrials.length) * 100) : 0;
+          break;
+        case "parca_butun_skor":
+          const parcaTrials = trials.filter(t => t.bolum === "parca");
+          const parcaDogru = parcaTrials.filter(t => t.correct).length;
+          oyunOzel.parca_butun_skor = parcaTrials.length > 0 ? Math.round((parcaDogru / parcaTrials.length) * 100) : 0;
+          break;
+        case "gorsel_tamamlama":
+          const parcaTrials2 = trials.filter(t => t.bolum === "parca");
+          const parcaDogru2 = parcaTrials2.filter(t => t.correct).length;
+          oyunOzel.gorsel_tamamlama = parcaTrials2.length > 0 ? Math.round((parcaDogru2 / parcaTrials2.length) * 100) : 0;
+          break;
         default:
           if (key.includes("accuracy") || key.includes("doğruluk")) {
             oyunOzel[key] = total > 0 ? Math.round((son.dogru / total) * 100) : 0;
@@ -781,15 +1177,27 @@ function yukleOyunOzel() {
   }
 
   // Hata türleri hesaplama (eğer yoksa) - önce hesapla, sonra kullan
-  let hataTurleri = temelSkor.hataTurleri || {};
+  // Önce hataTurleriDetay formatını kontrol et (yeni format)
+  let hataTurleri = temelSkor.hataTurleriDetay || temelSkor.hataTurleri || {};
+  
+  // Eğer hataTurleriDetay formatındaysa, hataTurleri'ne çevir (geriye uyumluluk)
+  if (hataTurleri && hataTurleri.impulsivite !== undefined && !hataTurleri.toplam) {
+    // hataTurleriDetay formatı, toplam hesapla
+    hataTurleri.toplam = (hataTurleri.impulsivite || 0) + 
+                         (hataTurleri.dikkatsizlik || 0) + 
+                         (hataTurleri.karistirma || 0) + 
+                         (hataTurleri.kategori_hatasi || 0);
+  }
+  
   if (!hataTurleri || Object.keys(hataTurleri).length === 0 || !hataTurleri.toplam) {
     console.log("⚠ hataTurleri boş, trials'dan hesaplanıyor...");
     const trials = son.trials || [];
     const hataliTrials = trials.filter(t => !t.correct);
     hataTurleri = {
-      impulsivite: hataliTrials.filter(t => t.reaction_ms < 300).length,
-      karistirma: hataliTrials.filter(t => t.reaction_ms >= 300 && t.reaction_ms < 800).length,
-      dikkatsizlik: hataliTrials.filter(t => t.reaction_ms >= 800).length,
+      impulsivite: hataliTrials.filter(t => t.hataTuru === "impulsivite" || (t.reaction_ms < 300 && !t.correct)).length,
+      karistirma: hataliTrials.filter(t => t.hataTuru === "karistirma" || (t.reaction_ms >= 300 && t.reaction_ms < 800 && !t.correct)).length,
+      dikkatsizlik: hataliTrials.filter(t => t.hataTuru === "dikkatsizlik" || (t.reaction_ms >= 800 && !t.correct)).length,
+      kategori_hatasi: hataliTrials.filter(t => t.hataTuru === "kategori_hatasi").length,
       toplam: hataliTrials.length
     };
     console.log("✅ Hesaplanan hataTurleri:", hataTurleri);
@@ -830,10 +1238,26 @@ function yukleOyunOzel() {
         let deger = "-";
         let ilgiliKey = null;
         
+        // Eşleme oyunu için özel eşleştirme
+        const beceriKeyMap = {
+          "renk_ayirt": "renk_esleme_skor",
+          "sekil_tanima": "sekil_esleme_skor",
+          "gorsel_kalip": "visual_discrimination_score",
+          "kategori_esleme": "kategori_esleme",
+          "gorsel_tamamlama": "parca_butun_skor",
+          "figur_zemin": "golge_esleme_skor",
+          "benzer_farkli": "match_accuracy",
+          "detay_tarama": "match_time"
+        };
+        
         // Önce doğrudan eşleşme dene (beceri.id performansKeys'de var mı?)
         if (performansKeysForBeceriler.includes(beceri.id)) {
           ilgiliKey = beceri.id;
           deger = oyunOzel[beceri.id];
+        } else if (beceriKeyMap[beceri.id]) {
+          // Özel eşleştirme kullan
+          ilgiliKey = beceriKeyMap[beceri.id];
+          deger = oyunOzel[ilgiliKey];
         } else {
           // Performans key'lerinden ilgili olanı bul (içerik eşleşmesi)
           ilgiliKey = performansKeysForBeceriler.find(k => 
@@ -847,13 +1271,45 @@ function yukleOyunOzel() {
         }
         
         // Eğer değer bulunduysa ve performansKeys'de varsa göster
-        if (deger !== "-" && ilgiliKey && performansKeysForBeceriler.includes(ilgiliKey)) {
+        if (deger !== "-" && ilgiliKey && (performansKeysForBeceriler.includes(ilgiliKey) || beceriKeyMap[beceri.id])) {
           const skor = typeof deger === 'number' ? Math.round(deger) : deger;
-          const birim = typeof deger === 'number' && (ilgiliKey.includes('accuracy') || ilgiliKey.includes('score') || ilgiliKey.includes('discrimination')) ? '%' : 
+          const birim = typeof deger === 'number' && (ilgiliKey.includes('accuracy') || ilgiliKey.includes('score') || ilgiliKey.includes('discrimination') || ilgiliKey.includes('skor')) ? '%' : 
                         ilgiliKey.includes('time') ? ' ms' : 
                         ilgiliKey.includes('speed') ? ' işlem/sn' : '';
-          html += `<li style='padding:10px; margin:8px 0; background:#f0f8ff; border-radius:8px; border-left:4px solid #4a90e2;'>
-            <strong>${beceri.ad}:</strong> <span style='color:#1e88e5;font-weight:600;'>${skor}${birim}</span>
+          
+          // Günlük hayat açıklaması
+          const gunlukHayatAciklamalari = {
+            "renk_ayirt": "Renkleri ayırt etme becerisi, günlük hayatta renk kodlu görevlerde (trafik işaretleri, harita okuma) başarı sağlar.",
+            "sekil_tanima": "Şekil tanıma becerisi, geometri ve görsel okuma-yazma becerilerine katkı sağlar.",
+            "gorsel_kalip": "Görsel kalıp tanıma, örüntü tanıma ve problem çözme becerilerini destekler.",
+            "kategori_esleme": "Kategori eşleme, sınıflandırma ve organizasyon becerilerini geliştirir.",
+            "gorsel_tamamlama": "Görsel tamamlama, parça-bütün ilişkisi kurma ve görsel hafıza becerilerini güçlendirir.",
+            "figur_zemin": "Figür-zemin ayırma, dikkat ve odaklanma becerilerini geliştirir, okuma sırasında satır takibine yardımcı olur.",
+            "benzer_farkli": "Benzer-farklı ayırt etme, detay farkındalığı ve analitik düşünme becerilerini destekler.",
+            "detay_tarama": "Detay tarama hızı, görsel tarama ve hızlı karar verme becerilerini geliştirir."
+          };
+          
+          const aciklama = gunlukHayatAciklamalari[beceri.id] || "Bu beceri günlük hayattaki görsel işleme görevlerinde önemlidir.";
+          
+          // Gelişim sinyali (önceki oyunlarla karşılaştırma - basit versiyon)
+          let gelisimSinyali = "➖";
+          if (typeof deger === 'number') {
+            if (deger >= 80) gelisimSinyali = "📈 Yüksek";
+            else if (deger >= 60) gelisimSinyali = "➖ Orta";
+            else gelisimSinyali = "📉 Geliştirilmeli";
+          }
+          
+          html += `<li style='padding:12px; margin:10px 0; background:#f0f8ff; border-radius:8px; border-left:4px solid #4a90e2; box-shadow:0 2px 4px rgba(0,0,0,0.1);'>
+            <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;'>
+              <strong style='color:#1e3d59; font-size:16px;'>${beceri.ad}</strong>
+              <div style='display:flex; align-items:center; gap:8px;'>
+                <span style='color:#1e88e5;font-weight:600;font-size:18px;'>${skor}${birim}</span>
+                <span style='font-size:14px;'>${gelisimSinyali}</span>
+              </div>
+            </div>
+            <div style='font-size:13px;color:#666;line-height:1.5;padding-top:6px;border-top:1px solid #e0e0e0;'>
+              💡 ${aciklama}
+            </div>
           </li>`;
         }
       });
@@ -963,22 +1419,63 @@ function yukleOyunOzel() {
     console.error("❌ oyunOzelListe elementi bulunamadı!");
   }
 
-  // Günlük hayat karşılığı (Oyun Özel) - Sadece gösterilen metrikler için
+  // Günlük hayat karşılığı (Oyun Özel) - Genişletilmiş
   const gunlukHayatOyun = document.getElementById("gunlukHayatOyun");
-  if (gunlukHayatOyun && Object.keys(gosterilecekMetrikler).length > 0) {
-    let gunlukHayatMetni = "💡 <strong>Günlük Hayat Karşılığı:</strong><br>";
+  if (gunlukHayatOyun) {
+    let gunlukHayatMetni = "<h4 style='margin-top:0;'>💡 Günlük Hayat Karşılığı</h4>";
     
-    // Sadece gösterilen performans metrikleri için günlük hayat karşılığını bul
-    Object.keys(gosterilecekMetrikler).forEach(key => {
-      const karsilik = GUNLUK_HAYAT_KARSILIKLARI[key] || 
-                       Object.values(GUNLUK_HAYAT_KARSILIKLARI).find(k => k.metrik === key);
-      if (karsilik) {
-        gunlukHayatMetni += `• ${karsilik.karşılık}: ${karsilik.aciklama}<br>`;
+    // Eşleme oyunu için özel günlük hayat karşılıkları
+    if (oyunKod === "renk_esleme" || oyunKod === "esleme") {
+      const gunlukHayatListesi = [
+        {
+          baslik: "Tepki Süresi → Karar Verme Hızı",
+          aciklama: "Ortalama tepki süren, günlük hayatta karar verme hızını gösterir. Hızlı tepki, acil durumlarda avantaj sağlar."
+        },
+        {
+          baslik: "Hata Tipi → Acelecilik / Dikkatsizlik Ayrımı",
+          aciklama: "İmpulsivite hataları yüksek → aceleci kararlar veriyorsun. Dikkatsizlik hataları yüksek → sınıf içi performansta sık dalgınlık görülebilir."
+        },
+        {
+          baslik: "Görsel Tarama → Okuma Sırasında Satır Takibi",
+          aciklama: "Görsel tarama becerin, okuma sırasında satır takibi ve harf atlama sorunlarını azaltır."
+        },
+        {
+          baslik: "Çalışma Belleği → Yönergeyi Eksiksiz Uygulama Kapasitesi",
+          aciklama: "Çalışma belleğin güçlüyse, çok adımlı yönergeleri eksiksiz uygulayabilirsin."
+        },
+        {
+          baslik: "Mantık → Problem Çözme",
+          aciklama: "Mantıksal düşünme becerin, günlük problemleri çözmede ve karar vermede önemlidir."
+        },
+        {
+          baslik: "Sosyal-Duygusal → Akran İlişkileri, Uygun Tepki",
+          aciklama: "Sosyal biliş becerin, akran ilişkilerinde ve uygun tepki vermede önemlidir."
+        }
+      ];
+      
+      gunlukHayatListesi.forEach((item, index) => {
+        gunlukHayatMetni += `<div style='padding:10px; margin:8px 0; background:#e8f5e9; border-left:4px solid #4caf50; border-radius:6px;'>
+          <strong>${item.baslik}</strong><br>
+          <span style='font-size:13px;color:#666;'>${item.aciklama}</span>
+        </div>`;
+      });
+    } else {
+      // Diğer oyunlar için genel günlük hayat karşılığı
+      if (Object.keys(gosterilecekMetrikler).length > 0) {
+        Object.keys(gosterilecekMetrikler).forEach(key => {
+          const karsilik = GUNLUK_HAYAT_KARSILIKLARI[key] || 
+                           Object.values(GUNLUK_HAYAT_KARSILIKLARI).find(k => k.metrik === key);
+          if (karsilik) {
+            gunlukHayatMetni += `<div style='padding:10px; margin:8px 0; background:#e8f5e9; border-left:4px solid #4caf50; border-radius:6px;'>
+              <strong>${karsilik.karşılık}:</strong> ${karsilik.aciklama}
+            </div>`;
+          }
+        });
       }
-    });
-    
-    if (gunlukHayatMetni === "💡 <strong>Günlük Hayat Karşılığı:</strong><br>") {
-      gunlukHayatMetni = "💡 Bu oyunun özel metrikleri, günlük hayattaki benzer görevlerdeki performansını yansıtır.";
+      
+      if (gunlukHayatMetni === "<h4 style='margin-top:0;'>💡 Günlük Hayat Karşılığı</h4>") {
+        gunlukHayatMetni += "<p>💡 Bu oyunun özel metrikleri, günlük hayattaki benzer görevlerdeki performansını yansıtır.</p>";
+      }
     }
     
     gunlukHayatOyun.innerHTML = gunlukHayatMetni;
@@ -1070,7 +1567,7 @@ function yuklePerformans() {
 // -------------------------------------------------------------
 // 10) 💬 ÖĞRETMEN YORUMLARI SİSTEMİ
 // -------------------------------------------------------------
-const teacherID = localStorage.getItem("teacherID");
+// teacherID zaten yukarıda tanımlı (satır 51)
 const studentId = role === ROLES.OGRENCI ? localStorage.getItem("uid") || localStorage.getItem("studentID") : aktifOgrenciId;
 let currentGameResultId = null;
 

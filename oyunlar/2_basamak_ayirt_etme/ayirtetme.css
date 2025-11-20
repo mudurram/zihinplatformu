@@ -185,6 +185,56 @@ body {
 }
 
 /* ============================================================
+   BAŞLAT DÜĞMESİ
+============================================================ */
+.baslat-content {
+  max-width: 450px;
+  padding: 50px 60px;
+}
+
+.baslat-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  width: 100%;
+  padding: 28px 50px;
+  background: linear-gradient(135deg, #4a90e2, #357ABD);
+  color: white;
+  border: none;
+  border-radius: 18px;
+  font-size: 32px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(74, 144, 226, 0.35);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  letter-spacing: 1px;
+}
+
+.baslat-btn:hover {
+  background: linear-gradient(135deg, #357ABD, #2962a3);
+  transform: scale(1.08);
+  box-shadow: 0 12px 32px rgba(74, 144, 226, 0.45);
+}
+
+.baslat-btn:active {
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
+}
+
+.baslat-icon {
+  font-size: 36px;
+  line-height: 1;
+  margin-right: 5px;
+}
+
+.baslat-text {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+/* ============================================================
    RESPONSIVE
 ============================================================ */
 @media (max-width: 600px) {
@@ -200,5 +250,23 @@ body {
 
   .oyun-baslik {
     font-size: 22px;
+  }
+
+  .baslat-content {
+    padding: 40px 30px;
+    max-width: 90%;
+  }
+
+  .baslat-btn {
+    padding: 22px 35px;
+    font-size: 26px;
+  }
+
+  .baslat-icon {
+    font-size: 28px;
+  }
+
+  .baslat-text {
+    font-size: 26px;
   }
 }

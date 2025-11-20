@@ -165,6 +165,7 @@ function getProfileMenuForRole(role, username, basePath) {
                 <a href="${basePath}analiz.html" class="submenu-item">📊 Genel Analiz</a>
                 <a href="${basePath}akademik.html" class="submenu-item">📈 Akademik Performans</a>
                 <a href="${basePath}gelisim.html" class="submenu-item">📉 Gelişim</a>
+                <a href="${basePath}profil.html" class="submenu-item">👤 Tam Öğrenci Profili</a>
                 <a href="${basePath}mesajlasma.html" class="submenu-item">💬 Mesajlaşma</a>
               </div>
             </div>
@@ -473,6 +474,7 @@ function getMenuItemsForRole(role, basePath = '') {
         { icon: '📊', text: 'Genel Analiz', href: 'analiz.html', active: currentPage === 'analiz.html' },
         { icon: '📈', text: 'Akademik Performans', href: 'akademik.html', active: currentPage === 'akademik.html' },
         { icon: '📉', text: 'Gelişim', href: 'gelisim.html', active: currentPage === 'gelisim.html' },
+        { icon: '👤', text: 'Tam Öğrenci Profili', href: 'profil.html', active: currentPage === 'profil.html' },
         { icon: '💬', text: 'Mesajlaşma', href: 'mesajlasma.html', active: currentPage === 'mesajlasma.html' }
       ];
 

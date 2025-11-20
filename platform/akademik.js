@@ -240,7 +240,69 @@ function hesaplaDersSkoru(dersKey, dersInfo) {
     if (!alanKey) return;
     
     const skorlar = gecmis
-      .map(item => item.coklu_alan?.[alanKey] || 0)
+      .map(item => {
+        // Önce coklu_alan'dan al
+        if (item.coklu_alan?.[alanKey]) {
+          return item.coklu_alan[alanKey];
+        }
+        
+        // Eşleme oyunu için özel işleme: bolumSkorlari'dan hesapla
+        if ((item.oyun === "renk_esleme" || item.oyun === "1_basamak_esleme") && item.oyunDetaylari?.bolumSkorlari) {
+          const bolumSkorlari = item.oyunDetaylari.bolumSkorlari;
+          
+          // Alan bazlı bölüm skorlarını topla
+          if (alanKey === "perception" || alanKey === "algisal_islemleme") {
+            // Algısal işlemleme: şekil, gölge, parça bölümleri
+            const toplam = (bolumSkorlari.sekil?.toplam || 0) + 
+                          (bolumSkorlari.golge?.toplam || 0) + 
+                          (bolumSkorlari.parca?.toplam || 0);
+            const dogru = (bolumSkorlari.sekil?.dogru || 0) + 
+                         (bolumSkorlari.golge?.dogru || 0) + 
+                         (bolumSkorlari.parca?.dogru || 0);
+            if (toplam > 0) {
+              return Math.round((dogru / toplam) * 100);
+            }
+          } else if (alanKey === "attention" || alanKey === "dikkat") {
+            // Dikkat: tüm bölümlerin ortalaması
+            const toplam = (bolumSkorlari.renk?.toplam || 0) + 
+                          (bolumSkorlari.sekil?.toplam || 0) + 
+                          (bolumSkorlari.golge?.toplam || 0) + 
+                          (bolumSkorlari.parca?.toplam || 0);
+            const dogru = (bolumSkorlari.renk?.dogru || 0) + 
+                         (bolumSkorlari.sekil?.dogru || 0) + 
+                         (bolumSkorlari.golge?.dogru || 0) + 
+                         (bolumSkorlari.parca?.dogru || 0);
+            if (toplam > 0) {
+              return Math.round((dogru / toplam) * 100);
+            }
+          } else if (alanKey === "logic" || alanKey === "mantik") {
+            // Mantık: parça-bütün ve gölge eşleme
+            const toplam = (bolumSkorlari.parca?.toplam || 0) + 
+                          (bolumSkorlari.golge?.toplam || 0);
+            const dogru = (bolumSkorlari.parca?.dogru || 0) + 
+                         (bolumSkorlari.golge?.dogru || 0);
+            if (toplam > 0) {
+              return Math.round((dogru / toplam) * 100);
+            }
+          } else if (alanKey === "literacy" || alanKey === "okuma") {
+            // Okuma-dil: renk ve şekil eşleme (isim tanıma)
+            const toplam = (bolumSkorlari.renk?.toplam || 0) + 
+                          (bolumSkorlari.sekil?.toplam || 0);
+            const dogru = (bolumSkorlari.renk?.dogru || 0) + 
+                         (bolumSkorlari.sekil?.dogru || 0);
+            if (toplam > 0) {
+              return Math.round((dogru / toplam) * 100);
+            }
+          } else if (alanKey === "social" || alanKey === "sosyal") {
+            // Sosyal biliş: gölge eşleme (figür-zemin)
+            if (bolumSkorlari.golge && bolumSkorlari.golge.toplam > 0) {
+              return Math.round((bolumSkorlari.golge.dogru / bolumSkorlari.golge.toplam) * 100);
+            }
+          }
+        }
+        
+        return 0;
+      })
       .filter(s => s > 0 && !isNaN(s));
     
     alanSkorlari[alanKey] = skorlar.length > 0

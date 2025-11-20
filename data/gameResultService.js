@@ -169,7 +169,22 @@ export async function saveGameResult(sonuc) {
     const trendMeta = sonuc.trendMeta || {
       trend: "➖",
       oncekiSkor: null,
-      gelisim: null
+      gelisim: null,
+      // Eşleme oyunu için ek trend verileri
+      ilk5OrtalamaTepki: temelSkor.ilk5OrtalamaTepki,
+      son5OrtalamaTepki: temelSkor.son5OrtalamaTepki,
+      tepkiEgilimi: temelSkor.tepkiEgilimi,
+      ilkYariDogruOrani: temelSkor.ilkYariDogruOrani,
+      sonYariDogruOrani: temelSkor.sonYariDogruOrani
+    };
+
+    // Oyun detayları (eşleme oyunu için)
+    const oyunDetaylari = sonuc.oyunDetaylari || {
+      toplamSoruSayisi: temelSkor.toplamSoruSayisi || (sonuc.trials?.length || 0),
+      oyunBaslangicZamani: temelSkor.oyunBaslangicZamani,
+      oyunBitisZamani: temelSkor.oyunBitisZamani,
+      toplamOyunSuresi: temelSkor.toplamOyunSuresi || sonuc.sure || 0,
+      hataTurleriDetay: temelSkor.hataTurleriDetay || {}
     };
 
     const data = {
@@ -187,6 +202,7 @@ export async function saveGameResult(sonuc) {
       coklu_alan: cokluAlan,
       oyun_ozel: oyunOzel,
       trendMeta: trendMeta,
+      oyunDetaylari: oyunDetaylari,
 
       // Meta bilgileri
       alan: secilenAlan || oyunMeta.alan || null,
@@ -279,15 +295,32 @@ function hesaplaOgrenmeHizi(trials) {
 function analizEtHataTurleri(trials) {
   if (!Array.isArray(trials) || trials.length === 0) return {};
   const hataliTrials = trials.filter(t => !t.correct);
-  const impulsivite = hataliTrials.filter(t => t.reaction_ms < 300).length;
-  const karistirma = hataliTrials.filter(t => t.reaction_ms >= 300 && t.reaction_ms < 800).length;
-  const dikkatsizlik = hataliTrials.filter(t => t.reaction_ms >= 800).length;
-  return {
-    impulsivite,
-    karistirma,
-    dikkatsizlik,
+  
+  // Eğer trial'larda hataTuru bilgisi varsa onu kullan (eşleme oyunu için)
+  const hataTurleriDetay = {
+    impulsivite: 0,
+    dikkatsizlik: 0,
+    karistirma: 0,
+    kategori_hatasi: 0,
     toplam: hataliTrials.length
   };
+  
+  hataliTrials.forEach(trial => {
+    if (trial.hataTuru && hataTurleriDetay.hasOwnProperty(trial.hataTuru)) {
+      hataTurleriDetay[trial.hataTuru]++;
+    } else {
+      // Hata türü yoksa tepki süresine göre tahmin et
+      if (trial.reaction_ms < 300) {
+        hataTurleriDetay.impulsivite++;
+      } else if (trial.reaction_ms >= 800) {
+        hataTurleriDetay.dikkatsizlik++;
+      } else {
+        hataTurleriDetay.karistirma++;
+      }
+    }
+  });
+  
+  return hataTurleriDetay;
 }
 
 function hesaplaCokluAlan(sonuc, oyunMeta) {
@@ -417,6 +450,42 @@ function hesaplaOyunOzel(sonuc, oyunMeta) {
         // İşlem hızı (saniyede işlem sayısı)
         const sure = sonuc.sure || 30;
         oyunOzel.processing_speed = sure > 0 ? Math.round((total / sure) * 10) / 10 : 0;
+        break;
+        
+      // Eşleme oyunu özel metrikleri
+      case "renk_esleme_skor":
+        // Renk eşleme bölümü skoru
+        const renkTrials = trials.filter(t => t.bolum === "renk");
+        const renkDogru = renkTrials.filter(t => t.correct).length;
+        oyunOzel.renk_esleme_skor = renkTrials.length > 0 ? Math.round((renkDogru / renkTrials.length) * 100) : 0;
+        break;
+        
+      case "sekil_esleme_skor":
+        // Şekil eşleme bölümü skoru
+        const sekilTrials = trials.filter(t => t.bolum === "sekil");
+        const sekilDogru = sekilTrials.filter(t => t.correct).length;
+        oyunOzel.sekil_esleme_skor = sekilTrials.length > 0 ? Math.round((sekilDogru / sekilTrials.length) * 100) : 0;
+        break;
+        
+      case "golge_esleme_skor":
+        // Gölge eşleme bölümü skoru
+        const golgeTrials = trials.filter(t => t.bolum === "golge");
+        const golgeDogru = golgeTrials.filter(t => t.correct).length;
+        oyunOzel.golge_esleme_skor = golgeTrials.length > 0 ? Math.round((golgeDogru / golgeTrials.length) * 100) : 0;
+        break;
+        
+      case "parca_butun_skor":
+        // Parça-bütün eşleme bölümü skoru
+        const parcaTrials = trials.filter(t => t.bolum === "parca");
+        const parcaDogru = parcaTrials.filter(t => t.correct).length;
+        oyunOzel.parca_butun_skor = parcaTrials.length > 0 ? Math.round((parcaDogru / parcaTrials.length) * 100) : 0;
+        break;
+        
+      case "gorsel_tamamlama":
+        // Görsel tamamlama (parça-bütün özel)
+        const parcaTrials2 = trials.filter(t => t.bolum === "parca");
+        const parcaDogru2 = parcaTrials2.filter(t => t.correct).length;
+        oyunOzel.gorsel_tamamlama = parcaTrials2.length > 0 ? Math.round((parcaDogru2 / parcaTrials2.length) * 100) : 0;
         break;
         
       default:
