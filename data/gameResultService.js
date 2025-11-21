@@ -84,7 +84,10 @@ export async function saveGameResult(sonuc) {
 
     // =================================================================
     // 🟦 3) Öğretmen — seçili öğrenciye kaydeder
-    // Firestore: profiles / teacherID / ogrenciler / ogrID / oyunSonuclari
+    // ÖNEMLİ: Veri hem öğrencinin kendi profilinde hem öğretmen altında kaydedilir
+    // Firestore: 
+    //   - profiles / ogrenciID / oyunSonuclari (öğrencinin kendi profili)
+    //   - profiles / teacherID / ogrenciler / ogrenciID / oyunSonuclari (öğretmen altında)
     // =================================================================
     else if (role === ROLES.OGRETMEN) {
       if (!teacherID) {
@@ -97,11 +100,12 @@ export async function saveGameResult(sonuc) {
         return false;
       }
 
+      // Öğretmen öğrenci verisi kaydederken, öğrencinin kendi profilinde de kaydedilmeli
+      // Böylece kurum ve diğer öğretmenler de erişebilir
+      // Önce öğrencinin kendi profilinde kaydet
       hedefRef = collection(
         db,
         GLOBAL.FIRESTORE.PROFILES,
-        teacherID,
-        "ogrenciler",
         aktifOgrenciId,
         "oyunSonuclari"
       );
@@ -250,6 +254,29 @@ export async function saveGameResult(sonuc) {
       
       // Tüm öğretmen kayıtlarını bekle (hata olsa bile devam et)
       await Promise.allSettled(teacherPromises);
+    }
+
+    // Öğretmen öğrenci verisi kaydederken, öğrencinin kendi profilinde de kaydet
+    // Ayrıca öğretmen altında da kaydet (çift kayıt: hem öğrenci profili hem öğretmen altı)
+    if (role === ROLES.OGRETMEN && aktifOgrenciId) {
+      try {
+        // Öğrencinin kendi profilinde kaydet (zaten yukarıda kaydedildi, burada öğretmen altında da kaydet)
+        const teacherOgrenciRef = collection(
+          db,
+          GLOBAL.FIRESTORE.PROFILES,
+          teacherID,
+          "ogrenciler",
+          aktifOgrenciId,
+          "oyunSonuclari"
+        );
+        
+        // Öğretmenin alt koleksiyonuna da kaydet
+        await addDoc(teacherOgrenciRef, data);
+        console.log(`📝 Sonuç öğretmen ${teacherID} alt koleksiyonuna kaydedildi`);
+      } catch (err) {
+        console.warn(`⚠ Öğretmen ${teacherID} alt koleksiyonuna kayıt yapılamadı:`, err);
+        // Hata olsa bile devam et, öğrenci profili zaten kaydedildi
+      }
     }
 
     // Sonuç ID'sini localStorage'a kaydet (yorumlar için)

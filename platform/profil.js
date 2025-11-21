@@ -152,14 +152,110 @@ function analizEt() {
     return;
   }
 
-  radarGrafik();
-  alanTablo();
-  ogrenmeHiziProfil();
-  gucluVeZayifYonler();
-  akademikProfil();
-  sosyalDuygusalProfil();
-  gunlukHayatEtkisi();
+  // Yeni yapı: Blok bazlı yükleme
+  yukleUstBlok();
+  yukleAnaBlok();
+  yukleOrtaBlok();
+  yukleAkademikProfil();
+  yukleSosyalDuygusalProfil();
+  yukleGunlukHayatEtkisi();
   aiGelisimPlani();
+}
+
+// -------------------------------------------------------------
+// ÜST BLOK – GENEL PROFİL RADARI
+// -------------------------------------------------------------
+function yukleUstBlok() {
+  radarGrafik();
+  profilEtiketiOlustur();
+}
+
+// Profil Etiketi
+function profilEtiketiOlustur() {
+  const el = document.getElementById("profilEtiketi");
+  if (!el) return;
+  
+  const alanSkorlari = {};
+  const alanlar = Object.keys(BRAIN_AREAS || {});
+  
+  alanlar.forEach(alanKey => {
+    const skorlar = gecmis
+      .map(item => {
+        if (item.coklu_alan && item.coklu_alan[alanKey]) {
+          return item.coklu_alan[alanKey];
+        }
+        if (item.oyunDetaylari?.zihinselAlanlar) {
+          const zihinselAlanMap = {
+            "attention": "dikkat",
+            "perception": "algisal_islemleme",
+            "memory": "hafiza",
+            "executive": "yuruteci_islev",
+            "logic": "mantik",
+            "literacy": "okuma_dil",
+            "social": "sosyal_bilis"
+          };
+          const turkceKey = zihinselAlanMap[alanKey];
+          if (turkceKey && item.oyunDetaylari.zihinselAlanlar[turkceKey]) {
+            return item.oyunDetaylari.zihinselAlanlar[turkceKey];
+          }
+        }
+        return 0;
+      })
+      .filter(s => s > 0);
+    
+    alanSkorlari[alanKey] = skorlar.length > 0 
+      ? Math.round(skorlar.reduce((a, b) => a + b, 0) / skorlar.length)
+      : 0;
+  });
+  
+  const ortalamalar = Object.values(alanSkorlari).filter(s => s > 0);
+  const genelOrtalama = ortalamalar.length > 0 
+    ? ortalamalar.reduce((a, b) => a + b, 0) / ortalamalar.length
+    : 0;
+  
+  let profilEtiketi = "Dengeli Profil";
+  if (genelOrtalama >= 80) {
+    profilEtiketi = "Güçlü Profil";
+  } else if (genelOrtalama < 50) {
+    profilEtiketi = "Gelişim Gereken Profil";
+  }
+  
+  el.textContent = profilEtiketi;
+}
+
+// -------------------------------------------------------------
+// ANA BLOK – ZİHİNSEL ALAN DETAY TABLOSU
+// -------------------------------------------------------------
+function yukleAnaBlok() {
+  alanTablo();
+}
+
+// -------------------------------------------------------------
+// ORTA BLOK – GÜÇLÜ/ZAYIF ALANLAR
+// -------------------------------------------------------------
+function yukleOrtaBlok() {
+  gucluVeZayifYonler();
+}
+
+// -------------------------------------------------------------
+// AKADEMİK PROFİL
+// -------------------------------------------------------------
+function yukleAkademikProfil() {
+  akademikProfil();
+}
+
+// -------------------------------------------------------------
+// SOSYAL-DUYGUSAL PROFİL
+// -------------------------------------------------------------
+function yukleSosyalDuygusalProfil() {
+  sosyalDuygusalProfil();
+}
+
+// -------------------------------------------------------------
+// GÜNLÜK HAYAT ETKİLERİ (Sadece özet)
+// -------------------------------------------------------------
+function yukleGunlukHayatEtkisi() {
+  gunlukHayatEtkisi();
 }
 
 // =============================================================
@@ -179,9 +275,79 @@ function radarGrafik() {
     alanlar.forEach(alanKey => {
       const skorlar = gecmis
         .map(item => {
+          // Önce coklu_alan'dan al
           if (item.coklu_alan && item.coklu_alan[alanKey]) {
             return item.coklu_alan[alanKey];
           }
+          
+          // zihinselAlanlar'dan al (eşleme oyunu için)
+          if (item.oyunDetaylari?.zihinselAlanlar) {
+            const zihinselAlanMap = {
+              "attention": "dikkat",
+              "perception": "algisal_islemleme",
+              "memory": "hafiza",
+              "executive": "yuruteci_islev",
+              "logic": "mantik",
+              "literacy": "okuma_dil",
+              "social": "sosyal_bilis"
+            };
+            const turkceKey = zihinselAlanMap[alanKey];
+            if (turkceKey && item.oyunDetaylari.zihinselAlanlar[turkceKey]) {
+              return item.oyunDetaylari.zihinselAlanlar[turkceKey];
+            }
+          }
+          
+          // Eşleme oyunu için özel işleme: bolumSkorlari'dan hesapla
+          if ((item.oyun === "renk_esleme" || item.oyun === "esleme" || item.oyun === "1_basamak_esleme") && item.oyunDetaylari?.bolumSkorlari) {
+            const bolumSkorlari = item.oyunDetaylari.bolumSkorlari;
+            
+            // Alan bazlı bölüm skorlarını topla
+            if (alanKey === "perception" || alanKey === "algisal_islemleme") {
+              const toplam = (bolumSkorlari.sekil?.toplam || 0) + 
+                            (bolumSkorlari.golge?.toplam || 0) + 
+                            (bolumSkorlari.parca?.toplam || 0);
+              const dogru = (bolumSkorlari.sekil?.dogru || 0) + 
+                           (bolumSkorlari.golge?.dogru || 0) + 
+                           (bolumSkorlari.parca?.dogru || 0);
+              if (toplam > 0) {
+                return Math.round((dogru / toplam) * 100);
+              }
+            } else if (alanKey === "attention" || alanKey === "dikkat") {
+              const toplam = (bolumSkorlari.renk?.toplam || 0) + 
+                            (bolumSkorlari.sekil?.toplam || 0) + 
+                            (bolumSkorlari.golge?.toplam || 0) + 
+                            (bolumSkorlari.parca?.toplam || 0);
+              const dogru = (bolumSkorlari.renk?.dogru || 0) + 
+                           (bolumSkorlari.sekil?.dogru || 0) + 
+                           (bolumSkorlari.golge?.dogru || 0) + 
+                           (bolumSkorlari.parca?.dogru || 0);
+              if (toplam > 0) {
+                return Math.round((dogru / toplam) * 100);
+              }
+            } else if (alanKey === "logic" || alanKey === "mantik") {
+              const toplam = (bolumSkorlari.parca?.toplam || 0) + 
+                            (bolumSkorlari.golge?.toplam || 0);
+              const dogru = (bolumSkorlari.parca?.dogru || 0) + 
+                           (bolumSkorlari.golge?.dogru || 0);
+              if (toplam > 0) {
+                return Math.round((dogru / toplam) * 100);
+              }
+            } else if (alanKey === "literacy" || alanKey === "okuma") {
+              const toplam = (bolumSkorlari.renk?.toplam || 0) + 
+                            (bolumSkorlari.sekil?.toplam || 0);
+              const dogru = (bolumSkorlari.renk?.dogru || 0) + 
+                           (bolumSkorlari.sekil?.dogru || 0);
+              if (toplam > 0) {
+                return Math.round((dogru / toplam) * 100);
+              }
+            } else if (alanKey === "social" || alanKey === "sosyal") {
+              if (bolumSkorlari.golge && bolumSkorlari.golge.toplam > 0) {
+                return Math.round((bolumSkorlari.golge.dogru / bolumSkorlari.golge.toplam) * 100);
+              }
+            }
+          }
+          
+          // Eski format kontrolü
           if (item.skorlar && item.skorlar[alanKey]) {
             return item.skorlar[alanKey];
           }
@@ -233,6 +399,7 @@ function radarGrafik() {
 // 5) ALAN TABLOSU
 // =============================================================
 function alanTablo() {
+  // Yeni yapı: Ortalama Puan, Trend, En Yüksek, En Düşük
   const tbody = document.getElementById("alanTabloBody");
   if (!tbody) return;
 
@@ -302,23 +469,38 @@ function alanTablo() {
       })
       .filter(s => s > 0);
     
-    const skor = skorlar.length > 0 
+    const ortalama = skorlar.length > 0 
       ? Math.round(skorlar.reduce((a, b) => a + b, 0) / skorlar.length)
       : 0;
     
-    const seviye = skor >= 70 ? "Yüksek" : skor >= 50 ? "Orta" : "Düşük";
-    const seviyeRenk = skor >= 70 ? "#4caf50" : skor >= 50 ? "#ff9800" : "#f44336";
-    const gunlukHayat = BRAIN_AREAS[alanKey]?.gunlukHayat || "-";
+    const enYuksek = skorlar.length > 0 ? Math.max(...skorlar) : 0;
+    const enDusuk = skorlar.length > 0 ? Math.min(...skorlar) : 0;
+    
+    // Trend hesaplama (son 3 oyun vs ilk 3 oyun)
+    let trend = "➖";
+    if (skorlar.length >= 6) {
+      const ilkYari = skorlar.slice(0, Math.floor(skorlar.length / 2));
+      const sonYari = skorlar.slice(Math.floor(skorlar.length / 2));
+      const ilkOrt = ilkYari.length > 0 ? ilkYari.reduce((a, b) => a + b, 0) / ilkYari.length : 0;
+      const sonOrt = sonYari.length > 0 ? sonYari.reduce((a, b) => a + b, 0) / sonYari.length : 0;
+      
+      if (sonOrt > ilkOrt + 5) {
+        trend = "📈";
+      } else if (sonOrt < ilkOrt - 5) {
+        trend = "📉";
+      }
+    }
 
     html += `<tr>
-      <td><strong>${alanAd}</strong></td>
-      <td>${skor} / 100</td>
-      <td style="color:${seviyeRenk};font-weight:600;">${seviye}</td>
-      <td>${gunlukHayat}</td>
+      <td style="font-weight:600;">${alanAd}</td>
+      <td style="text-align:center;">${ortalama}</td>
+      <td style="text-align:center; font-size:18px;">${trend}</td>
+      <td style="text-align:center; color:#4caf50; font-weight:600;">${enYuksek}</td>
+      <td style="text-align:center; color:#f44336; font-weight:600;">${enDusuk}</td>
     </tr>`;
   });
 
-  tbody.innerHTML = html || "<tr><td colspan='4'>Veri bulunamadı.</td></tr>";
+  tbody.innerHTML = html || "<tr><td colspan='5' style='text-align:center; color:#999;'>Veri bulunamadı.</td></tr>";
 }
 
 // =============================================================
@@ -404,7 +586,81 @@ function gucluVeZayifYonler() {
 
   alanlar.forEach(alanKey => {
     const skorlar = gecmis
-      .map(item => item.coklu_alan?.[alanKey] || 0)
+      .map(item => {
+        // Önce coklu_alan'dan al
+        if (item.coklu_alan?.[alanKey]) {
+          return item.coklu_alan[alanKey];
+        }
+        
+        // zihinselAlanlar'dan al (eşleme oyunu için)
+        if (item.oyunDetaylari?.zihinselAlanlar) {
+          const zihinselAlanMap = {
+            "attention": "dikkat",
+            "perception": "algisal_islemleme",
+            "memory": "hafiza",
+            "executive": "yuruteci_islev",
+            "logic": "mantik",
+            "literacy": "okuma_dil",
+            "social": "sosyal_bilis"
+          };
+          const turkceKey = zihinselAlanMap[alanKey];
+          if (turkceKey && item.oyunDetaylari.zihinselAlanlar[turkceKey]) {
+            return item.oyunDetaylari.zihinselAlanlar[turkceKey];
+          }
+        }
+        
+        // Eşleme oyunu için özel işleme: bolumSkorlari'dan hesapla
+        if ((item.oyun === "renk_esleme" || item.oyun === "esleme" || item.oyun === "1_basamak_esleme") && item.oyunDetaylari?.bolumSkorlari) {
+          const bolumSkorlari = item.oyunDetaylari.bolumSkorlari;
+          
+          // Alan bazlı bölüm skorlarını topla
+          if (alanKey === "perception" || alanKey === "algisal_islemleme") {
+            const toplam = (bolumSkorlari.sekil?.toplam || 0) + 
+                          (bolumSkorlari.golge?.toplam || 0) + 
+                          (bolumSkorlari.parca?.toplam || 0);
+            const dogru = (bolumSkorlari.sekil?.dogru || 0) + 
+                         (bolumSkorlari.golge?.dogru || 0) + 
+                         (bolumSkorlari.parca?.dogru || 0);
+            if (toplam > 0) {
+              return Math.round((dogru / toplam) * 100);
+            }
+          } else if (alanKey === "attention" || alanKey === "dikkat") {
+            const toplam = (bolumSkorlari.renk?.toplam || 0) + 
+                          (bolumSkorlari.sekil?.toplam || 0) + 
+                          (bolumSkorlari.golge?.toplam || 0) + 
+                          (bolumSkorlari.parca?.toplam || 0);
+            const dogru = (bolumSkorlari.renk?.dogru || 0) + 
+                         (bolumSkorlari.sekil?.dogru || 0) + 
+                         (bolumSkorlari.golge?.dogru || 0) + 
+                         (bolumSkorlari.parca?.dogru || 0);
+            if (toplam > 0) {
+              return Math.round((dogru / toplam) * 100);
+            }
+          } else if (alanKey === "logic" || alanKey === "mantik") {
+            const toplam = (bolumSkorlari.parca?.toplam || 0) + 
+                          (bolumSkorlari.golge?.toplam || 0);
+            const dogru = (bolumSkorlari.parca?.dogru || 0) + 
+                         (bolumSkorlari.golge?.dogru || 0);
+            if (toplam > 0) {
+              return Math.round((dogru / toplam) * 100);
+            }
+          } else if (alanKey === "literacy" || alanKey === "okuma") {
+            const toplam = (bolumSkorlari.renk?.toplam || 0) + 
+                          (bolumSkorlari.sekil?.toplam || 0);
+            const dogru = (bolumSkorlari.renk?.dogru || 0) + 
+                         (bolumSkorlari.sekil?.dogru || 0);
+            if (toplam > 0) {
+              return Math.round((dogru / toplam) * 100);
+            }
+          } else if (alanKey === "social" || alanKey === "sosyal") {
+            if (bolumSkorlari.golge && bolumSkorlari.golge.toplam > 0) {
+              return Math.round((bolumSkorlari.golge.dogru / bolumSkorlari.golge.toplam) * 100);
+            }
+          }
+        }
+        
+        return 0;
+      })
       .filter(s => s > 0);
     alanSkorlari[alanKey] = skorlar.length > 0 
       ? Math.round(skorlar.reduce((a, b) => a + b, 0) / skorlar.length)
@@ -511,23 +767,22 @@ function gunlukHayatEtkisi() {
   const div = document.getElementById("gunlukHayatEtkisi");
   if (!div) return;
 
+  // Sadece özet formatında (her biri 1 satır)
   const etkiler = [
-    "Karar verme hızı ve doğruluğu",
-    "Dikkat kalitesi ve odaklanma",
-    "Görsel ayırt etme becerisi",
-    "Problem çözme yeteneği",
-    "Akran ilişkileri ve sosyal uygunluk",
-    "Okuma ve anlama becerileri",
-    "Yönerge takip kapasitesi"
+    "⚡ Karar verme",
+    "👁️ Görsel tarama",
+    "🧠 Mantık",
+    "💾 Çalışma belleği",
+    "❤️ Sosyal-duygusal"
   ];
 
-  let html = "<ul style='list-style:none; padding:0;'>";
+  let html = "<div style='display:flex; flex-direction:column; gap:8px;'>";
   etkiler.forEach(etki => {
-    html += `<li style="padding:8px; margin:5px 0; background:#f5f5f5; border-radius:6px;">
-      💡 ${etki}
-    </li>`;
+    html += `<div style="padding:10px; background:#f8f9fa; border-left:3px solid #4a90e2; border-radius:6px; font-size:14px;">
+      ${etki}
+    </div>`;
   });
-  html += "</ul>";
+  html += "</div>";
 
   div.innerHTML = html;
 }
@@ -545,7 +800,81 @@ function aiGelisimPlani() {
 
   alanlar.forEach(alanKey => {
     const skorlar = gecmis
-      .map(item => item.coklu_alan?.[alanKey] || 0)
+      .map(item => {
+        // Önce coklu_alan'dan al
+        if (item.coklu_alan?.[alanKey]) {
+          return item.coklu_alan[alanKey];
+        }
+        
+        // zihinselAlanlar'dan al (eşleme oyunu için)
+        if (item.oyunDetaylari?.zihinselAlanlar) {
+          const zihinselAlanMap = {
+            "attention": "dikkat",
+            "perception": "algisal_islemleme",
+            "memory": "hafiza",
+            "executive": "yuruteci_islev",
+            "logic": "mantik",
+            "literacy": "okuma_dil",
+            "social": "sosyal_bilis"
+          };
+          const turkceKey = zihinselAlanMap[alanKey];
+          if (turkceKey && item.oyunDetaylari.zihinselAlanlar[turkceKey]) {
+            return item.oyunDetaylari.zihinselAlanlar[turkceKey];
+          }
+        }
+        
+        // Eşleme oyunu için özel işleme: bolumSkorlari'dan hesapla
+        if ((item.oyun === "renk_esleme" || item.oyun === "esleme" || item.oyun === "1_basamak_esleme") && item.oyunDetaylari?.bolumSkorlari) {
+          const bolumSkorlari = item.oyunDetaylari.bolumSkorlari;
+          
+          // Alan bazlı bölüm skorlarını topla
+          if (alanKey === "perception" || alanKey === "algisal_islemleme") {
+            const toplam = (bolumSkorlari.sekil?.toplam || 0) + 
+                          (bolumSkorlari.golge?.toplam || 0) + 
+                          (bolumSkorlari.parca?.toplam || 0);
+            const dogru = (bolumSkorlari.sekil?.dogru || 0) + 
+                         (bolumSkorlari.golge?.dogru || 0) + 
+                         (bolumSkorlari.parca?.dogru || 0);
+            if (toplam > 0) {
+              return Math.round((dogru / toplam) * 100);
+            }
+          } else if (alanKey === "attention" || alanKey === "dikkat") {
+            const toplam = (bolumSkorlari.renk?.toplam || 0) + 
+                          (bolumSkorlari.sekil?.toplam || 0) + 
+                          (bolumSkorlari.golge?.toplam || 0) + 
+                          (bolumSkorlari.parca?.toplam || 0);
+            const dogru = (bolumSkorlari.renk?.dogru || 0) + 
+                         (bolumSkorlari.sekil?.dogru || 0) + 
+                         (bolumSkorlari.golge?.dogru || 0) + 
+                         (bolumSkorlari.parca?.dogru || 0);
+            if (toplam > 0) {
+              return Math.round((dogru / toplam) * 100);
+            }
+          } else if (alanKey === "logic" || alanKey === "mantik") {
+            const toplam = (bolumSkorlari.parca?.toplam || 0) + 
+                          (bolumSkorlari.golge?.toplam || 0);
+            const dogru = (bolumSkorlari.parca?.dogru || 0) + 
+                         (bolumSkorlari.golge?.dogru || 0);
+            if (toplam > 0) {
+              return Math.round((dogru / toplam) * 100);
+            }
+          } else if (alanKey === "literacy" || alanKey === "okuma") {
+            const toplam = (bolumSkorlari.renk?.toplam || 0) + 
+                          (bolumSkorlari.sekil?.toplam || 0);
+            const dogru = (bolumSkorlari.renk?.dogru || 0) + 
+                         (bolumSkorlari.sekil?.dogru || 0);
+            if (toplam > 0) {
+              return Math.round((dogru / toplam) * 100);
+            }
+          } else if (alanKey === "social" || alanKey === "sosyal") {
+            if (bolumSkorlari.golge && bolumSkorlari.golge.toplam > 0) {
+              return Math.round((bolumSkorlari.golge.dogru / bolumSkorlari.golge.toplam) * 100);
+            }
+          }
+        }
+        
+        return 0;
+      })
       .filter(s => s > 0);
     alanSkorlari[alanKey] = skorlar.length > 0 
       ? Math.round(skorlar.reduce((a, b) => a + b, 0) / skorlar.length)

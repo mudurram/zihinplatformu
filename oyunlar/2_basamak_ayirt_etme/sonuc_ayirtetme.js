@@ -39,7 +39,55 @@ document.addEventListener("DOMContentLoaded", () => {
   const sure = data?.sure ?? 0;
   const tarih = data?.tarih ? new Date(data.tarih) : new Date();
 
-  document.getElementById("oyunBaslik").textContent = "Renk Ayırt Etme — Sonuç";
+  // Oyun bilgilerini al
+  const aktifKategori = localStorage.getItem("ayirtEtmeKategori");
+  const aktifAltOyun = localStorage.getItem("ayirtEtmeAltOyun");
+  const secenekSayisi = localStorage.getItem("ayirtEtmeSecenekSayisi") || "2";
+  
+  // Oyun adını belirle
+  const altOyunAdlari = {
+    renk_ayirt: "Renk Ayırt Etme",
+    buyuk_kucuk: "Büyük – Küçük",
+    uzun_kisa: "Uzun – Kısa",
+    ince_kalin: "İnce – Kalın",
+    sag_sol: "Sağ – Sol",
+    yukari_asagi: "Yukarı – Aşağı",
+    on_arka: "Ön – Arka",
+    yon_ok: "Yön (Ok)",
+    az_cok: "Az – Çok",
+    bos_dolu: "Boş – Dolu",
+    yarim_tam: "Yarım – Tam",
+    sayi_karsilastirma: "Sayı Karşılaştırma",
+    tane_sayma: "Tane Sayma",
+    esit_fazla_az: "Eşit / Fazla / Az",
+    hayvan_bitki: "Hayvan – Bitki",
+    yiyecek_icecek: "Yiyecek – İçecek",
+    tasit_esya: "Taşıt – Eşya",
+    renk_sekil: "Renk – Şekil",
+    mutlu_uzgun: "Mutlu – Üzgün",
+    kizgin_sakin: "Kızgın – Sakin",
+    korkulu_guvenli: "Korkulu – Güvenli",
+    yuksek_alcak: "Yüksek – Alçak",
+    hizli_yavas: "Hızlı – Yavaş",
+    uzun_kisa_ses: "Uzun – Kısa Ses",
+    benzer_farkli: "Benzer – Farklı",
+    ayni_farkli: "Aynı – Farklı",
+    mantik_ornegi: "Mantık Örneği",
+    yumusak_sert: "Yumuşak – Sert",
+    purlu_dusuk: "Pürüzlü – Düz",
+    isikli_karanlik: "Işıklı – Karanlık",
+    temiz_kirli: "Temiz – Kirli",
+    soguk_sicak: "Soğuk – Sıcak",
+    ac_tok: "Aç – Tok",
+    uykulu_uyanik: "Uykulu – Uyanık",
+    sira_sayisi: "Sıra Sayısı",
+    once_sonra: "Önce – Sonra",
+    ilk_son: "İlk – Son"
+  };
+  
+  const oyunAdi = altOyunAdlari[aktifAltOyun] || "Ayırt Etme";
+  
+  document.getElementById("oyunBaslik").textContent = `${oyunAdi} — Sonuç`;
   document.getElementById("dogru").textContent = dogru;
   document.getElementById("yanlis").textContent = yanlis;
   document.getElementById("sure").textContent = sure + " sn";
@@ -154,11 +202,43 @@ document.addEventListener("DOMContentLoaded", () => {
   `;
 
   // ================================================================
-  // 🔁 TEKRAR OYNA
+  // 🔁 NAVİGASYON BUTONLARI
   // ================================================================
-  const tekrarBtn = document.getElementById("tekrarBtnNav");
-  if (tekrarBtn) {
-    tekrarBtn.onclick = () => window.location.href = "./ayirtetme.html";
+  
+  // Tekrar Oyna (aynı oyun, aynı seviye)
+  const tekrarOynaBtn = document.getElementById("tekrarOynaBtn");
+  if (tekrarOynaBtn) {
+    tekrarOynaBtn.onclick = () => {
+      // Seçenek sayısını koru
+      localStorage.setItem("ayirtEtmeSecenekSayisi", secenekSayisi);
+      window.location.href = "./ayirtetme.html";
+    };
+  }
+  
+  // Seviye Seçimine Dön
+  const seviyeSecimBtn = document.getElementById("seviyeSecimBtn");
+  if (seviyeSecimBtn) {
+    seviyeSecimBtn.onclick = () => {
+      // Kategori ve alt oyunu koru, sadece seviye seçimine dön
+      window.location.href = "./ayirtetme.html";
+    };
+  }
+  
+  // Alt Alana Dön
+  const altAlanaDonBtn = document.getElementById("altAlanaDonBtn");
+  if (altAlanaDonBtn) {
+    altAlanaDonBtn.onclick = () => {
+      // Kategoriyi koru, alt oyun seçimine dön
+      window.location.href = "./alt-oyun-secim.html";
+    };
+  }
+  
+  // Ana Menüye Dön
+  const anaMenuBtn = document.getElementById("anaMenuBtn");
+  if (anaMenuBtn) {
+    anaMenuBtn.onclick = () => {
+      window.location.href = "./menu.html";
+    };
   }
 
   // ================================================================

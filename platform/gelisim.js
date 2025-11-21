@@ -7,7 +7,9 @@ import { GLOBAL, ROLES, BRAIN_AREAS } from "./globalConfig.js";
 import { db } from "../data/firebaseConfig.js";
 import {
   collection,
-  getDocs
+  getDocs,
+  doc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // -------------------------------------------------------------
@@ -18,19 +20,11 @@ const aktifOgrenciId = localStorage.getItem("aktifOgrenciId");
 const teacherID = localStorage.getItem("teacherID");
 const uid = localStorage.getItem("uid");
 
-// Öğretmen, Kurum ve Admin için öğrenci seçimi kontrolü
+// Öğrenci seçimi zorunlu değil, opsiyonel
+// Eğer öğrenci seçilmemişse, kullanıcıya uyarı ver ama sayfa kırılmasın
 if ((role === ROLES.OGRETMEN || role === ROLES.INSTITUTION || role === ROLES.ADMIN) && !aktifOgrenciId) {
-  if (role === ROLES.OGRETMEN) {
-    alert("ℹ Lütfen önce bir öğrenci seçiniz.");
-    window.location.href = "teacher_panel.html";
-  } else if (role === ROLES.INSTITUTION) {
-    alert("ℹ Lütfen önce bir öğrenci seçiniz.");
-    window.location.href = "institution_panel.html";
-  } else if (role === ROLES.ADMIN) {
-    alert("ℹ Lütfen önce bir öğrenci seçiniz.");
-    window.location.href = "admin_panel.html";
-  }
-  throw new Error("Öğrenci seçilmedi.");
+  console.warn("⚠ Öğrenci seçilmemiş. Gelişim verileri gösterilemeyecek.");
+  // Sayfa kırılmasın, sadece uyarı ver
 }
 
 console.log("🎯 Tarihsel gelişim ekranı yüklendi → Rol:", role);
@@ -57,19 +51,51 @@ async function yukleFirestoreGecmis() {
 
     let yol = null;
 
-    // Öğretmen için: profiles/{teacherID}/ogrenciler/{ogrenciID}/oyunSonuclari
+    // Öğretmen için: Öğrencinin kendi profilinden veri çek (tüm veriler burada)
     if (role === ROLES.OGRETMEN && teacherID) {
+      // Öğrencinin öğretmene bağlı olup olmadığını kontrol et (zorunlu değil)
+      try {
+        const teacherRef = doc(db, "profiles", teacherID);
+        const teacherSnap = await getDoc(teacherRef);
+        if (teacherSnap.exists()) {
+          const teacherData = teacherSnap.data();
+          const students = teacherData.students || {};
+          if (students[aktifOgrenciId] !== "kabul") {
+            console.warn("⚠ Öğrenci öğretmene bağlı değil veya onay bekliyor.");
+          }
+        }
+      } catch (err) {
+        console.warn("⚠ Öğretmen-öğrenci bağlantı kontrolü yapılamadı:", err);
+      }
+      
       yol = collection(
         db,
         "profiles",
-        teacherID,
-        "ogrenciler",
         aktifOgrenciId,
         "oyunSonuclari"
       );
     }
     // Kurum ve Admin için: profiles/{ogrenciID}/oyunSonuclari (direkt öğrenci profili)
     else if (role === ROLES.INSTITUTION || role === ROLES.ADMIN) {
+      // Kurum için: Öğrencinin kuruma bağlı olup olmadığını kontrol et (zorunlu değil)
+      if (role === ROLES.INSTITUTION) {
+        try {
+          const institutionID = localStorage.getItem("institutionID");
+          if (institutionID) {
+            const studentRef = doc(db, "profiles", aktifOgrenciId);
+            const studentSnap = await getDoc(studentRef);
+            if (studentSnap.exists()) {
+              const studentData = studentSnap.data();
+              if (studentData.institution?.id !== institutionID || studentData.institution?.status !== "kabul") {
+                console.warn("⚠ Öğrenci kuruma bağlı değil veya onay bekliyor.");
+              }
+            }
+          }
+        } catch (err) {
+          console.warn("⚠ Kurum-öğrenci bağlantı kontrolü yapılamadı:", err);
+        }
+      }
+      
       yol = collection(
         db,
         "profiles",
@@ -182,10 +208,68 @@ function analizEt() {
   const zamanTipi = (zamanFiltre && zamanFiltre.value) ? zamanFiltre.value : "gunluk";
   const secilenAlan = (alanFiltre && alanFiltre.value) ? alanFiltre.value : "hepsi";
 
+  // Yeni yapı: Blok bazlı yükleme
+  yukleAnaBlok(zamanTipi, secilenAlan);
+  yukleOrtaBlok(zamanTipi, secilenAlan);
+  yukleAltBlok(zamanTipi);
+}
+
+// -------------------------------------------------------------
+// ANA BLOK – ANA GELİŞİM GRAFİĞİ
+// -------------------------------------------------------------
+function yukleAnaBlok(zamanTipi, secilenAlan) {
   genelTrendGrafik(zamanTipi, secilenAlan);
+  
+  // Ortalama skor ve trend yönü
+  if (gecmis.length > 0) {
+    const skorlar = gecmis.map(item => {
+      const dogru = item.oyunDetaylari?.toplamDogru ?? item.dogru ?? 0;
+      const yanlis = item.oyunDetaylari?.toplamYanlis ?? item.yanlis ?? 0;
+      const toplam = dogru + yanlis;
+      return toplam > 0 ? (dogru / toplam) * 100 : 0;
+    });
+    
+    const ortalama = skorlar.length > 0 
+      ? Math.round(skorlar.reduce((a, b) => a + b, 0) / skorlar.length)
+      : 0;
+    
+    const ortalamaSkorEl = document.getElementById("ortalamaSkor");
+    if (ortalamaSkorEl) ortalamaSkorEl.textContent = `${ortalama}%`;
+    
+    // Trend yönü
+    const ilkYari = skorlar.slice(0, Math.floor(skorlar.length / 2));
+    const sonYari = skorlar.slice(Math.floor(skorlar.length / 2));
+    const ilkOrt = ilkYari.length > 0 ? ilkYari.reduce((a, b) => a + b, 0) / ilkYari.length : 0;
+    const sonOrt = sonYari.length > 0 ? sonYari.reduce((a, b) => a + b, 0) / sonYari.length : 0;
+    
+    const trendYonuEl = document.getElementById("trendYonu");
+    if (trendYonuEl) {
+      if (sonOrt > ilkOrt + 5) {
+        trendYonuEl.textContent = "📈 Artış";
+        trendYonuEl.style.color = "#4caf50";
+      } else if (sonOrt < ilkOrt - 5) {
+        trendYonuEl.textContent = "📉 Azalış";
+        trendYonuEl.style.color = "#f44336";
+      } else {
+        trendYonuEl.textContent = "➖ Sabit";
+        trendYonuEl.style.color = "#666";
+      }
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// ORTA BLOK – ALAN GRAFİKLERİ (GRID)
+// -------------------------------------------------------------
+function yukleOrtaBlok(zamanTipi, secilenAlan) {
   alanGrafikleri(zamanTipi, secilenAlan);
+}
+
+// -------------------------------------------------------------
+// ALT BLOK – TARİH TABLOSU
+// -------------------------------------------------------------
+function yukleAltBlok(zamanTipi) {
   tarihTablosu(zamanTipi);
-  ayAyKarsilastirma();
 }
 
 // =============================================================
@@ -401,31 +485,62 @@ function tarihTablosu(zamanTipi) {
   }
 
   if (filtered.length === 0) {
-    tbody.innerHTML = "<tr><td colspan='7'>Veri bulunamadı.</td></tr>";
+    tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#999;'>Veri bulunamadı.</td></tr>";
     return;
   }
 
   let html = "";
   filtered.forEach((item, index) => {
-    const onceki = index > 0 ? filtered[index - 1] : null;
-    const trend = hesaplaTrend(item, onceki);
     const oyunAdi = GLOBAL.GAME_MAP?.[item.oyun]?.ad || 
                    GLOBAL.OYUN_ADLARI?.[item.oyun] ||
                    item.oyun;
-    const moduller = item.moduller || item.coklu_alan ? Object.keys(item.coklu_alan || {}).join(", ") : "-";
-    const genelSkor = item.coklu_alan && Object.keys(item.coklu_alan).length > 0
-      ? Math.round(Object.values(item.coklu_alan).reduce((a, b) => a + b, 0) / Object.keys(item.coklu_alan).length)
-      : item.skorlar ? Math.round((item.skorlar.reaction_speed + item.skorlar.inhibitory_control + item.skorlar.sustained_attention) / 3) : 0;
+    
+    // Doğru/Yanlış
+    const dogru = item.oyunDetaylari?.toplamDogru ?? item.dogru ?? 0;
+    const yanlis = item.oyunDetaylari?.toplamYanlis ?? item.yanlis ?? 0;
+    
+    // Süre
+    const sure = item.oyunDetaylari?.toplamOyunSuresi ?? item.temel_skor?.sure ?? item.sure ?? 0;
+    const sureFormat = sure > 0 ? `${Math.round(sure)}s` : "-";
+    
+    // Bölüm skorları (eşleme oyunu için)
+    let bolumSkorlari = "-";
+    if ((item.oyun === "renk_esleme" || item.oyun === "esleme") && item.oyunDetaylari?.bolumSkorlari) {
+      const bolumSkorlariObj = item.oyunDetaylari.bolumSkorlari;
+      const bolumAdlari = { renk: "R", sekil: "Ş", golge: "G", parca: "P" };
+      const bolumListesi = [];
+      
+      Object.entries(bolumSkorlariObj).forEach(([key, skor]) => {
+        if (skor && skor.toplam > 0) {
+          const dogruOrani = Math.round((skor.dogru / skor.toplam) * 100);
+          bolumListesi.push(`${bolumAdlari[key] || key}${dogruOrani}`);
+        }
+      });
+      
+      if (bolumListesi.length > 0) {
+        bolumSkorlari = bolumListesi.join(" ");
+      }
+    }
+    
+    // Tarih
+    const tarih = item.tarih ? new Date(item.tarih).toLocaleDateString("tr-TR", { 
+      day: "2-digit", 
+      month: "2-digit", 
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    }) : "-";
 
     html += `
       <tr>
-        <td>${item.tarih ? new Date(item.tarih).toLocaleDateString("tr-TR") : "Tarih bilinmiyor"}</td>
-        <td>${oyunAdi}</td>
-        <td>${moduller}</td>
-        <td>${genelSkor}</td>
-        <td>${item.wpm || "-"}</td>
-        <td>${item.temel_skor?.ogrenmeHizi || "-"}</td>
-        <td>${trend}</td>
+        <td>${tarih}</td>
+        <td style="font-weight:600;">${oyunAdi}</td>
+        <td style="text-align:center;">
+          <span style="color:#4caf50; font-weight:600;">${dogru}✓</span> / 
+          <span style="color:#f44336; font-weight:600;">${yanlis}✗</span>
+        </td>
+        <td style="text-align:center;">${sureFormat}</td>
+        <td style="text-align:center; font-size:12px; color:#666;">${bolumSkorlari}</td>
       </tr>
     `;
   });

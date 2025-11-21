@@ -340,9 +340,9 @@ async function yukleBekleyenTalepler() {
 
   // GÖNDERİLEN TALEPLER
   if (gonderilenListe) {
-    // Öğretmenin gönderdiği talepler: teacher_student (öğrenciye) ve institution_teacher (kuruma - öğretmen kuruma katılmak istiyor)
+    // Öğretmenin gönderdiği talepler: teacher_student (öğrenciye) ve teacher_institution (kuruma - öğretmen kuruma katılmak istiyor)
     const gonderilenTalepler = sent.filter(req => 
-      req.type === "teacher_student" || (req.type === "institution_teacher" && req.fromId === uid)
+      req.type === "teacher_student" || req.type === "teacher_institution"
     );
     
     if (!gonderilenTalepler.length) {
@@ -365,8 +365,8 @@ async function yukleBekleyenTalepler() {
         let talepMetni = "";
         if (req.type === "teacher_student") {
           talepMetni = `<strong>${receiverName}</strong> öğrencisine gönderildi`;
-        } else if (req.type === "institution_teacher") {
-          talepMetni = `<strong>${receiverName}</strong> kurumuna gönderildi`;
+        } else if (req.type === "teacher_institution") {
+          talepMetni = `<strong>${receiverName}</strong> kurumuna başvuru gönderildi`;
         } else {
           talepMetni = `${req.type} — ${receiverName}`;
         }

@@ -76,6 +76,33 @@ body {
 }
 
 /* ============================================================
+   YÖNERGE ALANI
+============================================================ */
+.yonerge-alani {
+  margin: 20px auto;
+  max-width: 600px;
+  padding: 15px 20px;
+  background: #f4f6fb;
+  border-radius: 12px;
+  border: 2px solid #4a90e2;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.yonerge-alani:hover {
+  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.2);
+  transform: translateY(-2px);
+}
+
+.yonerge-alani p {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1b2d4a;
+  margin: 0;
+  text-align: center;
+}
+
+/* ============================================================
    HEDEF KUTU
 ============================================================ */
 .hedefKutu {
@@ -235,6 +262,67 @@ body {
 }
 
 /* ============================================================
+   KATEGORİ KARTLARI (Ana Menü ve Alt Oyun Seçim)
+============================================================ */
+.kategori-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.kategori-kart {
+  background: white;
+  border-radius: 16px;
+  padding: 30px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  min-height: 150px;
+  justify-content: center;
+}
+
+.kategori-kart:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  border-color: #4a90e2;
+}
+
+.kategori-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.kategori-ad {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1b2d4a;
+}
+
+.ana-baslik {
+  font-size: 36px;
+  font-weight: bold;
+  color: #1b2d4a;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.alt-baslik {
+  font-size: 20px;
+  color: #666;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+/* ============================================================
    RESPONSIVE
 ============================================================ */
 @media (max-width: 600px) {
@@ -268,5 +356,23 @@ body {
 
   .baslat-text {
     font-size: 26px;
+  }
+
+  .kategori-container {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+
+  .kategori-kart {
+    padding: 20px 15px;
+    min-height: 120px;
+  }
+
+  .kategori-icon {
+    font-size: 36px;
+  }
+
+  .kategori-ad {
+    font-size: 16px;
   }
 }

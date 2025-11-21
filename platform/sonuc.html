@@ -323,103 +323,180 @@
 
     <!-- SEKMELER -->
     <div class="sekme-grup">
-      <button class="sekme-btn active" data-sekme="temel" onclick="sekmeDegistir('temel', this)">1. Temel Skor</button>
-      <button class="sekme-btn" data-sekme="coklu" onclick="sekmeDegistir('coklu', this)">2. Çoklu Alan</button>
-      <button class="sekme-btn" data-sekme="oyun-ozel" onclick="sekmeDegistir('oyun-ozel', this)">3. Oyun Özel</button>
-      <button class="sekme-btn" data-sekme="performans" onclick="sekmeDegistir('performans', this)">4. Zihin Alanları</button>
+      <button class="sekme-btn active" data-sekme="ozet" onclick="sekmeDegistir('ozet', this)">🟦 ÖZET</button>
+      <button class="sekme-btn" data-sekme="zihinsel-profil" onclick="sekmeDegistir('zihinsel-profil', this)">🟩 ZİHİNSEL PROFİL</button>
+      <button class="sekme-btn" data-sekme="oyun-detay" onclick="sekmeDegistir('oyun-detay', this)">🟧 OYUN DETAYI</button>
+      <button class="sekme-btn" data-sekme="gunluk-hayat" onclick="sekmeDegistir('gunluk-hayat', this)">🟨 GÜNLÜK HAYAT</button>
     </div>
 
-    <!-- 1. TEMEL SKOR SEKMESİ -->
-    <div id="sekme-temel" class="sekme-icerik active">
-      <div class="sonuc-kart">
-        <h3>📊 Temel Performans</h3>
-        <p><strong>Doğru:</strong> <span id="dogru">-</span></p>
-        <p><strong>Yanlış:</strong> <span id="yanlis">-</span></p>
-        <p><strong>Süre:</strong> <span id="sure">-</span></p>
-        <p><strong>Ortalama Tepki:</strong> <span id="ortalamaTepki">-</span></p>
-        <p><strong>En Hızlı Tepki:</strong> <span id="enHizliTepki">-</span></p>
-        <p><strong>En Yavaş Tepki:</strong> <span id="enYavasTepki">-</span></p>
-        <p><strong>Öğrenme Hızı:</strong> <span id="ogrenmeHizi">-</span></p>
-        <p><strong>Tarih:</strong> <span id="tarih">-</span></p>
+    <!-- 🟦 1. ÖZET SEKMESİ -->
+    <div id="sekme-ozet" class="sekme-icerik active">
+      <!-- 🔷 ÜST BLOK → Grafik + Sayısal Veriler -->
+      <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+        <h3 style="margin-top:0; color:#1e3d59;">📊 Grafik + Sayısal Veriler</h3>
+        
+        <!-- 1) Temel Skor Kartları -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:15px; margin-bottom:20px;">
+          <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <div style="font-size:12px; color:#666; margin-bottom:5px;">Doğru</div>
+            <div id="dogru" style="font-size:24px; font-weight:700; color:#4caf50;">-</div>
+          </div>
+          <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <div style="font-size:12px; color:#666; margin-bottom:5px;">Yanlış</div>
+            <div id="yanlis" style="font-size:24px; font-weight:700; color:#f44336;">-</div>
+          </div>
+          <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <div style="font-size:12px; color:#666; margin-bottom:5px;">Toplam Süre</div>
+            <div id="sure" style="font-size:20px; font-weight:700; color:#1e88e5;">-</div>
+          </div>
+          <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <div style="font-size:12px; color:#666; margin-bottom:5px;">Ortalama Tepki</div>
+            <div id="ortalamaTepki" style="font-size:20px; font-weight:700; color:#1e88e5;">-</div>
+          </div>
+          <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <div style="font-size:12px; color:#666; margin-bottom:5px;">En Hızlı Tepki</div>
+            <div id="enHizliTepki" style="font-size:18px; font-weight:700; color:#4caf50;">-</div>
+          </div>
+          <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <div style="font-size:12px; color:#666; margin-bottom:5px;">En Yavaş Tepki</div>
+            <div id="enYavasTepki" style="font-size:18px; font-weight:700; color:#f44336;">-</div>
+          </div>
+          <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <div style="font-size:12px; color:#666; margin-bottom:5px;">Öğrenme Hızı</div>
+            <div id="ogrenmeHizi" style="font-size:20px; font-weight:700; color:#9c27b0;">-</div>
+          </div>
+        </div>
+
+        <!-- 2) Doğru-Yanlış Grafik (Bar Chart) -->
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); margin-bottom:20px;">
+          <h4 style="margin-top:0; color:#1e3d59;">📊 Doğru-Yanlış Dağılımı</h4>
+          <canvas id="skorGrafik"></canvas>
+        </div>
+
+        <!-- 3) Hata Türleri Grafiği (Doughnut) -->
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <h4 style="margin-top:0; color:#1e3d59;">⚠️ Hata Türleri Dağılımı</h4>
+          <canvas id="hataTurleriGrafikOzet"></canvas>
+        </div>
       </div>
 
-      <div class="sonuc-kart" style="margin-top: 20px;">
-        <h3>📈 Öğrenme – Seviye Bilgisi</h3>
-        <p><strong>Başlangıç Seviyesi:</strong> <span id="baslangicSeviyesi">-</span></p>
-        <p><strong>Bitiş Seviyesi:</strong> <span id="bitisSeviyesi">-</span></p>
-        <p><strong>Zorluk Adaptasyonu:</strong> <span id="zorlukAdaptasyonu">-</span></p>
+      <!-- 🟩 ALT BLOK → Sözlü Özetler -->
+      <div style="background:#f0f8ff; padding:20px; border-radius:12px;">
+        <h3 style="margin-top:0; color:#1e3d59;">💬 Sözlü Özetler</h3>
+        
+        <!-- 1) Mini Zihinsel Profil Şeridi -->
+        <div style="background:white; padding:15px; border-radius:10px; margin-bottom:15px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <h4 style="margin-top:0; color:#1e3d59; font-size:16px;">🧠 Mini Zihinsel Profil</h4>
+          <div id="miniZihinselProfil" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
+            <!-- Seviye pill'leri buraya eklenecek -->
+          </div>
+        </div>
+
+        <!-- 2) Mini Günlük Hayat Özetleri -->
+        <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <h4 style="margin-top:0; color:#1e3d59; font-size:16px;">💡 Mini Günlük Hayat Özetleri</h4>
+          <div id="miniGunlukHayat" style="margin-top:10px;">
+            <!-- İkon + tek cümle özetler buraya eklenecek -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🟩 2. ZİHİNSEL PROFİL SEKMESİ -->
+    <div id="sekme-zihinsel-profil" class="sekme-icerik">
+      <!-- 🔷 ÜST BLOK → Ana Radar Grafik -->
+      <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+        <h3 style="margin-top:0; color:#1e3d59;">📊 7 Zihinsel Alan Radar Grafiği</h3>
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <canvas id="zihinselAlanRadar"></canvas>
+        </div>
       </div>
 
-      <div class="sonuc-kart" style="margin-top: 20px;">
-        <h3>⚠️ Hata Tipleri</h3>
-        <div id="hataTipleriListe"></div>
-        <div class="grafik-kutu" style="margin-top: 15px;">
-          <h4>Hata Türleri Dağılımı</h4>
+      <!-- 🔷 ORTA BLOK → 7 Zihinsel Alan Tablosu -->
+      <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+        <h3 style="margin-top:0; color:#1e3d59;">📋 7 Zihinsel Alan Tablosu</h3>
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <table class="tablo" id="zihinselAlanTablo" style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="background:linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color:white;">
+                <th style="padding:12px; text-align:left; border-radius:8px 0 0 0;">Alan</th>
+                <th style="padding:12px; text-align:center;">Puan (0-100)</th>
+                <th style="padding:12px; text-align:center;">Seviye</th>
+                <th style="padding:12px; text-align:left; border-radius:0 8px 0 0;">Yorum</th>
+              </tr>
+            </thead>
+            <tbody id="zihinselAlanTabloBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 🔷 ALT BLOK → 8 Özel Performans Alanı (Kart Grid) -->
+      <div style="background:#f0f8ff; padding:20px; border-radius:12px;">
+        <h3 style="margin-top:0; color:#1e3d59;">💬 8 Özel Performans Alanı</h3>
+        <div id="ozelPerformansKartlari" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:15px; margin-top:15px;">
+          <!-- Kartlar buraya eklenecek -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 🟧 3. OYUN DETAYI & HATALAR SEKMESİ -->
+    <div id="sekme-oyun-detay" class="sekme-icerik">
+      <!-- 🔷 ÜST BLOK → Bölüm Bazlı Performans Tablosu -->
+      <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+        <h3 style="margin-top:0; color:#1e3d59;">📊 Bölüm Bazlı Performans</h3>
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <div id="bolumBazliPerformansTablo"></div>
+        </div>
+      </div>
+
+      <!-- 🔷 ORTA BLOK → Hata Türü Analizi -->
+      <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+        <h3 style="margin-top:0; color:#1e3d59;">⚠️ Hata Türü Analizi</h3>
+        
+        <!-- 1) Hata Türleri Grafik -->
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); margin-bottom:15px;">
           <canvas id="hataTurleriGrafik"></canvas>
         </div>
-      </div>
 
-      <div class="bilesen-grup">
-        <div class="bilesen">
-          <h4>Tepki Hızı</h4>
-          <p id="reactionSpeed" class="bilesenDeger">-</p>
-        </div>
-        <div class="bilesen">
-          <h4>İnhibisyon</h4>
-          <p id="inhibControl" class="bilesenDeger">-</p>
-        </div>
-        <div class="bilesen">
-          <h4>Dikkat Sürekliliği</h4>
-          <p id="sustainedAttention" class="bilesenDeger">-</p>
+        <!-- 2) Kısa Metin -->
+        <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <p id="baskinHataTipi" style="margin:0; font-weight:600; color:#e53935; font-size:16px;"></p>
         </div>
       </div>
 
-      <div class="grafik-kutu">
-        <h3>Skor Dağılımı</h3>
-        <canvas id="skorGrafik"></canvas>
+      <!-- 🔷 ALT BLOK → Bölüm Bazlı Hata Tablosu -->
+      <div style="background:#f0f8ff; padding:20px; border-radius:12px; margin-bottom:20px;">
+        <h3 style="margin-top:0; color:#1e3d59;">📋 Bölüm Bazlı Hata Analizi</h3>
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <div id="bolumBazliHataTablo"></div>
+        </div>
       </div>
 
-      <div id="gunlukHayatTemel" class="gunluk-hayat" style="display:none;"></div>
+      <!-- (Opsiyonel) Soru Zaman Serisi -->
+      <div style="background:#f8f9fa; padding:20px; border-radius:12px;">
+        <h3 style="margin-top:0; color:#1e3d59;">📈 Soru Zaman Çizgisi (Opsiyonel)</h3>
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <canvas id="soruZamanCizgisi"></canvas>
+        </div>
+      </div>
     </div>
 
-    <!-- 2. ÇOKLU ALAN SEKMESİ -->
-    <div id="sekme-coklu" class="sekme-icerik">
-      <div class="sonuc-kart">
-        <h3>🧠 Çoklu Zihinsel Alan Analizi</h3>
-        <div id="cokluAlanListe"></div>
+    <!-- 🟨 4. GÜNLÜK HAYAT KARŞILIĞI SEKMESİ -->
+    <div id="sekme-gunluk-hayat" class="sekme-icerik">
+      <!-- 🔷 ÜST BLOK → 6 Başlık için İkonlu Kutular -->
+      <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+        <h3 style="margin-top:0; color:#1e3d59;">🎯 6 Başlık İkonlu Kutular</h3>
+        <div id="gunlukHayatIkonlari" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:15px; margin-top:15px;">
+          <!-- İkonlu kutular buraya eklenecek -->
+        </div>
       </div>
-      <div class="grafik-kutu">
-        <h3>12 Alan Radar Grafiği</h3>
-        <canvas id="cokluAlanRadar"></canvas>
-      </div>
-      <div id="gunlukHayatCoklu" class="gunluk-hayat" style="display:none;"></div>
-    </div>
 
-    <!-- 3. OYUN ÖZEL SEKMESİ -->
-    <div id="sekme-oyun-ozel" class="sekme-icerik">
-      <div class="sonuc-kart">
-        <h3>🎮 Oyun Bazlı Özel Performans</h3>
-        <div id="oyunOzelListe"></div>
-      </div>
-      <div id="gunlukHayatOyun" class="gunluk-hayat" style="display:none;"></div>
-    </div>
-
-    <!-- 4. ZİHİN ALANLARI PERFORMANS SEKMESİ -->
-    <div id="sekme-performans" class="sekme-icerik">
-      <div class="sonuc-kart">
-        <h3>📈 Zihin Alanları Performans Tablosu</h3>
-        <table class="tablo" id="performansTablo">
-          <thead>
-            <tr>
-              <th>Alan</th>
-              <th>Son Skor</th>
-              <th>Ortalama</th>
-              <th>Trend</th>
-              <th>Günlük Hayat</th>
-            </tr>
-          </thead>
-          <tbody id="performansTabloBody"></tbody>
-        </table>
+      <!-- 🔷 ALT BLOK → Açıklayıcı Paragraflar -->
+      <div style="background:#f0f8ff; padding:20px; border-radius:12px;">
+        <h3 style="margin-top:0; color:#1e3d59;">💬 Açıklayıcı Paragraflar</h3>
+        <div id="gunlukHayatDetaylari" style="margin-top:15px;">
+          <!-- 6 başlık için açıklayıcı paragraflar -->
+        </div>
       </div>
     </div>
 

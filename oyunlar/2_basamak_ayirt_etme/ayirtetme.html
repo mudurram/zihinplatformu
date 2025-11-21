@@ -42,13 +42,22 @@
   <!-- ========================================================= -->
   <!-- 🔵 BAŞLIK -->
   <!-- ========================================================= -->
-  <h2 class="oyun-baslik">Zemin Rengi ile Aynı Olanı Seç</h2>
+  <h2 class="oyun-baslik" id="oyunBaslik">Ayırt Etme</h2>
+
+  <!-- ========================================================= -->
+  <!-- 📝 YÖNERGE -->
+  <!-- ========================================================= -->
+  <div id="yonergeAlani" class="yonerge-alani" style="margin: 20px auto; max-width: 600px; padding: 15px 20px; background: #f4f6fb; border-radius: 12px; border: 2px solid #4a90e2; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+    <p id="yonergeMetni" style="font-size: 18px; font-weight: 600; color: #1b2d4a; margin: 0; text-align: center;">
+      📝 Yönerge yükleniyor...
+    </p>
+  </div>
 
   <!-- ========================================================= -->
   <!-- 🎯 HEDEF KUTU -->
   <!-- ========================================================= -->
   <div id="hedefKutu" class="hedefKutu">
-    <span id="renkYazi" class="renkYazi">RENK</span>
+    <span id="hedefIcerik" class="renkYazi">?</span>
   </div>
 
   <!-- ========================================================= -->
@@ -61,11 +70,11 @@
   <!-- ========================================================= -->
   <div id="seviyePopup" class="popup show">
     <div class="popup-content">
-      <h3>Seviye Seç</h3>
+      <h3>Seviye Seçiniz</h3>
 
-      <button class="seviyeBtn" data-seviye="2">Kolay (2 seçenek)</button>
-      <button class="seviyeBtn" data-seviye="3">Orta (3 seçenek)</button>
-      <button class="seviyeBtn" data-seviye="4">Zor (4 seçenek)</button>
+      <button class="seviyeBtn" data-seviye="2">KOLAY (2 seçenek)</button>
+      <button class="seviyeBtn" data-seviye="3">ORTA (3 seçenek)</button>
+      <button class="seviyeBtn" data-seviye="4">ZOR (4 seçenek)</button>
     </div>
   </div>
 

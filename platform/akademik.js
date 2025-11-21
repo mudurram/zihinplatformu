@@ -7,7 +7,9 @@ import { GLOBAL, ROLES, BRAIN_AREAS } from "./globalConfig.js";
 import { db } from "../data/firebaseConfig.js";
 import {
   collection,
-  getDocs
+  getDocs,
+  doc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // -------------------------------------------------------------
@@ -18,19 +20,11 @@ const aktifOgrenciId = localStorage.getItem("aktifOgrenciId");
 const teacherID = localStorage.getItem("teacherID");
 const uid = localStorage.getItem("uid");
 
-// Öğretmen, Kurum ve Admin için öğrenci seçimi kontrolü
+// Öğrenci seçimi zorunlu değil, opsiyonel
+// Eğer öğrenci seçilmemişse, kullanıcıya uyarı ver ama sayfa kırılmasın
 if ((role === ROLES.OGRETMEN || role === ROLES.INSTITUTION || role === ROLES.ADMIN) && !aktifOgrenciId) {
-  if (role === ROLES.OGRETMEN) {
-    alert("ℹ Lütfen önce bir öğrenci seçiniz.");
-    window.location.href = "teacher_panel.html";
-  } else if (role === ROLES.INSTITUTION) {
-    alert("ℹ Lütfen önce bir öğrenci seçiniz.");
-    window.location.href = "institution_panel.html";
-  } else if (role === ROLES.ADMIN) {
-    alert("ℹ Lütfen önce bir öğrenci seçiniz.");
-    window.location.href = "admin_panel.html";
-  }
-  throw new Error("Öğrenci seçilmedi.");
+  console.warn("⚠ Öğrenci seçilmemiş. Akademik veriler gösterilemeyecek.");
+  // Sayfa kırılmasın, sadece uyarı ver
 }
 
 console.log("🎯 Akademik analiz ekranı yüklendi → Rol:", role);
@@ -81,19 +75,51 @@ async function yukleFirestoreGecmis() {
 
     let yol = null;
 
-    // Öğretmen için: profiles/{teacherID}/ogrenciler/{ogrenciID}/oyunSonuclari
+    // Öğretmen için: Öğrencinin kendi profilinden veri çek (tüm veriler burada)
     if (role === ROLES.OGRETMEN && teacherID) {
+      // Öğrencinin öğretmene bağlı olup olmadığını kontrol et (zorunlu değil)
+      try {
+        const teacherRef = doc(db, "profiles", teacherID);
+        const teacherSnap = await getDoc(teacherRef);
+        if (teacherSnap.exists()) {
+          const teacherData = teacherSnap.data();
+          const students = teacherData.students || {};
+          if (students[aktifOgrenciId] !== "kabul") {
+            console.warn("⚠ Öğrenci öğretmene bağlı değil veya onay bekliyor.");
+          }
+        }
+      } catch (err) {
+        console.warn("⚠ Öğretmen-öğrenci bağlantı kontrolü yapılamadı:", err);
+      }
+      
       yol = collection(
         db,
         "profiles",
-        teacherID,
-        "ogrenciler",
         aktifOgrenciId,
         "oyunSonuclari"
       );
     }
     // Kurum ve Admin için: profiles/{ogrenciID}/oyunSonuclari (direkt öğrenci profili)
     else if (role === ROLES.INSTITUTION || role === ROLES.ADMIN) {
+      // Kurum için: Öğrencinin kuruma bağlı olup olmadığını kontrol et (zorunlu değil)
+      if (role === ROLES.INSTITUTION) {
+        try {
+          const institutionID = localStorage.getItem("institutionID");
+          if (institutionID) {
+            const studentRef = doc(db, "profiles", aktifOgrenciId);
+            const studentSnap = await getDoc(studentRef);
+            if (studentSnap.exists()) {
+              const studentData = studentSnap.data();
+              if (studentData.institution?.id !== institutionID || studentData.institution?.status !== "kabul") {
+                console.warn("⚠ Öğrenci kuruma bağlı değil veya onay bekliyor.");
+              }
+            }
+          }
+        } catch (err) {
+          console.warn("⚠ Kurum-öğrenci bağlantı kontrolü yapılamadı:", err);
+        }
+      }
+      
       yol = collection(
         db,
         "profiles",
@@ -184,11 +210,110 @@ function analizEt() {
     return;
   }
 
+  // Yeni yapı: Blok bazlı yükleme
+  yukleUstBlok();
   dersKartlariOlustur();
-  baglantiTablosuOlustur();
-  akademikGucluVeDestek();
-  aiAkademikOneri();
   dersSkorlariGrafik();
+  yukleAltBlok();
+}
+
+// -------------------------------------------------------------
+// ÜST BLOK – GENEL AKADEMİK PROFİL
+// -------------------------------------------------------------
+function yukleUstBlok() {
+  const dersSkorlari = {};
+  const DERS_BAGLANTILARI = {
+    turkce: { ad: "Türkçe", alanlar: ["okuma_dil", "literacy", "attention"], renk: "#4a90e2" },
+    matematik: { ad: "Matematik", alanlar: ["mantik", "logic", "yuruteci_islev", "executive"], renk: "#e53935" },
+    fen: { ad: "Fen Bilgisi", alanlar: ["algisal_islemleme", "perception", "mantik", "logic"], renk: "#43a047" },
+    sosyal: { ad: "Sosyal Bilgiler", alanlar: ["sosyal_bilis", "social", "hafiza", "memory"], renk: "#ff9800" }
+  };
+  
+  Object.entries(DERS_BAGLANTILARI).forEach(([dersKey, dersInfo]) => {
+    dersSkorlari[dersKey] = hesaplaDersSkoru(dersKey, dersInfo);
+  });
+  
+  // Ortalama akademik puan
+  const ortAkademikPuan = Math.round(
+    Object.values(dersSkorlari).reduce((a, b) => a + b, 0) / Object.keys(dersSkorlari).length
+  );
+  
+  const ortAkademikPuanEl = document.getElementById("ortAkademikPuan");
+  if (ortAkademikPuanEl) ortAkademikPuanEl.textContent = `${ortAkademikPuan} / 100`;
+  
+  // En güçlü/destek gereken ders
+  const sirali = Object.entries(dersSkorlari).sort((a, b) => b[1] - a[1]);
+  const enGuclu = sirali[0];
+  const enZayif = sirali[sirali.length - 1];
+  
+  const enGucluDersEl = document.getElementById("enGucluDers");
+  if (enGucluDersEl && enGuclu) {
+    enGucluDersEl.textContent = DERS_BAGLANTILARI[enGuclu[0]]?.ad || enGuclu[0];
+  }
+  
+  const destekGerekenDersEl = document.getElementById("destekGerekenDers");
+  if (destekGerekenDersEl && enZayif) {
+    destekGerekenDersEl.textContent = DERS_BAGLANTILARI[enZayif[0]]?.ad || enZayif[0];
+  }
+}
+
+// -------------------------------------------------------------
+// ALT BLOK – DERS ÖNERİ MOTORU
+// -------------------------------------------------------------
+function yukleAltBlok() {
+  const dersSkorlari = {};
+  const DERS_BAGLANTILARI = {
+    turkce: { ad: "Türkçe", alanlar: ["okuma_dil", "literacy", "attention"], renk: "#4a90e2" },
+    matematik: { ad: "Matematik", alanlar: ["mantik", "logic", "yuruteci_islev", "executive"], renk: "#e53935" },
+    fen: { ad: "Fen Bilgisi", alanlar: ["algisal_islemleme", "perception", "mantik", "logic"], renk: "#43a047" },
+    sosyal: { ad: "Sosyal Bilgiler", alanlar: ["sosyal_bilis", "social", "hafiza", "memory"], renk: "#ff9800" }
+  };
+  
+  Object.entries(DERS_BAGLANTILARI).forEach(([dersKey, dersInfo]) => {
+    dersSkorlari[dersKey] = hesaplaDersSkoru(dersKey, dersInfo);
+  });
+  
+  const sirali = Object.entries(dersSkorlari).sort((a, b) => a[1] - b[1]);
+  const enZayif = sirali[0];
+  
+  if (enZayif) {
+    const zayifDersOnerileriEl = document.getElementById("zayifDersOnerileri");
+    const gelisimPlaniEl = document.getElementById("gelisimPlani");
+    const onerilenOyunlarEl = document.getElementById("onerilenOyunlar");
+    
+    const dersAd = DERS_BAGLANTILARI[enZayif[0]]?.ad || enZayif[0];
+    const skor = Math.round(enZayif[1]);
+    
+    if (zayifDersOnerileriEl) {
+      zayifDersOnerileriEl.innerHTML = `
+        <p><strong>${dersAd}</strong> dersinde tahmini skor ${skor}/100. Bu ders için özel destek önerilir.</p>
+        <p>İlgili zihin alanları: ${DERS_BAGLANTILARI[enZayif[0]]?.alanlar.join(", ") || "-"}</p>
+      `;
+    }
+    
+    if (gelisimPlaniEl) {
+      gelisimPlaniEl.innerHTML = `
+        <ul style="list-style:none; padding:0;">
+          <li style="padding:8px; margin:5px 0; background:#fff3cd; border-left:3px solid #ff9800; border-radius:4px;">1. İlgili zihin alanlarını geliştiren oyunlar oynanmalı</li>
+          <li style="padding:8px; margin:5px 0; background:#fff3cd; border-left:3px solid #ff9800; border-radius:4px;">2. Düzenli pratik yapılmalı</li>
+          <li style="padding:8px; margin:5px 0; background:#fff3cd; border-left:3px solid #ff9800; border-radius:4px;">3. İlerleme takip edilmeli</li>
+        </ul>
+      `;
+    }
+    
+    if (onerilenOyunlarEl) {
+      const oyunOnerileri = {
+        turkce: "Okuma-dil becerilerini geliştiren oyunlar",
+        matematik: "Mantık ve problem çözme oyunları",
+        fen: "Görsel algı ve mantık oyunları",
+        sosyal: "Sosyal biliş ve hafıza oyunları"
+      };
+      
+      onerilenOyunlarEl.innerHTML = `<p>${oyunOnerileri[enZayif[0]] || "İlgili becerileri geliştiren oyunlar"} önerilir.</p>`;
+    }
+  }
+  
+  aiAkademikOneri();
 }
 
 // =============================================================
@@ -205,17 +330,50 @@ function dersKartlariOlustur() {
     const seviye = tahminSkor >= 80 ? "Mükemmel" : 
                    tahminSkor >= 60 ? "İyi" : 
                    tahminSkor >= 40 ? "Orta" : "Geliştirilmeli";
+    
+    // Bağlantılı zihin alanları (etiketler)
+    const alanEtiketleri = dersInfo.alanlar.map(alanKey => {
+      const alanAdlari = {
+        okuma_dil: "Okuma-Dil",
+        literacy: "Okuma-Dil",
+        attention: "Dikkat",
+        dikkat: "Dikkat",
+        mantik: "Mantık",
+        logic: "Mantık",
+        yuruteci_islev: "Yürütücü İşlev",
+        executive: "Yürütücü İşlev",
+        algisal_islemleme: "Algısal İşlemleme",
+        perception: "Algısal İşlemleme",
+        sosyal_bilis: "Sosyal Biliş",
+        social: "Sosyal Biliş",
+        hafiza: "Hafıza",
+        memory: "Hafıza"
+      };
+      return alanAdlari[alanKey] || alanKey;
+    });
+    
+    // 1 satır açıklama
+    const aciklama = `${dersInfo.ad} dersinde tahmini performansınız ${seviye.toLowerCase()} seviyededir.`;
 
     html += `
-      <div class="ders-kart" style="border-left-color: ${dersInfo.renk}">
-        <div class="ders-baslik">${dersInfo.ad}</div>
-        <div class="tahmin-skor" style="color: ${dersInfo.renk}">
-          ${Math.round(tahminSkor)} / 100
+      <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); border-left:4px solid ${dersInfo.renk};">
+        <h4 style="margin:0 0 10px 0; color:#1e3d59; font-size:18px;">${dersInfo.ad}</h4>
+        <div style="text-align:center; margin:15px 0;">
+          <div style="font-size:36px; font-weight:700; color:${dersInfo.renk};">${Math.round(tahminSkor)}</div>
+          <div style="font-size:14px; color:#666;">/ 100</div>
         </div>
-        <p style="text-align:center;color:#666;">Seviye: <strong>${seviye}</strong></p>
-        <ul class="baglanti-listesi">
-          ${dersInfo.beceriler.map(beceri => `<li>${beceri}</li>`).join("")}
-        </ul>
+        <div style="text-align:center; margin:10px 0;">
+          <span style="display:inline-block; padding:6px 12px; background:${seviye === "Mükemmel" ? "#4caf5020" : seviye === "İyi" ? "#4a90e220" : seviye === "Orta" ? "#ff980020" : "#f4433620"}; color:${seviye === "Mükemmel" ? "#4caf50" : seviye === "İyi" ? "#4a90e2" : seviye === "Orta" ? "#ff9800" : "#f44336"}; border-radius:12px; font-size:13px; font-weight:600;">
+            ${seviye}
+          </span>
+        </div>
+        <p style="font-size:13px; color:#666; margin:10px 0; line-height:1.5;">${aciklama}</p>
+        <div style="margin-top:15px; padding-top:15px; border-top:1px solid #e0e0e0;">
+          <div style="font-size:12px; color:#999; margin-bottom:5px;">Bağlantılı Zihin Alanları:</div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px;">
+            ${alanEtiketleri.map(alan => `<span style="padding:4px 8px; background:#f0f8ff; color:#1e88e5; border-radius:8px; font-size:11px;">${alan}</span>`).join("")}
+          </div>
+        </div>
       </div>
     `;
   });

@@ -98,6 +98,7 @@ button {
   padding: 0 25px;
   height: 70px;
   min-width: 200px;
+  gap: 10px;
 }
 
 .logo-icon {
@@ -257,6 +258,24 @@ button {
   border: 1px solid #D0D7E1;
   text-shadow: none;
   letter-spacing: 0.2px;
+}
+
+/* Header-left içindeki nav-link için özel stil (mavi arka plan üzerinde) */
+.header-left .nav-link {
+  background: rgba(255, 255, 255, 0.95);
+  color: #1e40af;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+.header-left .nav-link:hover {
+  background: rgba(255, 255, 255, 1);
+  color: #1e3a8a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .nav-link:hover {

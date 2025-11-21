@@ -248,22 +248,53 @@ export class GameEngine {
     console.log("➡ Sonuç ekranına yönlendiriliyor:", path);
     console.log("📊 Oyun sonu verileri hazır, yönlendirme yapılıyor...");
 
-      // Yönlendirmeyi yap (try-catch ile güvenli hale getir)
-      try {
-        window.location.href = path;
-      } catch (err) {
-        console.error("❌ Yönlendirme hatası:", err);
-        // Alternatif yönlendirme yöntemi
-        try {
-          window.location.replace(path);
-        } catch (err2) {
-          console.error("❌ window.location.replace() da başarısız:", err2);
-          // Son çare: setTimeout ile dene
-          setTimeout(() => {
-            window.location.href = path;
-          }, 100);
+    // Yönlendirmeyi yap (try-catch ile güvenli hale getir)
+    try {
+      // Önce mevcut sayfanın yolunu kontrol et
+      const currentPath = window.location.pathname;
+      console.log("📍 Mevcut sayfa:", currentPath);
+      console.log("📍 Hedef sayfa:", path);
+      
+      // Yönlendirmeyi yap
+      window.location.href = path;
+      
+      // Yönlendirme başarılı olmazsa 500ms sonra tekrar dene
+      setTimeout(() => {
+        if (window.location.pathname === currentPath) {
+          console.warn("⚠ İlk yönlendirme başarısız, replace() deneniyor...");
+          try {
+            window.location.replace(path);
+          } catch (err2) {
+            console.error("❌ window.location.replace() da başarısız:", err2);
+            // Son çare: setTimeout ile dene
+            setTimeout(() => {
+              try {
+                window.location.href = path;
+              } catch (err3) {
+                console.error("❌ Tüm yönlendirme yöntemleri başarısız:", err3);
+              }
+            }, 200);
+          }
         }
+      }, 500);
+      
+    } catch (err) {
+      console.error("❌ Yönlendirme hatası:", err);
+      // Alternatif yönlendirme yöntemi
+      try {
+        window.location.replace(path);
+      } catch (err2) {
+        console.error("❌ window.location.replace() da başarısız:", err2);
+        // Son çare: setTimeout ile dene
+        setTimeout(() => {
+          try {
+            window.location.href = path;
+          } catch (err3) {
+            console.error("❌ Tüm yönlendirme yöntemleri başarısız:", err3);
+          }
+        }, 200);
       }
+    }
     } catch (err) {
       console.error("❌ endGame() içinde beklenmeyen hata:", err);
       // Hata durumunda da yönlendirme yap
@@ -448,7 +479,9 @@ function buildResultPayload({
       zorlukAdaptasyonu: temelSkor.zorlukAdaptasyonu || oyunDetaylari.zorlukAdaptasyonu || "stabil",
       ogrenmeHiziSkoru: oyunDetaylari.ogrenmeHiziSkoru || 50,
       bolumSkorlari: oyunDetaylari.bolumSkorlari || {},
-      zihinselAlanlar: oyunDetaylari.zihinselAlanlar || {} // 7 zihinsel alan puanları
+      zihinselAlanlar: oyunDetaylari.zihinselAlanlar || {}, // 7 zihinsel alan puanları
+      ozelPerformansAlanlari: oyunDetaylari.ozelPerformansAlanlari || {}, // 8 özel performans alanı
+      gunlukHayatKarsiligi: oyunDetaylari.gunlukHayatKarsiligi || {} // 6 başlık günlük hayat karşılığı
     }
   };
 

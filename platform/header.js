@@ -84,9 +84,21 @@ export function createHeader(basePath = '') {
     <header class="platform-header role-header role-${role}">
       <div class="header-left">
         <div class="logo-icon">${logoIcon}</div>
-        <div class="logo" onclick="window.location.href='${basePath}index.html'">
+        <div class="logo" onclick="
+          localStorage.removeItem('aktifAlan');
+          const modal = document.getElementById('altAlanModal');
+          if (modal) modal.style.display = 'none';
+          window.location.href='${basePath}index.html';
+        ">
           Zihin Platformu
         </div>
+        <a href="${basePath}index.html" class="nav-link" style="margin-left: 15px;" onclick="
+          localStorage.removeItem('aktifAlan');
+          const modal = document.getElementById('altAlanModal');
+          if (modal) modal.style.display = 'none';
+        ">
+          🏠 Ana Menü
+        </a>
       </div>
       
       <div class="header-center role-center-nav">
@@ -161,7 +173,11 @@ function getProfileMenuForRole(role, username, basePath) {
                 <span class="submenu-arrow">▶</span>
               </div>
               <div class="submenu" id="platformSubmenu" style="display:none;">
-                <a href="${basePath}index.html" class="submenu-item">🏠 Ana Menü</a>
+                <a href="${basePath}index.html" class="submenu-item" onclick="
+                  localStorage.removeItem('aktifAlan');
+                  const modal = document.getElementById('altAlanModal');
+                  if (modal) modal.style.display = 'none';
+                ">🏠 Ana Menü</a>
                 <a href="${basePath}analiz.html" class="submenu-item">📊 Genel Analiz</a>
                 <a href="${basePath}akademik.html" class="submenu-item">📈 Akademik Performans</a>
                 <a href="${basePath}gelisim.html" class="submenu-item">📉 Gelişim</a>

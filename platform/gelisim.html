@@ -145,55 +145,63 @@
 
     <h2>📈 Tarihsel Gelişim Analizi</h2>
 
-    <!-- FİLTRELER -->
-    <div class="filter-row">
-      <select id="zamanFiltre">
-        <option value="gunluk">Günlük</option>
-        <option value="haftalik">Haftalık</option>
-        <option value="aylik">Aylık</option>
-        <option value="tum">Tüm Zamanlar</option>
-      </select>
-
-      <select id="alanFiltre">
-        <option value="hepsi">Tüm Alanlar</option>
-      </select>
+    <!-- 🟦 A) ÜST BLOK – ZAMAN FİLTRELERİ -->
+    <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+      <h3 style="margin-top:0; color:#1e3d59;">📅 Zaman Filtreleri</h3>
+      <div class="filter-row">
+        <select id="zamanFiltre">
+          <option value="gunluk">Günlük</option>
+          <option value="haftalik">Haftalık</option>
+          <option value="aylik">Aylık</option>
+          <option value="tum">Tüm Zamanlar</option>
+        </select>
+        <select id="alanFiltre">
+          <option value="hepsi">Tüm Alanlar</option>
+        </select>
+      </div>
     </div>
 
-    <!-- GENEL TREND GRAFİĞİ -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">📊 Genel Trend Analizi</h3>
-      <canvas id="genelTrendChart"></canvas>
+    <!-- 🔷 B) ANA BLOK – ANA GELİŞİM GRAFİĞİ -->
+    <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+      <h3 style="margin-top:0; color:#1e3d59;">📊 Ana Gelişim Grafiği</h3>
+      <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+        <canvas id="genelTrendChart"></canvas>
+      </div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:15px; margin-top:15px;">
+        <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <div style="font-size:12px; color:#666; margin-bottom:5px;">Ortalama Skor</div>
+          <div id="ortalamaSkor" style="font-size:20px; font-weight:700; color:#1e88e5;">-</div>
+        </div>
+        <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <div style="font-size:12px; color:#666; margin-bottom:5px;">Artış/Azalış Trendi</div>
+          <div id="trendYonu" style="font-size:20px; font-weight:700; color:#4caf50;">-</div>
+        </div>
+      </div>
     </div>
 
-    <!-- 12 ALAN GELİŞİM GRAFİKLERİ -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">🧠 12 Zihin Alanı Gelişim Grafikleri</h3>
+    <!-- 🔷 C) ORTA BLOK – ALAN GRAFİKLERİ (GRID) -->
+    <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+      <h3 style="margin-top:0; color:#1e3d59;">📈 Alan Grafikleri</h3>
       <div class="alan-grid" id="alanGrafikleri"></div>
     </div>
 
-    <!-- DETAYLI TARİH TABLOSU -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">📋 Detaylı Tarih Tablosu</h3>
-      <table class="tablo" id="tarihTablo">
-        <thead>
-          <tr>
-            <th>Tarih</th>
-            <th>Oyun</th>
-            <th>Modül</th>
-            <th>Skor</th>
-            <th>WPM</th>
-            <th>Öğrenme Hızı</th>
-            <th>Trend</th>
-          </tr>
-        </thead>
-        <tbody id="tarihTabloBody"></tbody>
-      </table>
-    </div>
-
-    <!-- AY AY KARŞILAŞTIRMA -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">📅 Ay Ay Karşılaştırma</h3>
-      <canvas id="ayAyChart"></canvas>
+    <!-- 🟩 D) ALT BLOK – TARİH TABLOSU -->
+    <div style="background:#f0f8ff; padding:20px; border-radius:12px;">
+      <h3 style="margin-top:0; color:#1e3d59;">💬 Tarih Tablosu</h3>
+      <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); margin-top:15px;">
+        <table class="tablo" id="tarihTablo" style="font-size:13px;">
+          <thead>
+            <tr>
+              <th>Tarih</th>
+              <th>Oyun Adı</th>
+              <th>Doğru/Yanlış</th>
+              <th>Süre</th>
+              <th>Bölüm Skorları</th>
+            </tr>
+          </thead>
+          <tbody id="tarihTabloBody"></tbody>
+        </table>
+      </div>
     </div>
 
   </div>

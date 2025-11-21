@@ -114,71 +114,81 @@
 
     <h2>👤 Tam Öğrenci Profili</h2>
 
-    <!-- 12 ALAN RADAR GRAFİĞİ -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">🧠 12 Zihin Alanı Radar Grafiği</h3>
-      <canvas id="radarChart"></canvas>
-    </div>
-
-    <!-- 12 ALAN PUANLARI TABLOSU -->
-    <div class="profil-section">
-      <h3>📊 12 Alan Puanları</h3>
-      <table class="tablo" id="alanTablo">
-        <thead>
-          <tr>
-            <th>Alan</th>
-            <th>Puan</th>
-            <th>Seviye</th>
-            <th>Günlük Hayat</th>
-          </tr>
-        </thead>
-        <tbody id="alanTabloBody"></tbody>
-      </table>
-    </div>
-
-    <!-- ÖĞRENME HIZI PROFİLİ -->
-    <div class="profil-section">
-      <h3>⚡ Öğrenme Hızı Profili</h3>
-      <div class="chart-section">
-        <canvas id="ogrenmeHiziChart"></canvas>
+    <!-- 🟦 A) ÜST BLOK – GENEL PROFİL RADARI -->
+    <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+      <h3 style="margin-top:0; color:#1e3d59;">📊 Genel Profil Radarı</h3>
+      <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+        <canvas id="radarChart"></canvas>
       </div>
-      <div id="ogrenmeHiziBilgi" style="margin-top:15px;"></div>
+      <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); margin-top:15px; text-align:center;">
+        <div id="profilEtiketi" style="font-size:18px; font-weight:600; color:#1e88e5;">-</div>
+      </div>
     </div>
 
-    <!-- GÜÇLÜ YÖN HARİTASI -->
-    <div class="profil-section">
-      <h3>💪 Güçlü Yön Haritası</h3>
-      <div id="gucluYonler" class="profil-kart"></div>
+    <!-- 🔷 B) ANA BLOK – ZİHİNSEL ALAN DETAY TABLOSU -->
+    <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+      <h3 style="margin-top:0; color:#1e3d59;">📋 Zihinsel Alan Detay Tablosu</h3>
+      <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+        <table class="tablo" id="alanTablo">
+          <thead>
+            <tr>
+              <th>Alan</th>
+              <th>Ortalama Puan</th>
+              <th>Trend</th>
+              <th>En Yüksek</th>
+              <th>En Düşük</th>
+            </tr>
+          </thead>
+          <tbody id="alanTabloBody"></tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- GELİŞTİRİLECEK YÖNLER -->
-    <div class="profil-section">
-      <h3>📈 Geliştirilecek Yönler</h3>
-      <div id="gelistirilecekYonler" class="profil-kart"></div>
+    <!-- 🔷 C) ORTA BLOK – GÜÇLÜ/ZAYIF ALANLAR -->
+    <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+      <h3 style="margin-top:0; color:#1e3d59;">💪 Güçlü/Zayıf Alanlar</h3>
+      <div class="guclu-zayif" style="margin-top:15px;">
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <h4 style="margin-top:0; color:#4caf50;">✅ Güçlü 3 Alan</h4>
+          <div id="gucluYonler" class="profil-kart" style="margin-top:10px;"></div>
+        </div>
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <h4 style="margin-top:0; color:#f44336;">📈 Zayıf 3 Alan</h4>
+          <div id="gelistirilecekYonler" class="profil-kart" style="margin-top:10px;"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- AKADEMİK PROFİL -->
-    <div class="profil-section">
-      <h3>📚 Akademik Profil</h3>
-      <div id="akademikProfil" class="profil-kart"></div>
+    <!-- 🔷 D) AKADEMİK PROFİL -->
+    <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+      <h3 style="margin-top:0; color:#1e3d59;">📚 Akademik Profil</h3>
+      <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+        <div id="akademikProfil" class="profil-kart"></div>
+      </div>
     </div>
 
-    <!-- SOSYAL-DUYGUSAL PROFİL -->
-    <div class="profil-section">
-      <h3>❤️ Sosyal-Duygusal Profil</h3>
-      <div id="sosyalDuygusalProfil" class="profil-kart"></div>
+    <!-- 🔷 E) SOSYAL–DUYGUSAL PROFİL -->
+    <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+      <h3 style="margin-top:0; color:#1e3d59;">❤️ Sosyal-Duygusal Profil</h3>
+      <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+        <div id="sosyalDuygusalProfil" class="profil-kart"></div>
+      </div>
     </div>
 
-    <!-- GÜNLÜK HAYAT ETKİSİ -->
-    <div class="profil-section">
-      <h3>💡 Günlük Hayat Etkisi</h3>
-      <div id="gunlukHayatEtkisi" class="profil-kart"></div>
+    <!-- 🟩 F) GÜNLÜK HAYAT ETKİLERİ (Sadece özet) -->
+    <div style="background:#f0f8ff; padding:20px; border-radius:12px; margin-bottom:20px;">
+      <h3 style="margin-top:0; color:#1e3d59;">💡 Günlük Hayat Etkileri</h3>
+      <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+        <div id="gunlukHayatEtkisi" class="profil-kart"></div>
+      </div>
     </div>
 
-    <!-- AI GELİŞİM PLANI -->
-    <div class="profil-section">
-      <h3>🤖 AI Gelişim Planı</h3>
-      <div id="aiGelisimPlani" class="ai-plan"></div>
+    <!-- 🤖 AI GELİŞİM PLANI -->
+    <div style="background:#f0f8ff; padding:20px; border-radius:12px;">
+      <h3 style="margin-top:0; color:#1e3d59;">🤖 AI Gelişim Planı</h3>
+      <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); margin-top:15px;">
+        <div id="aiGelisimPlani" class="ai-plan"></div>
+      </div>
     </div>
 
   </div>

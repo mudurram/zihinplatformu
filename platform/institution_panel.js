@@ -82,14 +82,13 @@ async function yukleTalepler() {
 
   const { received, sent } = await listAllRequestsByUser(uid);
 
-  // ALINAN TALEPLER (Kuruma gelen talepler - institution_teacher, teacher_institution, student_institution tiplerinde)
+  // ALINAN TALEPLER (Kuruma gelen talepler - teacher_institution, student_institution tiplerinde)
+  // NOT: institution_teacher kurumun öğretmene gönderdiği davettir, burada gösterilmez
   const kurumaGelenTalepler = received.filter(req => {
-    // Kurumun gönderdiği davetleri filtrele (fromId == uid olanlar)
-    // Öğretmen başvurularını da dahil et (teacher_institution tipinde, toId == uid)
-    // Öğrenci başvurularını da dahil et (student_institution tipinde, toId == uid)
+    // Öğretmen başvuruları (teacher_institution tipinde, toId == uid)
+    // Öğrenci başvuruları (student_institution tipinde, toId == uid)
     return req.status === "beklemede" && 
-           ((req.type === "institution_teacher" && req.fromId !== uid) ||
-            (req.type === "teacher_institution" && req.toId === uid) ||
+           ((req.type === "teacher_institution" && req.toId === uid) ||
             (req.type === "student_institution" && req.toId === uid));
   });
 

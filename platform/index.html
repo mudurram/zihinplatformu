@@ -142,6 +142,48 @@
     <!-- JS ile doldurulacak -->
   </div>
 
+  <!-- ========================= -->
+  <!-- 📋 ÖĞRENCİ TALEPLER (Sadece öğrenci için) -->
+  <!-- ========================= -->
+  <div id="ogrenciTaleplerKart" style="display:none; max-width: 1200px; margin: 40px auto; padding: 20px;">
+    <h2 style="margin-bottom: 20px; color: #1b2d4a;">📬 Taleplerim</h2>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div>
+        <h3 style="margin-bottom: 15px; color: #4a90e2;">Alınan Talepler</h3>
+        <ul id="ogrenciAlinanTalepler" style="list-style: none; padding: 0; margin: 0;">
+          <li style="color:#999;padding:15px;text-align:center;">Yükleniyor...</li>
+        </ul>
+      </div>
+      
+      <div>
+        <h3 style="margin-bottom: 15px; color: #4a90e2;">Gönderilen Talepler</h3>
+        <ul id="ogrenciGonderilenTalepler" style="list-style: none; padding: 0; margin: 0;">
+          <li style="color:#999;padding:15px;text-align:center;">Yükleniyor...</li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- Davet Gönderme Formu -->
+    <div style="margin-top: 30px; padding: 20px; background: #f4f6fb; border-radius: 12px;">
+      <h3 style="margin-bottom: 15px; color: #1b2d4a;">Öğretmen veya Kuruma Davet Gönder</h3>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <input 
+          type="text" 
+          id="davetUsernameInput" 
+          placeholder="Öğretmen veya kurum kullanıcı adı" 
+          style="flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;"
+        />
+        <button 
+          id="davetGonderBtn" 
+          style="padding: 12px 24px; background: #4a90e2; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 600;"
+        >
+          Gönder
+        </button>
+      </div>
+      <div id="davetMesaji" style="margin-top: 10px; min-height: 20px;"></div>
+    </div>
+  </div>
 
   <style>
     #ogrenciAlinanTalepler li,

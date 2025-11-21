@@ -242,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Bitir düğmesi
   const bitirBtn = document.getElementById("bitirBtn");
   if (bitirBtn) {
-    bitirBtn.addEventListener("click", (e) => {
+    bitirBtn.addEventListener("click", async (e) => {
       e.preventDefault();
       e.stopPropagation();
       console.log("⛔ Bitir düğmesine tıklandı");
@@ -250,50 +250,81 @@ document.addEventListener("DOMContentLoaded", () => {
       // Oyun başlamamışsa veya zaten bitmişse işlem yapma
       if (!engine) {
         console.warn("⚠ Engine henüz oluşturulmamış");
+        alert("Oyun henüz başlamamış. Lütfen önce bir bölüm seçin.");
         return;
       }
       
       if (engine.gameFinished) {
-        console.warn("⚠ Oyun zaten bitmiş");
+        console.warn("⚠ Oyun zaten bitmiş, direkt yönlendiriliyor");
+        window.location.href = "../../platform/sonuc.html";
         return;
       }
       
-      // Oyunu durdur (timer'ı durdur)
-      if (engine.timerInterval) {
-        clearInterval(engine.timerInterval);
-        engine.timerInterval = null;
-        console.log("🧹 Timer durduruldu");
-      }
+      // Düğmeyi devre dışı bırak (çift tıklama önleme)
+      bitirBtn.disabled = true;
+      bitirBtn.textContent = "⏳ İşleniyor...";
       
-      // Oyun bitmiş olarak işaretle (çift kayıt önleme)
-      engine.gameFinished = true;
-      
-      // Oyun sonu analizini hazırla
       try {
-        oyunSonuAnaliziniHazirla();
-      } catch (err) {
-        console.error("❌ Oyun sonu analizi hatası:", err);
-      }
-      
-      // endGame() fonksiyonunu direkt çağır (gameFinished kontrolü endGame içinde yapılıyor)
-      // Kısa bir gecikme ile çağır (analiz tamamlansın)
-      setTimeout(async () => {
-        if (engine) {
-          console.log("➡️ Bitir düğmesi: endGame() çağrılıyor...");
-          try {
-            await engine.endGame();
-            console.log("✅ endGame() tamamlandı, yönlendirme yapılmalı");
-          } catch (err) {
-            console.error("❌ endGame() hatası:", err);
-            // Hata durumunda manuel yönlendirme
+        // Oyunu durdur (timer'ı durdur)
+        if (engine.timerInterval) {
+          clearInterval(engine.timerInterval);
+          engine.timerInterval = null;
+          console.log("🧹 Timer durduruldu");
+        }
+        
+        // Oyun bitmiş olarak işaretle (çift kayıt önleme)
+        engine.gameFinished = true;
+        console.log("✅ Oyun bitmiş olarak işaretlendi");
+        
+        // Oyun sonu analizini hazırla (önemli: bu endGame'den önce tamamlanmalı)
+        console.log("📊 Oyun sonu analizi hazırlanıyor...");
+        try {
+          oyunSonuAnaliziniHazirla();
+          console.log("✅ Oyun sonu analizi tamamlandı");
+        } catch (analizHatasi) {
+          console.error("❌ Analiz hatası (devam ediliyor):", analizHatasi);
+          // Analiz hatası oyun sonunu engellemez
+        }
+        
+        // Analiz tamamlanması için kısa bir bekleme
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // endGame() fonksiyonunu çağır (async/await ile)
+        console.log("➡️ Bitir düğmesi: endGame() çağrılıyor...");
+        
+        // endGame() timeout ile sarmalayalım (10 saniye timeout)
+        const endGamePromise = engine.endGame();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("endGame() timeout (10 saniye)")), 10000)
+        );
+        
+        await Promise.race([endGamePromise, timeoutPromise]);
+        console.log("✅ endGame() tamamlandı, yönlendirme yapılmalı");
+        
+        // endGame() içinde yönlendirme yapılıyor ama eğer yapılmadıysa burada yap
+        // Kısa bir gecikme ile kontrol et
+        setTimeout(() => {
+          if (window.location.pathname.includes("esleme.html")) {
+            console.warn("⚠ endGame() yönlendirme yapmadı, manuel yönlendirme yapılıyor");
             window.location.href = "../../platform/sonuc.html";
           }
-        } else {
-          console.warn("⚠ Engine yok");
-          // Engine yoksa direkt yönlendir
+        }, 1000);
+        
+      } catch (err) {
+        console.error("❌ Bitir düğmesi hatası:", err);
+        console.error("❌ Hata detayı:", err.stack);
+        
+        // Hata durumunda manuel yönlendirme
+        try {
+          console.log("➡️ Hata durumunda sonuç sayfasına yönlendiriliyor...");
           window.location.href = "../../platform/sonuc.html";
+        } catch (err2) {
+          console.error("❌ Yönlendirme hatası:", err2);
+          // Son çare: kullanıcıya bilgi ver
+          bitirBtn.textContent = "❌ Hata - Manuel Gidin";
+          alert("Oyun sonu işlemi sırasında bir hata oluştu. Lütfen sonuç sayfasına manuel olarak gidin: platform/sonuc.html");
         }
-      }, 300);
+      }
     });
   }
 });
@@ -727,6 +758,13 @@ function yeniParcaSorusu() {
   const hedef = PARCA_BUTUN[Math.floor(Math.random() * PARCA_BUTUN.length)];
   soruNumarasi++;
   
+  // Debug: Hedef parça-bütün eşleşmesini kontrol et
+  console.log("🎯 Parça-Bütün Hedef:", {
+    parca: hedef.parca,
+    butun: hedef.butun,
+    aciklama: `Parça: ${hedef.parca} -> Bütün: ${hedef.butun}`
+  });
+  
   // Oyun durumunu güncelle
   mevcutHedef = hedef;
   mevcutDogruCevap = hedef;
@@ -739,19 +777,21 @@ function yeniParcaSorusu() {
   
   const hedefResim = document.getElementById("hedefResim");
   if (hedefResim) {
-    // Parça göster - emoji kullanarak görsel oluştur
+    // Parça göster - parça için eksik/kısmi görsel kullan (bütün değil!)
+    // ÖNEMLİ: Parça emojileri, bütün emojileri ile mantıklı eşleşmeli
     const parcaEmojiler = {
-      "araba_parca1": "🚗",
-      "ev_parca1": "🏠",
-      "agac_parca1": "🌳",
-      "insan_parca1": "👤",
-      "hayvan_parca1": "🐾",
-      "bitki_parca1": "🌿",
-      "nesne_parca1": "📦",
-      "sekil_parca1": "🔷"
+      "araba_parca1": "🔧", // Araba parçası -> Araba bütünü (🚗) ile eşleşir
+      "ev_parca1": "🚪", // Ev parçası (kapı) -> Ev bütünü (🏠) ile eşleşir
+      "agac_parca1": "🍃", // Ağaç parçası (yaprak) -> Ağaç bütünü (🌳) ile eşleşir
+      "insan_parca1": "👁️", // İnsan parçası (göz) -> İnsan bütünü (👤) ile eşleşir
+      "hayvan_parca1": "🐾", // Hayvan parçası (ayak izi) -> Hayvan bütünü (🐶) ile eşleşir
+      "bitki_parca1": "🌱", // Bitki parçası (filiz) -> Bitki bütünü (🌿) ile eşleşir
+      "nesne_parca1": "🧩", // Nesne parçası (puzzle) -> Nesne bütünü (📦) ile eşleşir
+      "sekil_parca1": "◐" // Şekil parçası (yarım) -> Şekil bütünü (🔷) ile eşleşir
     };
     const emoji = parcaEmojiler[hedef.parca] || "🧩";
-    hedefResim.innerHTML = `<div class="parca-gorsel" style="font-size: 80px; margin: 20px 0; opacity: 0.7;">${emoji}</div><div style="font-size: 18px; font-weight: 600; color: #1b2d4a; margin-top: 10px;">Parça</div>`;
+    // Parça için daha küçük, eksik görünümlü bir stil (bütün değil, parça olduğu belli olsun)
+    hedefResim.innerHTML = `<div class="parca-gorsel" style="font-size: 80px; margin: 20px 0; opacity: 0.6; transform: scale(0.7); filter: grayscale(30%); border: 2px dashed #999; padding: 15px; border-radius: 10px; background: rgba(255,255,255,0.3);">${emoji}</div><div style="font-size: 18px; font-weight: 600; color: #1b2d4a; margin-top: 10px;">Parça</div>`;
   }
   
   // Seçenekleri hazırla (bütünler)
@@ -759,8 +799,15 @@ function yeniParcaSorusu() {
     .filter(x => x.butun !== hedef.butun) // Hedefi hariç tut
     .slice(0, Math.min(secenekSayisi - 1, PARCA_BUTUN.length - 1)); // Bir yer bırak, ama diziden taşma
   
-  // Doğru cevabı ekle
+  // Doğru cevabı ekle (hedef.butun ile eşleşen bütün)
   secenekler.push(hedef);
+  
+  // Debug: Seçenekleri kontrol et
+  console.log("📋 Seçenekler:", secenekler.map(s => ({
+    parca: s.parca,
+    butun: s.butun,
+    dogruMu: s.butun === hedef.butun
+  })));
   
   // Fisher-Yates shuffle ile karıştır
   secenekler = shuffleArray(secenekler);
@@ -769,7 +816,15 @@ function yeniParcaSorusu() {
   mevcutSecenekler = [...secenekler];
   
   secenekleriGoster(secenekler, (secim) => {
-    const dogruMu = secim.butun === hedef.butun;
+    // Doğru cevap kontrolü: seçilen bütün, hedef parçanın bütünü ile eşleşmeli
+    const dogruMu = secim.butun === hedef.butun && secim.parca === hedef.parca;
+    console.log("✅ Cevap kontrolü:", {
+      secilenButun: secim.butun,
+      hedefButun: hedef.butun,
+      secilenParca: secim.parca,
+      hedefParca: hedef.parca,
+      dogruMu: dogruMu
+    });
     cevapIsle(dogruMu, secim, hedef, secenekler, "parca");
   }, "parca");
 }
@@ -852,15 +907,16 @@ function secenekleriGoster(secenekler, onClick, tip) {
           return;
         }
         // Bütün seçenekleri - emoji ile
+        // ÖNEMLİ: Bütün emojileri, parça emojileri ile mantıklı eşleşmeli
         const butunEmojiler = {
-          "araba_butun": "🚗",
-          "ev_butun": "🏠",
-          "agac_butun": "🌳",
-          "insan_butun": "👤",
-          "hayvan_butun": "🐾",
-          "bitki_butun": "🌿",
-          "nesne_butun": "📦",
-          "sekil_butun": "🔷"
+          "araba_butun": "🚗", // Araba bütünü <- Araba parçası (🔧) ile eşleşir
+          "ev_butun": "🏠", // Ev bütünü <- Ev parçası (🚪) ile eşleşir
+          "agac_butun": "🌳", // Ağaç bütünü <- Ağaç parçası (🍃) ile eşleşir
+          "insan_butun": "👤", // İnsan bütünü <- İnsan parçası (👁️) ile eşleşir
+          "hayvan_butun": "🐶", // Hayvan bütünü (köpek) <- Hayvan parçası (🐾) ile eşleşir
+          "bitki_butun": "🌿", // Bitki bütünü <- Bitki parçası (🌱) ile eşleşir
+          "nesne_butun": "📦", // Nesne bütünü <- Nesne parçası (🧩) ile eşleşir
+          "sekil_butun": "🔷" // Şekil bütünü <- Şekil parçası (◐) ile eşleşir
         };
         const emoji = butunEmojiler[secenek.butun] || "🧩";
         btn.innerHTML = `<div class="butun-gorsel" style="font-size: 50px; margin-bottom: 8px;">${emoji}</div><div style="font-size: 14px; font-weight: 600;">Bütün</div>`;
@@ -976,15 +1032,15 @@ function cevapIsle(dogruMu, secilenSecenek, hedef, secenekler, bolumTipi) {
   const zorlukSeviyesi = secenekSayisi === 2 ? "Kolay" : 
                          secenekSayisi === 3 ? "Orta" : "Zor";
   
-  // G) HATA TÜRÜ ANALİZİ
+  // G) HATA TÜRÜ ANALİZİ (Günlük Hayat Karşılığı için)
   let hataTuru = null;
   if (!dogruMu) {
     if (tepkiSuresi < 300) {
       hataTuru = "impulsivite"; // Çok hızlı cevap → yanlış
-    } else if (tepkiSuresi >= 800) {
-      hataTuru = "dikkatsizlik"; // Normal hız + yanlış (bariz doğruyu kaçırma)
+    } else if (tepkiSuresi >= 3000) {
+      hataTuru = "dikkatsizlik"; // Çok yavaş tepki → dikkatsizlik
     } else {
-      // Benzer görsel seçimi kontrolü
+      // Benzer görsel seçimi kontrolü (300-3000ms arası)
       if (bolumTipi === "golge" || bolumTipi === "sekil" || bolumTipi === "parca") {
         hataTuru = "karistirma"; // Görsel olarak benzer yanlış seçilmesi
       } else {
@@ -1773,6 +1829,21 @@ function oyunSonuAnaliziniHazirla() {
   // GameEngine'in buildResultPayload fonksiyonu bu verileri kullanacak
   // Ancak oyunBaslangicZamani'nin her trial'a eklenmesi gerekiyor (zaten yapılıyor)
   
+  // ==========================================================
+  // 12. 8 ÖZEL PERFORMANS ALANLARI HESAPLAMA
+  // ==========================================================
+  const ozelPerformansAlanlari = hesaplaOzelPerformansAlanlari(trials, toplamYanlis);
+  
+  // ==========================================================
+  // 13. EN ÇOK HATA YAPILAN RENKLER/ŞEKİLLER ANALİZİ
+  // ==========================================================
+  const hataAnalizi = hesaplaHataAnalizi(trials);
+  
+  // ==========================================================
+  // 14. GÜNLÜK HAYAT KARŞILIĞI ANALİZİ (6 BAŞLIK)
+  // ==========================================================
+  const gunlukHayatKarsiligi = hesaplaGunlukHayatKarsiligi(trials, toplamDogru, toplamYanlis, ortalamaTepkiSuresi);
+  
   // Bu verileri engine'e ekstra data olarak ekle
   // Engine'in buildResultPayload fonksiyonu bu verileri kullanacak
   if (engine) {
@@ -1802,9 +1873,13 @@ function oyunSonuAnaliziniHazirla() {
       bolumSkorlari,
       oyunBaslangicZamani,
       oyunBitisZamani,
-      zihinselAlanlar // 7 zihinsel alan puanları
+      zihinselAlanlar, // 7 zihinsel alan puanları
+      ozelPerformansAlanlari, // 8 özel performans alanı
+      gunlukHayatKarsiligi, // 6 günlük hayat karşılığı alanı
+      hataAnalizi // En çok hata yapılan renkler/şekiller
     };
     console.log("✅ Engine'e oyunDetaylari eklendi:", engine.oyunDetaylari);
+    console.log("✅ gunlukHayatKarsiligi eklendi:", gunlukHayatKarsiligi);
   }
   
   return {
@@ -1831,7 +1906,519 @@ function oyunSonuAnaliziniHazirla() {
     ogrenmeHiziSkoru,
     bolumSkorlari,
     oyunBaslangicZamani,
-    oyunBitisZamani
+    oyunBitisZamani,
+    ozelPerformansAlanlari
+  };
+}
+
+// ==========================================================
+// 8 ÖZEL PERFORMANS ALANLARI HESAPLAMA FONKSİYONU
+// ==========================================================
+function hesaplaOzelPerformansAlanlari(trials, toplamYanlis) {
+  console.log("📊 Özel performans alanları hesaplanıyor...");
+  
+  // 1️⃣ RENK AYIRT ETME
+  const renkTrials = trials.filter(t => t.bolum === "renk");
+  let renk_ayirt_etme = {
+    seviye: "Orta",
+    dogruOran: 0,
+    ortalamaRT: 0,
+    soruSayisi: renkTrials.length
+  };
+  
+  if (renkTrials.length > 0) {
+    const renkDogru = renkTrials.filter(t => t.correct).length;
+    const renkDogruOran = (renkDogru / renkTrials.length) * 100;
+    const renkDogruTrials = renkTrials.filter(t => t.correct && typeof t.reaction_ms === "number");
+    const renkOrtRT = renkDogruTrials.length > 0
+      ? Math.round(renkDogruTrials.reduce((sum, t) => sum + (t.reaction_ms || 0), 0) / renkDogruTrials.length)
+      : 0;
+    
+    renk_ayirt_etme.dogruOran = Math.round(renkDogruOran);
+    renk_ayirt_etme.ortalamaRT = renkOrtRT;
+    
+    if (renkDogruOran >= 80 && renkOrtRT < 2000) {
+      renk_ayirt_etme.seviye = "Yüksek";
+    } else if (renkDogruOran < 50 || renkOrtRT > 3000) {
+      renk_ayirt_etme.seviye = "Düşük";
+    } else {
+      renk_ayirt_etme.seviye = "Orta";
+    }
+  }
+  
+  // 2️⃣ ŞEKİL TANIMA
+  const sekilTrials = trials.filter(t => t.bolum === "sekil");
+  let sekil_tanima = {
+    seviye: "Orta",
+    dogruOran: 0,
+    karistirmaOrani: 0,
+    ortalamaRT: 0,
+    soruSayisi: sekilTrials.length
+  };
+  
+  if (sekilTrials.length > 0) {
+    const sekilDogru = sekilTrials.filter(t => t.correct).length;
+    const sekilDogruOran = (sekilDogru / sekilTrials.length) * 100;
+    const sekilKaristirma = sekilTrials.filter(t => t.hataTuru === "karistirma").length;
+    const sekilKaristirmaOrani = (sekilKaristirma / sekilTrials.length) * 100;
+    const sekilDogruTrials = sekilTrials.filter(t => t.correct && typeof t.reaction_ms === "number");
+    const sekilOrtRT = sekilDogruTrials.length > 0
+      ? Math.round(sekilDogruTrials.reduce((sum, t) => sum + (t.reaction_ms || 0), 0) / sekilDogruTrials.length)
+      : 0;
+    
+    sekil_tanima.dogruOran = Math.round(sekilDogruOran);
+    sekil_tanima.karistirmaOrani = Math.round(sekilKaristirmaOrani);
+    sekil_tanima.ortalamaRT = sekilOrtRT;
+    
+    if (sekilDogruOran >= 80 && sekilKaristirmaOrani < 20) {
+      sekil_tanima.seviye = "Yüksek";
+    } else if (sekilDogruOran < 50 || sekilKaristirmaOrani >= 40) {
+      sekil_tanima.seviye = "Düşük";
+    } else {
+      sekil_tanima.seviye = "Orta";
+    }
+  }
+  
+  // 3️⃣ GÖRSEL KALIP ALGISI
+  const kalipTrials = trials.filter(t => ["sekil", "golge", "parca"].includes(t.bolum));
+  const zorTrials = kalipTrials.filter(t => t.secenekSayisi >= 3);
+  let gorsel_kalip_algisi = {
+    seviye: "Orta",
+    dogruOran: 0,
+    karistirmaOrani: 0,
+    zorSoruSayisi: zorTrials.length
+  };
+  
+  if (zorTrials.length > 0) {
+    const zorDogru = zorTrials.filter(t => t.correct).length;
+    const zorDogruOran = (zorDogru / zorTrials.length) * 100;
+    const zorKaristirma = zorTrials.filter(t => t.hataTuru === "karistirma").length;
+    const zorKaristirmaOrani = (zorKaristirma / zorTrials.length) * 100;
+    
+    gorsel_kalip_algisi.dogruOran = Math.round(zorDogruOran);
+    gorsel_kalip_algisi.karistirmaOrani = Math.round(zorKaristirmaOrani);
+    
+    if (zorDogruOran >= 75 && zorKaristirmaOrani < 25) {
+      gorsel_kalip_algisi.seviye = "Yüksek";
+    } else if (zorDogruOran < 50 || zorKaristirmaOrani >= 40) {
+      gorsel_kalip_algisi.seviye = "Düşük";
+    } else {
+      gorsel_kalip_algisi.seviye = "Orta";
+    }
+  }
+  
+  // 4️⃣ KATEGORİ / SINIF EŞLEME BECERİSİ
+  const kategoriHataSayisi = trials.filter(t => t.hataTuru === "kategori_hatasi").length;
+  const kategoriHataOrani = toplamYanlis > 0 ? (kategoriHataSayisi / toplamYanlis) * 100 : 0;
+  let kategori_sinif_esleme = {
+    seviye: "Orta",
+    kategoriHataOrani: Math.round(kategoriHataOrani),
+    kategoriHataSayisi,
+    toplamYanlis
+  };
+  
+  if (kategoriHataOrani < 15) {
+    kategori_sinif_esleme.seviye = "Yüksek";
+  } else if (kategoriHataOrani >= 30) {
+    kategori_sinif_esleme.seviye = "Düşük";
+  } else {
+    kategori_sinif_esleme.seviye = "Orta";
+  }
+  
+  // 5️⃣ GÖRSEL TAMAMLAMA (PARÇA-BÜTÜN)
+  const parcaTrials = trials.filter(t => t.bolum === "parca");
+  let gorsel_tamamlama = {
+    seviye: "Orta",
+    dogruOran: 0,
+    karistirmaOrani: 0,
+    kategoriHataOrani: 0,
+    soruSayisi: parcaTrials.length
+  };
+  
+  if (parcaTrials.length > 0) {
+    const parcaDogru = parcaTrials.filter(t => t.correct).length;
+    const parcaDogruOran = (parcaDogru / parcaTrials.length) * 100;
+    const parcaKaristirma = parcaTrials.filter(t => t.hataTuru === "karistirma").length;
+    const parcaKaristirmaOrani = (parcaKaristirma / parcaTrials.length) * 100;
+    const parcaKategori = parcaTrials.filter(t => t.hataTuru === "kategori_hatasi").length;
+    const parcaKategoriOrani = (parcaKategori / parcaTrials.length) * 100;
+    
+    gorsel_tamamlama.dogruOran = Math.round(parcaDogruOran);
+    gorsel_tamamlama.karistirmaOrani = Math.round(parcaKaristirmaOrani);
+    gorsel_tamamlama.kategoriHataOrani = Math.round(parcaKategoriOrani);
+    
+    if (parcaDogruOran >= 80 && parcaKaristirmaOrani < 25 && parcaKategoriOrani < 25) {
+      gorsel_tamamlama.seviye = "Yüksek";
+    } else if (parcaDogruOran < 50 || parcaKaristirmaOrani >= 40 || parcaKategoriOrani >= 40) {
+      gorsel_tamamlama.seviye = "Düşük";
+    } else {
+      gorsel_tamamlama.seviye = "Orta";
+    }
+  }
+  
+  // 6️⃣ BENZER – FARKLI AYIRT ETME
+  const benzerlikTrials = trials.filter(t => t.secenekSayisi >= 3);
+  const karistirmaSayisi = benzerlikTrials.filter(t => t.hataTuru === "karistirma").length;
+  const karistirmaOrani = benzerlikTrials.length > 0 ? (karistirmaSayisi / benzerlikTrials.length) * 100 : 0;
+  let benzer_farkli_ayirt_etme = {
+    seviye: "Orta",
+    karistirmaOrani: Math.round(karistirmaOrani),
+    karistirmaSayisi,
+    zorSoruSayisi: benzerlikTrials.length
+  };
+  
+  if (karistirmaOrani < 20) {
+    benzer_farkli_ayirt_etme.seviye = "Yüksek";
+  } else if (karistirmaOrani >= 40) {
+    benzer_farkli_ayirt_etme.seviye = "Düşük";
+  } else {
+    benzer_farkli_ayirt_etme.seviye = "Orta";
+  }
+  
+  // 7️⃣ DETAY TARAMA HIZI
+  const detayTrials = trials.filter(t => t.secenekSayisi >= 3);
+  const detayDogru = detayTrials.filter(t => t.correct).length;
+  const detayDogruOran = detayTrials.length > 0 ? (detayDogru / detayTrials.length) * 100 : 0;
+  const detayDogruTrials = detayTrials.filter(t => t.correct && typeof t.reaction_ms === "number");
+  const detayOrtRT = detayDogruTrials.length > 0
+    ? Math.round(detayDogruTrials.reduce((sum, t) => sum + (t.reaction_ms || 0), 0) / detayDogruTrials.length)
+    : 0;
+  let detay_tarama_hizi = {
+    seviye: "Orta",
+    dogruOran: Math.round(detayDogruOran),
+    ortalamaRT: detayOrtRT,
+    zorSoruSayisi: detayTrials.length
+  };
+  
+  if (detayDogruOran >= 70 && detayOrtRT < 2000) {
+    detay_tarama_hizi.seviye = "Yüksek";
+  } else if (detayDogruOran < 50 || detayOrtRT > 3000) {
+    detay_tarama_hizi.seviye = "Düşük";
+  } else {
+    detay_tarama_hizi.seviye = "Orta";
+  }
+  
+  // 8️⃣ YÖNLÜK / FİGÜR–ZEMİN ALGISI
+  const golgeTrials = trials.filter(t => t.bolum === "golge");
+  let yonluk_figur_zemin = {
+    seviye: "Orta",
+    dogruOran: 0,
+    karistirmaOrani: 0,
+    ortalamaRT: 0,
+    soruSayisi: golgeTrials.length
+  };
+  
+  if (golgeTrials.length > 0) {
+    const golgeDogru = golgeTrials.filter(t => t.correct).length;
+    const golgeDogruOran = (golgeDogru / golgeTrials.length) * 100;
+    const golgeKaristirma = golgeTrials.filter(t => t.hataTuru === "karistirma").length;
+    const golgeKaristirmaOrani = (golgeKaristirma / golgeTrials.length) * 100;
+    const golgeDogruTrials = golgeTrials.filter(t => t.correct && typeof t.reaction_ms === "number");
+    const golgeOrtRT = golgeDogruTrials.length > 0
+      ? Math.round(golgeDogruTrials.reduce((sum, t) => sum + (t.reaction_ms || 0), 0) / golgeDogruTrials.length)
+      : 0;
+    
+    yonluk_figur_zemin.dogruOran = Math.round(golgeDogruOran);
+    yonluk_figur_zemin.karistirmaOrani = Math.round(golgeKaristirmaOrani);
+    yonluk_figur_zemin.ortalamaRT = golgeOrtRT;
+    
+    if (golgeDogruOran >= 75 && golgeKaristirmaOrani < 25) {
+      yonluk_figur_zemin.seviye = "Yüksek";
+    } else if (golgeDogruOran < 50 || golgeKaristirmaOrani >= 40) {
+      yonluk_figur_zemin.seviye = "Düşük";
+    } else {
+      yonluk_figur_zemin.seviye = "Orta";
+    }
+  }
+  
+  return {
+    renk_ayirt_etme,
+    sekil_tanima,
+    gorsel_kalip_algisi,
+    kategori_sinif_esleme,
+    gorsel_tamamlama,
+    benzer_farkli_ayirt_etme,
+    detay_tarama_hizi,
+    yonluk_figur_zemin
+  };
+}
+
+// ==========================================================
+// GÜNLÜK HAYAT KARŞILIĞI ANALİZİ (6 BAŞLIK)
+// ==========================================================
+function hesaplaGunlukHayatKarsiligi(trials, toplamDogru, toplamYanlis, ortalamaTepkiSuresi) {
+  console.log("📊 Günlük hayat karşılığı analizi hazırlanıyor...");
+  
+  const toplamSoru = trials.length;
+  
+  // 1️⃣ TEPKİ SÜRESİ → KARAR VERME HIZI
+  let kararVermeHizi = {
+    ortalamaMs: ortalamaTepkiSuresi,
+    seviye: "Orta"
+  };
+  
+  if (ortalamaTepkiSuresi < 1200) {
+    kararVermeHizi.seviye = "Hızlı";
+  } else if (ortalamaTepkiSuresi > 2500) {
+    kararVermeHizi.seviye = "Yavaş";
+  } else {
+    kararVermeHizi.seviye = "Orta";
+  }
+  
+  // En hızlı ve en yavaş tepki
+  const dogruTrials = trials.filter(t => t.correct && typeof t.reaction_ms === "number");
+  if (dogruTrials.length > 0) {
+    const tepkiSureleri = dogruTrials.map(t => t.reaction_ms);
+    kararVermeHizi.enHizliTepki = Math.min(...tepkiSureleri);
+    kararVermeHizi.enYavasTepki = Math.max(...tepkiSureleri);
+  }
+  
+  // 2️⃣ HATA TİPİ → ACELECİLİK / DİKKATSİZLİK AYRIMI
+  const impulsiviteSayisi = trials.filter(t => t.hataTuru === "impulsivite").length;
+  const dikkatsizlikSayisi = trials.filter(t => t.hataTuru === "dikkatsizlik").length;
+  
+  const impulsiviteOrani = toplamYanlis > 0 ? (impulsiviteSayisi / toplamYanlis) * 100 : 0;
+  const dikkatsizlikOrani = toplamYanlis > 0 ? (dikkatsizlikSayisi / toplamYanlis) * 100 : 0;
+  
+  let baskinTip = "dengeli";
+  if (impulsiviteOrani > 50) {
+    baskinTip = "aceleci";
+  } else if (dikkatsizlikOrani > 50) {
+    baskinTip = "dikkatsiz";
+  }
+  
+  const hataTipiAnalizi = {
+    impulsiviteOrani: Math.round(impulsiviteOrani),
+    dikkatsizlikOrani: Math.round(dikkatsizlikOrani),
+    impulsiviteSayisi,
+    dikkatsizlikSayisi,
+    toplamYanlis,
+    baskinTip
+  };
+  
+  // 3️⃣ GÖRSEL TARAMA → OKUMA SIRASINDA SATIR TAKİBİ
+  const detayTrials = trials.filter(t => t.secenekSayisi >= 3);
+  let gorselTarama = {
+    seviye: "Orta",
+    dogruOran: 0,
+    ortalamaRT: 0,
+    soruSayisi: detayTrials.length
+  };
+  
+  if (detayTrials.length > 0) {
+    const detayDogru = detayTrials.filter(t => t.correct).length;
+    const detayDogruOran = (detayDogru / detayTrials.length) * 100;
+    const detayDogruTrials = detayTrials.filter(t => t.correct && typeof t.reaction_ms === "number");
+    const detayOrtRT = detayDogruTrials.length > 0
+      ? Math.round(detayDogruTrials.reduce((sum, t) => sum + (t.reaction_ms || 0), 0) / detayDogruTrials.length)
+      : 0;
+    
+    gorselTarama.dogruOran = Math.round(detayDogruOran);
+    gorselTarama.ortalamaRT = detayOrtRT;
+    
+    if (detayDogruOran >= 70 && detayOrtRT < 2000) {
+      gorselTarama.seviye = "Yüksek";
+    } else if (detayDogruOran < 50 || detayOrtRT > 3000) {
+      gorselTarama.seviye = "Düşük";
+    } else {
+      gorselTarama.seviye = "Orta";
+    }
+  }
+  
+  // 4️⃣ ÇALIŞMA BELLEĞİ → YÖNERGEYİ EKSİKSİZ UYGULAMA
+  // En uzun seri doğru
+  let enUzunSeri = 0;
+  let current = 0;
+  trials.forEach(t => {
+    if (t.correct) {
+      current++;
+      if (current > enUzunSeri) enUzunSeri = current;
+    } else {
+      current = 0;
+    }
+  });
+  
+  // İlk yarı vs son yarı doğru oranı
+  const yari = Math.floor(trials.length / 2);
+  const ilkYari = trials.slice(0, yari);
+  const sonYari = trials.slice(yari);
+  
+  const ilkYariDogru = ilkYari.filter(t => t.correct).length;
+  const sonYariDogru = sonYari.filter(t => t.correct).length;
+  const ilkYariDogruOrani = ilkYari.length > 0 ? Math.round((ilkYariDogru / ilkYari.length) * 100) : 0;
+  const sonYariDogruOrani = sonYari.length > 0 ? Math.round((sonYariDogru / sonYari.length) * 100) : 0;
+  const gelisimFarki = sonYariDogruOrani - ilkYariDogruOrani;
+  
+  let calismaBellegiSeviye = "Orta";
+  if (enUzunSeri >= 5 && gelisimFarki >= 0) {
+    calismaBellegiSeviye = "Yüksek";
+  } else if (enUzunSeri <= 2 || (sonYariDogruOrani < ilkYariDogruOrani - 10)) {
+    calismaBellegiSeviye = "Düşük";
+  }
+  
+  const calismaBellegi = {
+    seviye: calismaBellegiSeviye,
+    enUzunDogruSeri: enUzunSeri,
+    ilkYariDogruOrani,
+    sonYariDogruOrani,
+    gelisimFarki
+  };
+  
+  // 5️⃣ MANTIK → PROBLEM ÇÖZME
+  const genelDogruOran = toplamSoru > 0 ? (toplamDogru / toplamSoru) * 100 : 0;
+  const zorTrials = trials.filter(t => t.secenekSayisi >= 3);
+  const zorDogru = zorTrials.filter(t => t.correct).length;
+  const zorDogruOran = zorTrials.length > 0 ? (zorDogru / zorTrials.length) * 100 : 0;
+  
+  let mantikSeviye = "Orta";
+  if (genelDogruOran >= 80 && zorDogruOran >= 70) {
+    mantikSeviye = "Yüksek";
+  } else if (genelDogruOran < 50) {
+    mantikSeviye = "Düşük";
+  }
+  
+  const mantik = {
+    seviye: mantikSeviye,
+    genelDogruOran: Math.round(genelDogruOran),
+    zorDogruOran: Math.round(zorDogruOran),
+    soruSayisi: toplamSoru
+  };
+  
+  // 6️⃣ SOSYAL-DUYGUSAL → AKRAN İLİŞKİLERİ, UYGUN TEPKİ
+  let profil = "dengeli";
+  if (impulsiviteOrani >= 40) {
+    profil = "aceleci";
+  } else if (dikkatsizlikOrani >= 40) {
+    profil = "dikkati_dagilan";
+  }
+  
+  const sosyalDuygusal = {
+    profil,
+    impulsiviteOrani: Math.round(impulsiviteOrani),
+    dikkatsizlikOrani: Math.round(dikkatsizlikOrani),
+    toplamYanlis
+  };
+  
+  return {
+    kararVermeHizi,
+    hataTipiAnalizi,
+    gorselTarama,
+    calismaBellegi,
+    mantik,
+    sosyalDuygusal
+  };
+}
+
+// ==========================================================
+// EN ÇOK HATA YAPILAN RENKLER/ŞEKİLLER ANALİZİ
+// ==========================================================
+function hesaplaHataAnalizi(trials) {
+  console.log("📊 Hata analizi hazırlanıyor...");
+  
+  // Renk hataları
+  const renkHatalari = {};
+  const renkTrials = trials.filter(t => t.bolum === "renk");
+  
+  renkTrials.forEach(trial => {
+    if (trial.hedefRenk) {
+      const renk = trial.hedefRenk;
+      if (!renkHatalari[renk]) {
+        renkHatalari[renk] = {
+          toplam: 0,
+          hata: 0,
+          dogru: 0,
+          hataOrani: 0
+        };
+      }
+      renkHatalari[renk].toplam++;
+      if (trial.correct) {
+        renkHatalari[renk].dogru++;
+      } else {
+        renkHatalari[renk].hata++;
+      }
+    }
+  });
+  
+  // Hata oranlarını hesapla
+  Object.keys(renkHatalari).forEach(renk => {
+    const data = renkHatalari[renk];
+    data.hataOrani = data.toplam > 0 ? Math.round((data.hata / data.toplam) * 100) : 0;
+  });
+  
+  // Şekil hataları
+  const sekilHatalari = {};
+  const sekilTrials = trials.filter(t => t.bolum === "sekil");
+  
+  sekilTrials.forEach(trial => {
+    if (trial.hedefSekil) {
+      const sekil = trial.hedefSekil;
+      if (!sekilHatalari[sekil]) {
+        sekilHatalari[sekil] = {
+          toplam: 0,
+          hata: 0,
+          dogru: 0,
+          hataOrani: 0
+        };
+      }
+      sekilHatalari[sekil].toplam++;
+      if (trial.correct) {
+        sekilHatalari[sekil].dogru++;
+      } else {
+        sekilHatalari[sekil].hata++;
+      }
+    }
+  });
+  
+  // Hata oranlarını hesapla
+  Object.keys(sekilHatalari).forEach(sekil => {
+    const data = sekilHatalari[sekil];
+    data.hataOrani = data.toplam > 0 ? Math.round((data.hata / data.toplam) * 100) : 0;
+  });
+  
+  // En çok hata yapılan renkler (sıralı)
+  const enCokHataRenkler = Object.entries(renkHatalari)
+    .map(([renk, data]) => ({
+      renk,
+      ...data
+    }))
+    .filter(item => item.toplam > 0)
+    .sort((a, b) => {
+      // Önce hata oranına göre, sonra toplam hataya göre
+      if (b.hataOrani !== a.hataOrani) {
+        return b.hataOrani - a.hataOrani;
+      }
+      return b.hata - a.hata;
+    })
+    .slice(0, 5); // En çok hata yapılan 5 renk
+  
+  // En çok hata yapılan şekiller (sıralı)
+  const enCokHataSekiller = Object.entries(sekilHatalari)
+    .map(([sekil, data]) => ({
+      sekil,
+      ...data
+    }))
+    .filter(item => item.toplam > 0)
+    .sort((a, b) => {
+      // Önce hata oranına göre, sonra toplam hataya göre
+      if (b.hataOrani !== a.hataOrani) {
+        return b.hataOrani - a.hataOrani;
+      }
+      return b.hata - a.hata;
+    })
+    .slice(0, 5); // En çok hata yapılan 5 şekil
+  
+  console.log("✅ Hata analizi tamamlandı:", {
+    renkHatalari: Object.keys(renkHatalari).length,
+    sekilHatalari: Object.keys(sekilHatalari).length,
+    enCokHataRenkler: enCokHataRenkler.length,
+    enCokHataSekiller: enCokHataSekiller.length
+  });
+  
+  return {
+    renkHatalari,
+    sekilHatalari,
+    enCokHataRenkler,
+    enCokHataSekiller
   };
 }
 

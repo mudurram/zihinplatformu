@@ -3,6 +3,9 @@
 // =====================================================
 
 import { GLOBAL, ROLES, BRAIN_AREAS, SUBSKILLS } from "./globalConfig.js";
+import { listAllRequestsByUser, respondRequest, createStudentTeacherRequest, createStudentInstitutionRequest } from "../data/requestService.js";
+import { db } from "../data/firebaseConfig.js";
+import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // =====================================================
 // 🔍 Kullanıcı Bilgisi (LocalStorage)
@@ -51,11 +54,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   zihinAlanlariniCiz();
   
-  // Aktif alan varsa modal aç
+  // Öğrenci ise talepleri yükle
+  if (role === ROLES.OGRENCI) {
+    const taleplerKart = document.getElementById("ogrenciTaleplerKart");
+    if (taleplerKart) {
+      taleplerKart.style.display = "block";
+      yukleOgrenciTalepleri();
+      ogretmenTalepGonderButonu();
+    }
+  }
+  
+  // Aktif alan varsa modal aç (sadece header'dan geliyorsa)
   const aktifAlan = localStorage.getItem("aktifAlan");
   if (aktifAlan && BRAIN_AREAS[aktifAlan]) {
     modalAc(aktifAlan);
     localStorage.removeItem("aktifAlan");
+  } else {
+    // Aktif alan yoksa modal'ı kapat (ana menüye direkt gidildiyse)
+    const modal = document.getElementById("altAlanModal");
+    if (modal) modal.style.display = "none";
   }
 });
 
@@ -153,12 +170,14 @@ async function yukleOgrenciTalepleri() {
   const uid = localStorage.getItem(GLOBAL.LS_KEYS.UID) || localStorage.getItem("uid");
   const { received, sent } = await listAllRequestsByUser(uid);
 
-  // ALINAN TALEPLER (Öğretmenden gelen)
+  // ALINAN TALEPLER (Öğretmen ve Kurumdan gelen)
   if (alinanListe) {
-    const ogretmenTalepleri = received.filter(req => req.type === "teacher_student" && req.status === "beklemede");
+    const ogretmenTalepleri = received.filter(req => 
+      (req.type === "teacher_student" || req.type === "institution_student") && req.status === "beklemede"
+    );
     
     if (!ogretmenTalepleri.length) {
-      alinanListe.innerHTML = "<li style='color:#999;padding:15px;text-align:center;'>Bekleyen öğretmen talebi yok.</li>";
+      alinanListe.innerHTML = "<li style='color:#999;padding:15px;text-align:center;'>Bekleyen talep yok.</li>";
     } else {
       alinanListe.innerHTML = "";
       for (const req of ogretmenTalepleri) {
@@ -174,10 +193,15 @@ async function yukleOgrenciTalepleri() {
           console.warn("Öğretmen bilgisi alınamadı:", err);
         }
 
+        // Talep tipine göre mesaj
+        const talepMetni = req.type === "teacher_student" 
+          ? `<strong>${teacherName}</strong> öğretmeni seni eklemek istiyor.`
+          : `<strong>${teacherName}</strong> kurumu seni eklemek istiyor.`;
+
         const li = document.createElement("li");
         li.innerHTML = `
           <div>
-            <strong>${teacherName}</strong> öğretmeni seni eklemek istiyor.
+            ${talepMetni}
           </div>
           <div class="talep-btn-grup">
             <button data-id="${req.id}" data-status="kabul" style="background:#27ae60;color:white;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;">✓ Kabul</button>
@@ -197,9 +221,9 @@ async function yukleOgrenciTalepleri() {
     }
   }
 
-  // GÖNDERİLEN TALEPLER (Öğretmene gönderilen)
+  // GÖNDERİLEN TALEPLER (Öğretmen ve Kuruma gönderilen)
   if (gonderilenListe) {
-    const ogrenciTalepleri = sent.filter(req => req.type === "student_teacher");
+    const ogrenciTalepleri = sent.filter(req => req.type === "student_teacher" || req.type === "student_institution");
     
     if (!ogrenciTalepleri.length) {
       gonderilenListe.innerHTML = "<li style='color:#999;padding:15px;text-align:center;'>Gönderilen talep yok.</li>";
@@ -222,10 +246,15 @@ async function yukleOgrenciTalepleri() {
                           req.status === "kabul" ? "✅ Kabul Edildi" : 
                           req.status === "red" ? "❌ Reddedildi" : req.status;
 
+        // Talep tipine göre mesaj
+        const talepMetni = req.type === "student_teacher"
+          ? `<strong>${teacherName}</strong> öğretmenine gönderildi`
+          : `<strong>${teacherName}</strong> kurumuna gönderildi`;
+
         const li = document.createElement("li");
         li.innerHTML = `
           <div>
-            <strong>${teacherName}</strong> öğretmenine gönderildi — ${statusText}
+            ${talepMetni} — ${statusText}
           </div>
         `;
         gonderilenListe.appendChild(li);
@@ -275,19 +304,23 @@ async function davetGonder() {
     
     // Rol bazlı davet gönderme
     if (role === ROLES.OGRENCI) {
-      // Öğrenci → Öğretmen daveti
-      if (teacherData.role !== ROLES.OGRETMEN) {
-        mesajDiv.innerHTML = "<span style='color:#e74c3c;'>❌ Bu kullanıcı öğretmen değil.</span>";
-        return;
-      }
-      
+      // Öğrenci → Öğretmen veya Kurum daveti
       const studentId = localStorage.getItem(GLOBAL.LS_KEYS.UID) || localStorage.getItem("uid");
       if (!studentId) {
         mesajDiv.innerHTML = "<span style='color:#e74c3c;'>❌ Oturum hatası. Lütfen tekrar giriş yapın.</span>";
         return;
       }
       
-      result = await createStudentTeacherRequest(studentId, targetUid);
+      if (teacherData.role === ROLES.OGRETMEN) {
+        // Öğrenci → Öğretmen daveti
+        result = await createStudentTeacherRequest(studentId, targetUid);
+      } else if (teacherData.role === ROLES.INSTITUTION) {
+        // Öğrenci → Kurum daveti
+        result = await createStudentInstitutionRequest(studentId, targetUid);
+      } else {
+        mesajDiv.innerHTML = "<span style='color:#e74c3c;'>❌ Sadece öğretmen veya kuruma davet gönderebilirsiniz.</span>";
+        return;
+      }
     } else {
       mesajDiv.innerHTML = "<span style='color:#e74c3c;'>❌ Geçersiz rol.</span>";
       return;

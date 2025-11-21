@@ -151,12 +151,9 @@
 
     <!-- FİLTRELER -->
     <div class="filter-row">
-      <!-- Oyun Filtre -->
       <select id="oyunFiltre">
         <option value="hepsi">Tüm Oyunlar</option>
       </select>
-
-      <!-- Tarih Filtre -->
       <select id="tarihFiltre">
         <option value="son">En Son</option>
         <option value="hafta">Son 1 Hafta</option>
@@ -165,85 +162,110 @@
       </select>
     </div>
 
-    <!-- SONUÇ LİSTESİ -->
-    <div class="list-container" id="sonucListe"></div>
-
-    <!-- 12 ALAN RADAR GRAFİĞİ -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">🧠 12 Zihin Alanı Radar Grafiği</h3>
-      <canvas id="radarChart"></canvas>
-    </div>
-
-    <!-- TREND GRAFİK -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">📈 Trend Analizi</h3>
-      <canvas id="trendChart"></canvas>
-    </div>
-
-    <!-- ÖĞRENME HIZI GRAFİĞİ -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">⚡ Öğrenme Hızı Zaman Serisi</h3>
-      <canvas id="ogrenmeHiziChart"></canvas>
-    </div>
-
-    <!-- HEATMAP - Oyun → Zihinsel Alan Eşleşmesi -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">🔥 Heatmap – Oyun → Zihinsel Alan Eşleşmesi</h3>
-      <p style="text-align:center;color:#666;margin-bottom:15px;">Hangi oyun hangi beceriyi ne kadar etkiliyor?</p>
-      <div id="heatmapContainer"></div>
-    </div>
-
-    <!-- ALAN BAZLI SKOR TABLOSU -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">📊 Alan Bazlı Skor Tablosu</h3>
-      <table class="tablo" id="alanTablo">
-        <thead>
-          <tr>
-            <th>Alan</th>
-            <th>Son Skor</th>
-            <th>Ortalama</th>
-            <th>Trend</th>
-            <th>Günlük Hayat</th>
-          </tr>
-        </thead>
-        <tbody id="alanTabloBody"></tbody>
-      </table>
-    </div>
-
-    <!-- HATA TÜRLERİ DAĞILIMI -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">🔍 Hata Türleri Dağılımı</h3>
-      <canvas id="hataTurleriChart"></canvas>
-    </div>
-
-    <!-- GÜÇLÜ - GELİŞTİRİLECEK ALANLAR -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">💪 Güçlü ve Geliştirilecek Yönler</h3>
-      <div class="guc-ve-zayif">
-        <div>
-          <h4>✅ Güçlü Yönler</h4>
-          <ul id="gucluYonler"></ul>
+    <!-- 🟦 A) ÜST BLOK – GENEL PERFORMANS ÖZETİ -->
+    <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+      <h3 style="margin-top:0; color:#1e3d59;">📊 Genel Performans Özeti</h3>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
+        <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <div style="font-size:12px; color:#666; margin-bottom:5px;">Son 10 Oyun Ortalama</div>
+          <div id="son10Ortalama" style="font-size:24px; font-weight:700; color:#1e88e5;">-</div>
         </div>
-        <div>
-          <h4>📈 Geliştirilecek Yönler</h4>
-          <ul id="gelistirilecekYonler"></ul>
+        <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <div style="font-size:12px; color:#666; margin-bottom:5px;">En Güçlü Alan</div>
+          <div id="enGucluAlan" style="font-size:18px; font-weight:600; color:#4caf50;">-</div>
+        </div>
+        <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <div style="font-size:12px; color:#666; margin-bottom:5px;">En Zayıf Alan</div>
+          <div id="enZayifAlan" style="font-size:18px; font-weight:600; color:#f44336;">-</div>
+        </div>
+      </div>
+      <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); margin-top:15px;">
+        <div style="font-size:12px; color:#666; margin-bottom:5px;">Son 10 Oyunda Doğru/Yanlış Trendi</div>
+        <canvas id="trendMiniChart" style="max-height:100px;"></canvas>
+      </div>
+    </div>
+
+    <!-- 🔷 ANA BLOK 1 – ZAMAN SERİSİ GRAFİKLERİ -->
+    <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+      <h3 style="margin-top:0; color:#1e3d59;">📈 Zaman Serisi Grafikleri</h3>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <h4 style="margin-top:0; color:#1e3d59; font-size:16px;">Genel Başarı Trendi</h4>
+          <canvas id="trendChart"></canvas>
+        </div>
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <h4 style="margin-top:0; color:#1e3d59; font-size:16px;">Öğrenme Hızı Trendi</h4>
+          <canvas id="ogrenmeHiziChart"></canvas>
+        </div>
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <h4 style="margin-top:0; color:#1e3d59; font-size:16px;">Tepki Süresi Trendi</h4>
+          <canvas id="tepkiSuresiChart"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- AI ÖNERİ MOTORU -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">🤖 AI Öneri Motoru</h3>
-      <div id="aiOneri" class="ai-oneri">
-        <p>Analiz yapılıyor...</p>
+    <!-- 🔷 ANA BLOK 2 – ZİHİNSEL ALAN ORTALAMALARI -->
+    <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+      <h3 style="margin-top:0; color:#1e3d59;">🧠 Zihinsel Alan Ortalamaları</h3>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <h4 style="margin-top:0; color:#1e3d59; font-size:16px;">7 Zihin Alanı Radar Grafiği</h4>
+          <canvas id="radarChart"></canvas>
+        </div>
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <h4 style="margin-top:0; color:#1e3d59; font-size:16px;">Alan Ortalamaları Tablosu</h4>
+          <table class="tablo" id="alanTablo" style="font-size:13px;">
+            <thead>
+              <tr>
+                <th>Alan</th>
+                <th>Ortalama</th>
+                <th>En Yüksek</th>
+                <th>En Düşük</th>
+                <th>Oyun Sayısı</th>
+              </tr>
+            </thead>
+            <tbody id="alanTabloBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- BİLEŞEN KARŞILAŞTIRMA -->
-    <div class="chart-section">
-      <h3 style="text-align:center;margin-bottom:15px;">🧠 Bilişsel Karşılaştırma</h3>
-      <canvas id="compareChart"></canvas>
+    <!-- 🔷 ANA BLOK 3 – HATA ANALİZİ -->
+    <div style="background:#f8f9fa; padding:20px; border-radius:12px; margin-bottom:20px;">
+      <h3 style="margin-top:0; color:#1e3d59;">⚠️ Hata Analizi</h3>
+      <div style="display:grid; grid-template-columns: 300px 1fr; gap:20px; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <canvas id="hataTurleriChart"></canvas>
+        </div>
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <p id="baskinHataTipiGenel" style="margin:0; font-size:16px; font-weight:600; color:#e53935;"></p>
+        </div>
+      </div>
     </div>
+
+    <!-- 🟩 E) ALT BLOK – GÜÇLÜ/ZAYIF YÖNLER -->
+    <div style="background:#f0f8ff; padding:20px; border-radius:12px;">
+      <h3 style="margin-top:0; color:#1e3d59;">💬 Güçlü/Zayıf Yönler</h3>
+      <div class="guc-ve-zayif" style="margin-top:15px;">
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <h4 style="margin-top:0; color:#4caf50;">✅ Güçlü 3 Alan</h4>
+          <ul id="gucluYonler" style="list-style:none; padding:0;"></ul>
+        </div>
+        <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          <h4 style="margin-top:0; color:#f44336;">📈 Geliştirilmesi Gereken 3 Alan</h4>
+          <ul id="gelistirilecekYonler" style="list-style:none; padding:0;"></ul>
+        </div>
+      </div>
+      <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); margin-top:20px;">
+        <h4 style="margin-top:0; color:#1e3d59;">🤖 AI Önerileri</h4>
+        <div id="aiOneri" class="ai-oneri" style="margin-top:10px;">
+          <p>Analiz yapılıyor...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SONUÇ LİSTESİ (Gizli - sadece JS'de kullanılıyor) -->
+    <div class="list-container" id="sonucListe" style="display:none;"></div>
 
   </div>
 

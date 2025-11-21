@@ -258,23 +258,50 @@ export const GAME_MAP = {
   },
   ayirt_etme: {
     id: "ayirt_etme",
-    ad: "Benzer - Farklı",
+    ad: "Ayırt Etme",
     kategori: "Dikkat",
     alan: "attention",
     altBeceri: "ayirt_etme",
     // Bu oyun hangi zihinsel alanlara veri gönderir (3-7 modül)
-    moduller: ["attention", "perception"],
+    moduller: ["attention", "perception", "executive"],
     // Firebase'e kaydedilecek performans metrikleri
-    performansKeys: ["difference_detect_accuracy", "micro_discrimination", "visual_discrimination"],
-    path: "../oyunlar/2_basamak_ayirt_etme/ayirtetme.html",
+    performansKeys: [
+      "difference_detect_accuracy", 
+      "micro_discrimination", 
+      "visual_discrimination",
+      "reaction_speed",
+      "inhibitory_control",
+      "sustained_attention"
+    ],
+    path: "../oyunlar/2_basamak_ayirt_etme/menu.html",
     // Oyun özel beceriler (Oyun Bazlı Özel Performans Sekmesi için)
     oyunOzelBeceriler: [
-      { id: "kucuk_fark_bulma", ad: "Küçük Fark Bulma" },
-      { id: "yon_bilinci", ad: "Yön Bilinci" },
-      { id: "detay_tarama", ad: "Detay Tarama" }
+      { id: "renk_ayirt", ad: "Renk Ayırt Etme" },
+      { id: "boyut_ayirt", ad: "Boyut Ayırt Etme" },
+      { id: "yon_ayirt", ad: "Yön Ayırt Etme" },
+      { id: "miktar_ayirt", ad: "Miktar Ayırt Etme" },
+      { id: "sayi_ayirt", ad: "Sayı Ayırt Etme" },
+      { id: "kategori_ayirt", ad: "Kategori Ayırt Etme" },
+      { id: "duygu_ayirt", ad: "Duygu Ayırt Etme" },
+      { id: "mantiksal_ayirt", ad: "Mantıksal Ayırt Etme" },
+      { id: "gunluk_yasam_ayirt", ad: "Günlük Yaşam Ayırt Etme" }
     ],
     // Hata türleri bu oyunda ölçülebilir
-    hataTurleri: ["karistirma", "dikkatsizlik"]
+    hataTurleri: ["karistirma", "dikkatsizlik", "impulsivite"],
+    // Çoklu alan skorları için ağırlıklar
+    sonucMetrics: {
+      coklu_alan: {
+        attention: 0.9,
+        perception: 0.85,
+        executive: 0.8
+      },
+      oyun_ozel: [
+        "reaction_speed",
+        "inhibitory_control",
+        "sustained_attention",
+        "difference_detect_accuracy"
+      ]
+    }
   },
   hizli_tiklama: {
     id: "hizli_tiklama",
