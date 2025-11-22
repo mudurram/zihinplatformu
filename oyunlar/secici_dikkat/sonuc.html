@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <title>Oyun Sonucu | Zihin Platformu</title>
+
+  <!-- Stil -->
+  <link rel="stylesheet" href="sonuc.css" />
+  
+  <!-- Platform Header CSS -->
+  <link rel="stylesheet" href="../../platform/style.css" />
+
+  <!-- GLOBAL CONFIG -->
+  <script type="module" src="../../platform/globalConfig.js"></script>
+  
+  <!-- Header Script -->
+  <script type="module" src="../../platform/header.js"></script>
+
+  <!-- Oyun Script -->
+  <script type="module" src="sonuc.js" defer></script>
+
+</head>
+
+<body>
+
+  <!-- Header header.js tarafından otomatik eklenecek -->
+  
+  <!-- ========================================================= -->
+  <!-- 🔵 SONUÇ EKRANI -->
+  <!-- ========================================================= -->
+  <div class="sonuc-container">
+    <div class="sonuc-kart">
+      <h1 class="sonuc-baslik">🎉 Oyun Bitti</h1>
+      <h2 id="oyunAdi" class="oyun-adi">Seçici Dikkat Oyunu</h2>
+      
+      <div class="sonuc-istatistikler">
+        <div class="istatistik-item">
+          <span class="istatistik-label">Oynanan Süre:</span>
+          <span id="oynananSure" class="istatistik-deger">30 sn</span>
+        </div>
+        
+        <div class="istatistik-item">
+          <span class="istatistik-label">Doğru Sayısı:</span>
+          <span id="dogruSayisi" class="istatistik-deger dogru">0</span>
+        </div>
+        
+        <div class="istatistik-item">
+          <span class="istatistik-label">Yanlış Sayısı:</span>
+          <span id="yanlisSayisi" class="istatistik-deger yanlis">0</span>
+        </div>
+        
+        <div class="istatistik-item" id="ortalamaTepkiItem" style="display: none;">
+          <span class="istatistik-label">Ortalama Tepki Süresi:</span>
+          <span id="ortalamaTepki" class="istatistik-deger">0 ms</span>
+        </div>
+        
+        <div class="istatistik-item" id="enHizliTepkiItem" style="display: none;">
+          <span class="istatistik-label">En Hızlı Tepki:</span>
+          <span id="enHizliTepki" class="istatistik-deger">0 ms</span>
+        </div>
+      </div>
+      
+      <div class="sonuc-butonlar">
+        <button id="tekrarOynaBtn" class="sonuc-btn tekrar-btn">🔄 Tekrar Oyna</button>
+        <button id="farkliOyunBtn" class="sonuc-btn farkli-btn">🎮 Farklı Seçici Dikkat Oyunu Seç</button>
+        <button id="dikkatMenuBtn" class="sonuc-btn menu-btn">🏠 Dikkat Menüsüne Dön</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
+

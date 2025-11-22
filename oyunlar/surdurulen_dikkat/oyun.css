@@ -1,0 +1,307 @@
+/* ============================================================
+   🎨 HIZLI TEPKİ OYUN EKRANI TASARIMI
+============================================================ */
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #c9e9ff, #f5d0ff);
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  padding-top: 70px;
+  user-select: none;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ============================================================
+   HUD (ÜST BİLGİ ALANI)
+============================================================ */
+.hud-container {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.hud-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1b2d4a;
+}
+
+.hud-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: #4a90e2;
+  min-width: 50px;
+  text-align: center;
+}
+
+.bitir-btn {
+  padding: 10px 20px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.bitir-btn:hover {
+  background: #c0392b;
+  transform: scale(1.05);
+}
+
+.bitir-btn:active {
+  transform: scale(0.98);
+}
+
+/* ============================================================
+   OYUN ALANI
+============================================================ */
+.oyun-alani {
+  position: fixed;
+  top: 140px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.oyun-icerik {
+  width: 100%;
+  max-width: 800px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+
+/* ============================================================
+   IŞIK PANELİ (Işık Yandı → Bas)
+============================================================ */
+.isik-panel {
+  width: 300px;
+  height: 300px;
+  border-radius: 20px;
+  background: #95a5a6;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  font-weight: bold;
+}
+
+.isik-panel.yesil {
+  background: #2ecc71;
+}
+
+.isik-panel.gri {
+  background: #95a5a6;
+}
+
+/* ============================================================
+   HEDEF (Hedef Belirince Bas)
+============================================================ */
+.hedef {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #3498db;
+  position: absolute;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+  transition: transform 0.1s ease;
+}
+
+.hedef:hover {
+  transform: scale(1.1);
+}
+
+/* ============================================================
+   SES İKONU (Ses Gelince Bas)
+============================================================ */
+.ses-ikon {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 120px;
+  cursor: pointer;
+}
+
+.bas-butonu {
+  padding: 30px 80px;
+  background: linear-gradient(135deg, #4a90e2, #357ABD);
+  color: white;
+  border: none;
+  border-radius: 18px;
+  font-size: 32px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(74, 144, 226, 0.35);
+}
+
+.bas-butonu:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 32px rgba(74, 144, 226, 0.45);
+}
+
+.bas-butonu:active {
+  transform: scale(0.98);
+}
+
+/* ============================================================
+   KAYAN ÇİZGİ (Kayan Çizgi Durunca Bas)
+============================================================ */
+.cizgi-container {
+  width: 100%;
+  max-width: 600px;
+  height: 100px;
+  position: relative;
+  overflow: hidden;
+  border: 3px solid #34495e;
+  border-radius: 10px;
+  background: #ecf0f1;
+}
+
+.kayan-cizgi {
+  width: 150px;
+  height: 80px;
+  background: #e74c3c;
+  position: absolute;
+  top: 10px;
+  left: 0;
+  transition: left 0.1s linear;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.kayan-cizgi.durdu {
+  transition: none;
+}
+
+/* ============================================================
+   DARALAN ÇEMBER
+============================================================ */
+.cember-container {
+  width: 100%;
+  max-width: 500px;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.daralan-cember {
+  border-radius: 50%;
+  background: #3498db;
+  border: 4px solid #2980b9;
+  cursor: pointer;
+  transition: all 0.05s linear;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+/* ============================================================
+   KIRMIZI-YEŞİL IŞIK
+============================================================ */
+.renk-isik {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.renk-isik.gri {
+  background: #95a5a6;
+}
+
+.renk-isik.yesil {
+  background: #2ecc71;
+}
+
+.renk-isik.kirmizi {
+  background: #e74c3c;
+}
+
+/* ============================================================
+   TALİMAT METNİ
+============================================================ */
+.talimat-metni {
+  font-size: 20px;
+  color: #1b2d4a;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+  padding: 0 20px;
+}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media (max-width: 768px) {
+  .hud-container {
+    padding: 10px 15px;
+    gap: 10px;
+  }
+
+  .hud-label {
+    font-size: 14px;
+  }
+
+  .hud-value {
+    font-size: 18px;
+  }
+
+  .bitir-btn {
+    padding: 8px 15px;
+    font-size: 14px;
+  }
+
+  .oyun-alani {
+    top: 160px;
+  }
+
+  .isik-panel {
+    width: 250px;
+    height: 250px;
+  }
+
+  .talimat-metni {
+    font-size: 18px;
+  }
+}
+

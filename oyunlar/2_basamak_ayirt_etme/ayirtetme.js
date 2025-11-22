@@ -10,6 +10,223 @@ import { GameEngine } from "../../engine/gameEngine.js";
 // 🎨 VERİ HAVUZLARI
 // ==========================================================
 
+// SVG Görsel Üreticileri - Gerçekçi Çizimler
+// Test: Basit bir SVG oluştur
+function testSVG() {
+  return `<svg width="100" height="60" viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+    <rect x="40" y="10" width="20" height="40" fill="#FFD700" stroke="#DAA520" stroke-width="2"/>
+    <polygon points="40,10 60,10 50,0" fill="#2C3E50"/>
+  </svg>`;
+}
+
+function kalemSVG(kalinlik) {
+  const width = kalinlik === "kalin" ? 8 : kalinlik === "ince" ? 3 : kalinlik === "orta" ? 5 : 2;
+  const height = 60;
+  const tipYukseklik = 15;
+  const govdeYukseklik = height - tipYukseklik;
+  
+  return `
+    <svg width="80" height="${height}" viewBox="0 0 80 ${height}" xmlns="http://www.w3.org/2000/svg">
+      <!-- Kalem gövdesi -->
+      <rect x="${40 - width/2}" y="${tipYukseklik}" width="${width}" height="${govdeYukseklik}" 
+            fill="#FFD700" stroke="#DAA520" stroke-width="0.5" rx="1"/>
+      <!-- Kalem ucu -->
+      <polygon points="${40 - width/2},${tipYukseklik} ${40 + width/2},${tipYukseklik} 40,0" 
+               fill="#2C3E50" stroke="#1A252F" stroke-width="0.5"/>
+      <!-- Metal bant -->
+      <rect x="${40 - width/2 - 1}" y="${tipYukseklik + 2}" width="${width + 2}" height="3" 
+            fill="#C0C0C0" opacity="0.8"/>
+    </svg>
+  `;
+}
+
+function kitapSVG(kalinlik) {
+  const width = 50;
+  const height = kalinlik === "kalin" ? 45 : kalinlik === "ince" ? 15 : kalinlik === "orta" ? 30 : 10;
+  
+  return `
+    <svg width="60" height="${Math.max(height, 20)}" viewBox="0 0 60 ${Math.max(height, 20)}" xmlns="http://www.w3.org/2000/svg">
+      <!-- Kitap kapağı -->
+      <rect x="5" y="5" width="${width}" height="${height}" 
+            fill="#8B4513" stroke="#654321" stroke-width="1" rx="2"/>
+      <!-- Sayfalar -->
+      <rect x="7" y="7" width="${width - 4}" height="${height - 4}" 
+            fill="#FFFFFF" stroke="#E0E0E0" stroke-width="0.5"/>
+      <!-- Cilt çizgileri -->
+      <line x1="30" y1="7" x2="30" y2="${7 + height - 4}" stroke="#654321" stroke-width="0.5"/>
+      ${height > 20 ? `<line x1="20" y1="12" x2="40" y2="12" stroke="#D0D0D0" stroke-width="0.3"/>` : ''}
+      ${height > 25 ? `<line x1="20" y1="17" x2="40" y2="17" stroke="#D0D0D0" stroke-width="0.3"/>` : ''}
+    </svg>
+  `;
+}
+
+function agacSVG(kalinlik) {
+  const govdeGenislik = kalinlik === "kalin" ? 12 : kalinlik === "ince" ? 4 : kalinlik === "orta" ? 8 : 3;
+  const govdeYukseklik = 40;
+  const yaprakGenislik = 35;
+  
+  return `
+    <svg width="50" height="60" viewBox="0 0 50 60" xmlns="http://www.w3.org/2000/svg">
+      <!-- Ağaç gövdesi -->
+      <rect x="${25 - govdeGenislik/2}" y="20" width="${govdeGenislik}" height="${govdeYukseklik}" 
+            fill="#8B4513" stroke="#654321" stroke-width="0.5" rx="2"/>
+      <!-- Yapraklar -->
+      <ellipse cx="25" cy="15" rx="${yaprakGenislik/2}" ry="12" fill="#228B22" stroke="#006400" stroke-width="0.5"/>
+      <ellipse cx="20" cy="12" rx="8" ry="6" fill="#32CD32" opacity="0.8"/>
+      <ellipse cx="30" cy="12" rx="8" ry="6" fill="#32CD32" opacity="0.8"/>
+    </svg>
+  `;
+}
+
+function ipHalatSVG(kalinlik) {
+  const genislik = kalinlik === "kalin" ? 8 : kalinlik === "ince" ? 2 : kalinlik === "orta" ? 5 : 1.5;
+  const uzunluk = 50;
+  
+  return `
+    <svg width="60" height="${uzunluk}" viewBox="0 0 60 ${uzunluk}" xmlns="http://www.w3.org/2000/svg">
+      <!-- İp/Halat -->
+      <rect x="${30 - genislik/2}" y="5" width="${genislik}" height="${uzunluk - 10}" 
+            fill="#D2691E" stroke="#8B4513" stroke-width="0.5" rx="${genislik/2}"/>
+      <!-- Doku çizgileri -->
+      ${kalinlik === "kalin" ? `
+        <line x1="${30 - genislik/2 + 1}" y1="10" x2="${30 - genislik/2 + 1}" y2="${uzunluk - 5}" stroke="#8B4513" stroke-width="0.3" opacity="0.5"/>
+        <line x1="${30 + genislik/2 - 1}" y1="10" x2="${30 + genislik/2 - 1}" y2="${uzunluk - 5}" stroke="#8B4513" stroke-width="0.3" opacity="0.5"/>
+      ` : ''}
+    </svg>
+  `;
+}
+
+function mumSVG(kalinlik) {
+  const genislik = kalinlik === "kalin" ? 10 : kalinlik === "ince" ? 4 : kalinlik === "orta" ? 7 : 3;
+  const yukseklik = 45;
+  
+  return `
+    <svg width="50" height="${yukseklik + 10}" viewBox="0 0 50 ${yukseklik + 10}" xmlns="http://www.w3.org/2000/svg">
+      <!-- Mum gövdesi -->
+      <rect x="${25 - genislik/2}" y="10" width="${genislik}" height="${yukseklik}" 
+            fill="#FFFFFF" stroke="#E0E0E0" stroke-width="0.5" rx="2"/>
+      <!-- Fitil -->
+      <line x1="25" y1="5" x2="25" y2="10" stroke="#2C3E50" stroke-width="1"/>
+      <circle cx="25" cy="5" r="2" fill="#FFD700"/>
+      <!-- Alev -->
+      <ellipse cx="25" cy="3" rx="2" ry="3" fill="#FF6B35" opacity="0.8"/>
+    </svg>
+  `;
+}
+
+function boruSVG(kalinlik) {
+  const genislik = kalinlik === "kalin" ? 12 : kalinlik === "ince" ? 4 : kalinlik === "orta" ? 8 : 3;
+  const uzunluk = 50;
+  
+  return `
+    <svg width="60" height="${uzunluk}" viewBox="0 0 60 ${uzunluk}" xmlns="http://www.w3.org/2000/svg">
+      <!-- Boru -->
+      <rect x="${30 - genislik/2}" y="5" width="${genislik}" height="${uzunluk - 10}" 
+            fill="#708090" stroke="#556B2F" stroke-width="0.5" rx="${genislik/2}"/>
+      <!-- Metalik parlaklık -->
+      <ellipse cx="30" cy="${uzunluk/2}" rx="${genislik/2 - 1}" ry="${(uzunluk - 10)/2 - 2}" 
+               fill="#C0C0C0" opacity="0.3"/>
+    </svg>
+  `;
+}
+
+function cikolataSVG(kalinlik) {
+  const genislik = 40;
+  const yukseklik = kalinlik === "kalin" ? 12 : kalinlik === "ince" ? 3 : kalinlik === "orta" ? 7 : 2;
+  
+  return `
+    <svg width="50" height="${Math.max(yukseklik + 5, 15)}" viewBox="0 0 50 ${Math.max(yukseklik + 5, 15)}" xmlns="http://www.w3.org/2000/svg">
+      <!-- Çikolata bar -->
+      <rect x="5" y="5" width="${genislik}" height="${yukseklik}" 
+            fill="#8B4513" stroke="#654321" stroke-width="0.5" rx="2"/>
+      <!-- Kareler -->
+      <line x1="15" y1="5" x2="15" y2="${5 + yukseklik}" stroke="#654321" stroke-width="0.3"/>
+      <line x1="25" y1="5" x2="25" y2="${5 + yukseklik}" stroke="#654321" stroke-width="0.3"/>
+      <line x1="35" y1="5" x2="35" y2="${5 + yukseklik}" stroke="#654321" stroke-width="0.3"/>
+      <line x1="5" y1="${5 + yukseklik/3}" x2="45" y2="${5 + yukseklik/3}" stroke="#654321" stroke-width="0.3"/>
+      <line x1="5" y1="${5 + yukseklik*2/3}" x2="45" y2="${5 + yukseklik*2/3}" stroke="#654321" stroke-width="0.3"/>
+    </svg>
+  `;
+}
+
+function kabloSVG(kalinlik) {
+  const genislik = kalinlik === "kalin" ? 10 : kalinlik === "ince" ? 3 : kalinlik === "orta" ? 6 : 2;
+  const uzunluk = 50;
+  
+  return `
+    <svg width="60" height="${uzunluk}" viewBox="0 0 60 ${uzunluk}" xmlns="http://www.w3.org/2000/svg">
+      <!-- Kablo -->
+      <rect x="${30 - genislik/2}" y="5" width="${genislik}" height="${uzunluk - 10}" 
+            fill="#2C3E50" stroke="#1A252F" stroke-width="0.5" rx="${genislik/2}"/>
+      <!-- İzolasyon çizgileri -->
+      <line x1="${30 - genislik/2}" y1="15" x2="${30 + genislik/2}" y2="15" stroke="#FFD700" stroke-width="0.5"/>
+      <line x1="${30 - genislik/2}" y1="25" x2="${30 + genislik/2}" y2="25" stroke="#FFD700" stroke-width="0.5"/>
+      <line x1="${30 - genislik/2}" y1="35" x2="${30 + genislik/2}" y2="35" stroke="#FFD700" stroke-width="0.5"/>
+    </svg>
+  `;
+}
+
+function silgiSVG(kalinlik) {
+  const genislik = kalinlik === "kalin" ? 25 : kalinlik === "ince" ? 8 : kalinlik === "orta" ? 16 : 6;
+  const yukseklik = 20;
+  
+  return `
+    <svg width="40" height="${yukseklik + 5}" viewBox="0 0 40 ${yukseklik + 5}" xmlns="http://www.w3.org/2000/svg">
+      <!-- Silgi -->
+      <rect x="${20 - genislik/2}" y="5" width="${genislik}" height="${yukseklik}" 
+            fill="#FF69B4" stroke="#FF1493" stroke-width="0.5" rx="3"/>
+      <!-- Metal bant -->
+      <rect x="${20 - genislik/2}" y="5" width="${genislik}" height="3" 
+            fill="#C0C0C0" opacity="0.8"/>
+    </svg>
+  `;
+}
+
+function tebesirSVG(kalinlik) {
+  const genislik = kalinlik === "kalin" ? 8 : kalinlik === "ince" ? 3 : kalinlik === "orta" ? 5 : 2;
+  const uzunluk = 50;
+  
+  return `
+    <svg width="50" height="${uzunluk}" viewBox="0 0 50 ${uzunluk}" xmlns="http://www.w3.org/2000/svg">
+      <!-- Tebeşir -->
+      <rect x="${25 - genislik/2}" y="5" width="${genislik}" height="${uzunluk - 10}" 
+            fill="#FFFFFF" stroke="#E0E0E0" stroke-width="0.5" rx="${genislik/2}"/>
+      <!-- Doku -->
+      <line x1="${25 - genislik/2 + 1}" y1="10" x2="${25 - genislik/2 + 1}" y2="${uzunluk - 5}" 
+            stroke="#D0D0D0" stroke-width="0.3" opacity="0.5"/>
+      <line x1="${25 + genislik/2 - 1}" y1="10" x2="${25 + genislik/2 - 1}" y2="${uzunluk - 5}" 
+            stroke="#D0D0D0" stroke-width="0.3" opacity="0.5"/>
+    </svg>
+  `;
+}
+
+// SVG fonksiyonunu nesne tipine göre çağıran yardımcı fonksiyon
+function nesneSVG(nesneTipi, kalinlik) {
+  const svgFonksiyonlari = {
+    "kalem": kalemSVG,
+    "kitap": kitapSVG,
+    "agac": agacSVG,
+    "ip": ipHalatSVG,
+    "mum": mumSVG,
+    "boru": boruSVG,
+    "cikolata": cikolataSVG,
+    "kablo": kabloSVG,
+    "silgi": silgiSVG,
+    "tebesir": tebesirSVG
+  };
+  
+  const fonksiyon = svgFonksiyonlari[nesneTipi];
+  if (!fonksiyon) {
+    console.error("❌ SVG fonksiyonu bulunamadı:", nesneTipi, "Mevcut fonksiyonlar:", Object.keys(svgFonksiyonlari));
+    return "";
+  }
+  const result = fonksiyon(kalinlik);
+  if (!result || result.trim() === "") {
+    console.error("❌ SVG fonksiyonu boş döndü:", nesneTipi, kalinlik);
+  }
+  return result || "";
+}
+
 // Renkler
 const RENKLER = [
   { ad: "Kırmızı", kod: "#e53935" },
@@ -268,93 +485,93 @@ const BOYUTLAR = {
   ince_kalin: {
     sahneler: [
       { 
-        ustResim: { emoji: "✏️", ad: "İnce Uçlu Kalem", kalinlik: "ince" },
-        kalinSecenek: { emoji: "✏️", ad: "Kalın Gövdeli Kalem", kalinlik: "kalin", deger: "kalin" },
+        ustResim: { nesneTipi: "kalem", ad: "İnce Uçlu Kalem", kalinlik: "ince" },
+        kalinSecenek: { nesneTipi: "kalem", ad: "Kalın Gövdeli Kalem", kalinlik: "kalin", deger: "kalin" },
         digerSecenekler: [
-          { emoji: "✏️", ad: "İnce Uçlu Kalem", kalinlik: "ince", deger: "ince" },
-          { emoji: "✏️", ad: "Orta Kalem", kalinlik: "orta", deger: "orta" },
-          { emoji: "✏️", ad: "Çok İnce Kalem", kalinlik: "cok_ince", deger: "cok_ince" }
+          { nesneTipi: "kalem", ad: "İnce Uçlu Kalem", kalinlik: "ince", deger: "ince" },
+          { nesneTipi: "kalem", ad: "Orta Kalem", kalinlik: "orta", deger: "orta" },
+          { nesneTipi: "kalem", ad: "Çok İnce Kalem", kalinlik: "cok_ince", deger: "cok_ince" }
         ]
       },
       { 
-        ustResim: { emoji: "📖", ad: "İnce Kitap", kalinlik: "ince" },
-        kalinSecenek: { emoji: "📚", ad: "Kalın Roman", kalinlik: "kalin", deger: "kalin" },
+        ustResim: { nesneTipi: "kitap", ad: "İnce Kitap", kalinlik: "ince" },
+        kalinSecenek: { nesneTipi: "kitap", ad: "Kalın Roman", kalinlik: "kalin", deger: "kalin" },
         digerSecenekler: [
-          { emoji: "📖", ad: "İnce Kitap", kalinlik: "ince", deger: "ince" },
-          { emoji: "📖", ad: "Orta Kitap", kalinlik: "orta", deger: "orta" },
-          { emoji: "📖", ad: "Çok İnce Kitap", kalinlik: "cok_ince", deger: "cok_ince" }
+          { nesneTipi: "kitap", ad: "İnce Kitap", kalinlik: "ince", deger: "ince" },
+          { nesneTipi: "kitap", ad: "Orta Kitap", kalinlik: "orta", deger: "orta" },
+          { nesneTipi: "kitap", ad: "Çok İnce Kitap", kalinlik: "cok_ince", deger: "cok_ince" }
         ]
       },
       { 
-        ustResim: { emoji: "🌳", ad: "İnce Gövdeli Ağaç", kalinlik: "ince" },
-        kalinSecenek: { emoji: "🌲", ad: "Kalın Gövdeli Ağaç", kalinlik: "kalin", deger: "kalin" },
+        ustResim: { nesneTipi: "agac", ad: "İnce Gövdeli Ağaç", kalinlik: "ince" },
+        kalinSecenek: { nesneTipi: "agac", ad: "Kalın Gövdeli Ağaç", kalinlik: "kalin", deger: "kalin" },
         digerSecenekler: [
-          { emoji: "🌳", ad: "İnce Gövdeli Ağaç", kalinlik: "ince", deger: "ince" },
-          { emoji: "🌳", ad: "Orta Gövdeli Ağaç", kalinlik: "orta", deger: "orta" },
-          { emoji: "🌳", ad: "Çok İnce Gövdeli Ağaç", kalinlik: "cok_ince", deger: "cok_ince" }
+          { nesneTipi: "agac", ad: "İnce Gövdeli Ağaç", kalinlik: "ince", deger: "ince" },
+          { nesneTipi: "agac", ad: "Orta Gövdeli Ağaç", kalinlik: "orta", deger: "orta" },
+          { nesneTipi: "agac", ad: "Çok İnce Gövdeli Ağaç", kalinlik: "cok_ince", deger: "cok_ince" }
         ]
       },
       { 
-        ustResim: { emoji: "🧵", ad: "İnce İp", kalinlik: "ince" },
-        kalinSecenek: { emoji: "🪢", ad: "Kalın Halat", kalinlik: "kalin", deger: "kalin" },
+        ustResim: { nesneTipi: "ip", ad: "İnce İp", kalinlik: "ince" },
+        kalinSecenek: { nesneTipi: "ip", ad: "Kalın Halat", kalinlik: "kalin", deger: "kalin" },
         digerSecenekler: [
-          { emoji: "🧵", ad: "İnce İp", kalinlik: "ince", deger: "ince" },
-          { emoji: "🧵", ad: "Orta İp", kalinlik: "orta", deger: "orta" },
-          { emoji: "🧵", ad: "Çok İnce İp", kalinlik: "cok_ince", deger: "cok_ince" }
+          { nesneTipi: "ip", ad: "İnce İp", kalinlik: "ince", deger: "ince" },
+          { nesneTipi: "ip", ad: "Orta İp", kalinlik: "orta", deger: "orta" },
+          { nesneTipi: "ip", ad: "Çok İnce İp", kalinlik: "cok_ince", deger: "cok_ince" }
         ]
       },
       { 
-        ustResim: { emoji: "🕯️", ad: "İnce Mum", kalinlik: "ince" },
-        kalinSecenek: { emoji: "🕯️", ad: "Kalın Mum", kalinlik: "kalin", deger: "kalin" },
+        ustResim: { nesneTipi: "mum", ad: "İnce Mum", kalinlik: "ince" },
+        kalinSecenek: { nesneTipi: "mum", ad: "Kalın Mum", kalinlik: "kalin", deger: "kalin" },
         digerSecenekler: [
-          { emoji: "🕯️", ad: "İnce Mum", kalinlik: "ince", deger: "ince" },
-          { emoji: "🕯️", ad: "Orta Mum", kalinlik: "orta", deger: "orta" },
-          { emoji: "🕯️", ad: "Çok İnce Mum", kalinlik: "cok_ince", deger: "cok_ince" }
+          { nesneTipi: "mum", ad: "İnce Mum", kalinlik: "ince", deger: "ince" },
+          { nesneTipi: "mum", ad: "Orta Mum", kalinlik: "orta", deger: "orta" },
+          { nesneTipi: "mum", ad: "Çok İnce Mum", kalinlik: "cok_ince", deger: "cok_ince" }
         ]
       },
       { 
-        ustResim: { emoji: "🔧", ad: "İnce Boru", kalinlik: "ince" },
-        kalinSecenek: { emoji: "🔧", ad: "Kalın Boru", kalinlik: "kalin", deger: "kalin" },
+        ustResim: { nesneTipi: "boru", ad: "İnce Boru", kalinlik: "ince" },
+        kalinSecenek: { nesneTipi: "boru", ad: "Kalın Boru", kalinlik: "kalin", deger: "kalin" },
         digerSecenekler: [
-          { emoji: "🔧", ad: "İnce Boru", kalinlik: "ince", deger: "ince" },
-          { emoji: "🔧", ad: "Orta Boru", kalinlik: "orta", deger: "orta" },
-          { emoji: "🔧", ad: "Çok İnce Boru", kalinlik: "cok_ince", deger: "cok_ince" }
+          { nesneTipi: "boru", ad: "İnce Boru", kalinlik: "ince", deger: "ince" },
+          { nesneTipi: "boru", ad: "Orta Boru", kalinlik: "orta", deger: "orta" },
+          { nesneTipi: "boru", ad: "Çok İnce Boru", kalinlik: "cok_ince", deger: "cok_ince" }
         ]
       },
       { 
-        ustResim: { emoji: "🍫", ad: "İnce İnce Bar", kalinlik: "ince" },
-        kalinSecenek: { emoji: "🍫", ad: "Kalın Bar", kalinlik: "kalin", deger: "kalin" },
+        ustResim: { nesneTipi: "cikolata", ad: "İnce İnce Bar", kalinlik: "ince" },
+        kalinSecenek: { nesneTipi: "cikolata", ad: "Kalın Bar", kalinlik: "kalin", deger: "kalin" },
         digerSecenekler: [
-          { emoji: "🍫", ad: "İnce İnce Bar", kalinlik: "ince", deger: "ince" },
-          { emoji: "🍫", ad: "Orta Bar", kalinlik: "orta", deger: "orta" },
-          { emoji: "🍫", ad: "Çok İnce Bar", kalinlik: "cok_ince", deger: "cok_ince" }
+          { nesneTipi: "cikolata", ad: "İnce İnce Bar", kalinlik: "ince", deger: "ince" },
+          { nesneTipi: "cikolata", ad: "Orta Bar", kalinlik: "orta", deger: "orta" },
+          { nesneTipi: "cikolata", ad: "Çok İnce Bar", kalinlik: "cok_ince", deger: "cok_ince" }
         ]
       },
       { 
-        ustResim: { emoji: "🔌", ad: "İnce Kablo", kalinlik: "ince" },
-        kalinSecenek: { emoji: "🔌", ad: "Kalın Kablo", kalinlik: "kalin", deger: "kalin" },
+        ustResim: { nesneTipi: "kablo", ad: "İnce Kablo", kalinlik: "ince" },
+        kalinSecenek: { nesneTipi: "kablo", ad: "Kalın Kablo", kalinlik: "kalin", deger: "kalin" },
         digerSecenekler: [
-          { emoji: "🔌", ad: "İnce Kablo", kalinlik: "ince", deger: "ince" },
-          { emoji: "🔌", ad: "Orta Kablo", kalinlik: "orta", deger: "orta" },
-          { emoji: "🔌", ad: "Çok İnce Kablo", kalinlik: "cok_ince", deger: "cok_ince" }
+          { nesneTipi: "kablo", ad: "İnce Kablo", kalinlik: "ince", deger: "ince" },
+          { nesneTipi: "kablo", ad: "Orta Kablo", kalinlik: "orta", deger: "orta" },
+          { nesneTipi: "kablo", ad: "Çok İnce Kablo", kalinlik: "cok_ince", deger: "cok_ince" }
         ]
       },
       { 
-        ustResim: { emoji: "🧽", ad: "İnce Silgi", kalinlik: "ince" },
-        kalinSecenek: { emoji: "🧽", ad: "Kalın Silgi", kalinlik: "kalin", deger: "kalin" },
+        ustResim: { nesneTipi: "silgi", ad: "İnce Silgi", kalinlik: "ince" },
+        kalinSecenek: { nesneTipi: "silgi", ad: "Kalın Silgi", kalinlik: "kalin", deger: "kalin" },
         digerSecenekler: [
-          { emoji: "🧽", ad: "İnce Silgi", kalinlik: "ince", deger: "ince" },
-          { emoji: "🧽", ad: "Orta Silgi", kalinlik: "orta", deger: "orta" },
-          { emoji: "🧽", ad: "Çok İnce Silgi", kalinlik: "cok_ince", deger: "cok_ince" }
+          { nesneTipi: "silgi", ad: "İnce Silgi", kalinlik: "ince", deger: "ince" },
+          { nesneTipi: "silgi", ad: "Orta Silgi", kalinlik: "orta", deger: "orta" },
+          { nesneTipi: "silgi", ad: "Çok İnce Silgi", kalinlik: "cok_ince", deger: "cok_ince" }
         ]
       },
       { 
-        ustResim: { emoji: "🖍️", ad: "İnce Tebeşir", kalinlik: "ince" },
-        kalinSecenek: { emoji: "🖍️", ad: "Kalın Tebeşir", kalinlik: "kalin", deger: "kalin" },
+        ustResim: { nesneTipi: "tebesir", ad: "İnce Tebeşir", kalinlik: "ince" },
+        kalinSecenek: { nesneTipi: "tebesir", ad: "Kalın Tebeşir", kalinlik: "kalin", deger: "kalin" },
         digerSecenekler: [
-          { emoji: "🖍️", ad: "İnce Tebeşir", kalinlik: "ince", deger: "ince" },
-          { emoji: "🖍️", ad: "Orta Tebeşir", kalinlik: "orta", deger: "orta" },
-          { emoji: "🖍️", ad: "Çok İnce Tebeşir", kalinlik: "cok_ince", deger: "cok_ince" }
+          { nesneTipi: "tebesir", ad: "İnce Tebeşir", kalinlik: "ince", deger: "ince" },
+          { nesneTipi: "tebesir", ad: "Orta Tebeşir", kalinlik: "orta", deger: "orta" },
+          { nesneTipi: "tebesir", ad: "Çok İnce Tebeşir", kalinlik: "cok_ince", deger: "cok_ince" }
         ]
       }
     ],
@@ -369,14 +586,16 @@ const BOYUTLAR = {
 const YONLER = {
   sag_sol: {
     sahneler: [
-      { hedef: "sag", emoji: "⚽", ad: "Sağdaki Top", karsit: { emoji: "⚽", ad: "Soldaki Top", deger: "sol" }, yonergesiz: true },
-      { hedef: "sag", emoji: "🐱", ad: "Sağdaki Kedi", karsit: { emoji: "🐱", ad: "Soldaki Kedi", deger: "sol" }, yonergesiz: true },
       { hedef: "sag", emoji: "➡️", ad: "Sağa Bakan Ok", karsit: { emoji: "⬅️", ad: "Sola Bakan Ok", deger: "sol" }, yonergesiz: true },
-      { hedef: "sag", emoji: "🌳", ad: "Sağdaki Ağaç", karsit: { emoji: "🌳", ad: "Soldaki Ağaç", deger: "sol" }, yonergesiz: true },
-      { hedef: "sag", emoji: "🪑", ad: "Sağdaki Sandalye", karsit: { emoji: "🪑", ad: "Soldaki Sandalye", deger: "sol" }, yonergesiz: true },
-      { hedef: "sag", emoji: "🎒", ad: "Sağdaki Çanta", karsit: { emoji: "🎒", ad: "Soldaki Çanta", deger: "sol" }, yonergesiz: true },
-      { hedef: "sag", emoji: "🚩", ad: "Sağdaki Bayrak", karsit: { emoji: "🚩", ad: "Soldaki Bayrak", deger: "sol" }, yonergesiz: true },
-      { hedef: "sag", emoji: "📦", ad: "Sağdaki Kutu", karsit: { emoji: "📦", ad: "Soldaki Kutu", deger: "sol" }, yonergesiz: true }
+      { hedef: "sol", emoji: "⬅️", ad: "Sola Bakan Ok", karsit: { emoji: "➡️", ad: "Sağa Bakan Ok", deger: "sag" }, yonergesiz: true },
+      { hedef: "sag", emoji: "→", ad: "Sağa Bakan Ok (İnce)", karsit: { emoji: "←", ad: "Sola Bakan Ok (İnce)", deger: "sol" }, yonergesiz: true },
+      { hedef: "sol", emoji: "←", ad: "Sola Bakan Ok (İnce)", karsit: { emoji: "→", ad: "Sağa Bakan Ok (İnce)", deger: "sag" }, yonergesiz: true },
+      { hedef: "sag", emoji: "⟶", ad: "Sağa Bakan Ok (Uzun)", karsit: { emoji: "⟵", ad: "Sola Bakan Ok (Uzun)", deger: "sol" }, yonergesiz: true },
+      { hedef: "sol", emoji: "⟵", ad: "Sola Bakan Ok (Uzun)", karsit: { emoji: "⟶", ad: "Sağa Bakan Ok (Uzun)", deger: "sag" }, yonergesiz: true },
+      { hedef: "sag", emoji: "⇢", ad: "Sağa Bakan Ok (Kalın)", karsit: { emoji: "⇠", ad: "Sola Bakan Ok (Kalın)", deger: "sol" }, yonergesiz: true },
+      { hedef: "sol", emoji: "⇠", ad: "Sola Bakan Ok (Kalın)", karsit: { emoji: "⇢", ad: "Sağa Bakan Ok (Kalın)", deger: "sag" }, yonergesiz: true },
+      { hedef: "sag", emoji: "⤇", ad: "Sağa Bakan Ok (Çift)", karsit: { emoji: "⤆", ad: "Sola Bakan Ok (Çift)", deger: "sol" }, yonergesiz: true },
+      { hedef: "sol", emoji: "⤆", ad: "Sola Bakan Ok (Çift)", karsit: { emoji: "⤇", ad: "Sağa Bakan Ok (Çift)", deger: "sag" }, yonergesiz: true }
     ],
     varsayilan: [
       { ad: "Sağ", emoji: "➡️", deger: "sag" },
@@ -1663,14 +1882,14 @@ function boyutSorusuUret(altOyun) {
     // Üstte gösterilecek ince resim (hedef kutu)
     const ustResim = {
       ad: rastgeleSahne.ustResim.ad,
-      emoji: rastgeleSahne.ustResim.emoji,
+      nesneTipi: rastgeleSahne.ustResim.nesneTipi,
       kalinlik: rastgeleSahne.ustResim.kalinlik
     };
     
     // Doğru cevap: Kalın seçenek (üstteki resimden daha kalın)
     const hedef = {
       ad: rastgeleSahne.kalinSecenek.ad,
-      emoji: rastgeleSahne.kalinSecenek.emoji,
+      nesneTipi: rastgeleSahne.kalinSecenek.nesneTipi,
       deger: rastgeleSahne.kalinSecenek.deger,
       kalinlik: rastgeleSahne.kalinSecenek.kalinlik
     };
@@ -1686,7 +1905,7 @@ function boyutSorusuUret(altOyun) {
     digerSecenekler.forEach(secenek => {
       secenekler.push({
         ad: secenek.ad,
-        emoji: secenek.emoji,
+        nesneTipi: secenek.nesneTipi,
         deger: secenek.deger,
         kalinlik: secenek.kalinlik
       });
@@ -2582,6 +2801,14 @@ function yeniSoru() {
   const hedef = document.getElementById("hedefKutu");
   const hedefIcerik = document.getElementById("hedefIcerik");
   
+  console.log("🔍 Soru tipi kontrolü:", {
+    tip: soru.tip,
+    ustResim: soru.ustResim,
+    kalinlik: soru.ustResim?.kalinlik,
+    uzunluk: soru.ustResim?.uzunluk,
+    boyut: soru.ustResim?.boyut
+  });
+  
   if (hedef && hedefIcerik) {
     if (soru.tip === "renk") {
       // Zemin rengi ve yazı rengi göster
@@ -2593,20 +2820,136 @@ function yeniSoru() {
       hedefIcerik.style.fontWeight = "bold";
       // Yazı rengini soru objesine kaydet (cevap kontrolü için)
       soru.yaziRenk = rastgeleSahne.yazi;
-    } else if (soru.tip === "boyut" && soru.ustResim) {
-      // Büyük-Küçük için: Üstte küçük resim göster
-      hedef.style.backgroundColor = "#f4f6fb";
-      hedefIcerik.textContent = soru.ustResim.emoji;
-      hedefIcerik.style.color = "#1b2d4a";
-      hedefIcerik.style.fontSize = "48px";
-      // Küçük görünmesi için CSS ekle
-      hedefIcerik.style.transform = "scale(0.6)";
-      hedefIcerik.style.display = "inline-block";
     } else if (soru.tip === "yon" && soru.yonergesiz) {
-      // Sağ-Sol için: Üstte yönerge resmi gösterilmez, boş bırak
+      // Sağ-Sol için: Üstte ok resmi göster
+      console.log("🎯 Sağ-Sol üst resim oluşturuluyor...");
+      console.log("🔍 Soru hedef:", soru.hedef);
+      
       hedef.style.backgroundColor = "#f4f6fb";
+      hedef.style.display = "flex";
+      hedef.style.alignItems = "center";
+      hedef.style.justifyContent = "center";
+      hedef.style.minHeight = "120px";
+      hedef.style.padding = "15px";
+      
+      // Ok emojisini göster
+      hedefIcerik.innerHTML = "";
+      hedefIcerik.textContent = soru.hedef.emoji || "➡️";
+      hedefIcerik.style.cssText = `
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        height: 100% !important;
+        font-size: 80px !important;
+        color: #1b2d4a !important;
+        text-shadow: none !important;
+        transform: none !important;
+      `;
+      console.log("✅ Sağ-Sol ok resmi gösterildi:", soru.hedef.emoji);
+    } else if (soru.tip === "boyut" && soru.ustResim && soru.ustResim.kalinlik) {
+      // İnce-Kalın için: Üstte ince resim göster - SVG ile gerçekçi
+      // ÖNCE KALINLIK KONTROLÜ YAPILMALI (diğer boyut kontrollerinden önce)
+      console.log("🎯 İnce-Kalın üst resim oluşturuluyor...");
+      console.log("🔍 Soru tipi:", soru.tip);
+      console.log("🔍 Soru ustResim:", soru.ustResim);
+      console.log("🔍 Soru ustResim.kalinlik:", soru.ustResim?.kalinlik);
+      console.log("🔍 Soru ustResim.nesneTipi:", soru.ustResim?.nesneTipi);
+      
+      // Hedef kutu stilleri - GÖRÜNÜR OLMALI
+      hedef.style.cssText = `
+        background-color: #f4f6fb !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: visible !important;
+        min-height: 120px !important;
+        padding: 15px !important;
+        border: 3px solid #4a90e2 !important;
+        border-radius: 12px !important;
+        width: 260px !important;
+        height: 120px !important;
+        margin: 30px auto 20px !important;
+      `;
+      
+      // SVG ile gerçekçi görsel
+      const nesneTipi = soru.ustResim.nesneTipi;
+      const kalinlik = soru.ustResim.kalinlik;
+      
+      console.log("🔍 Üst resim bilgileri:", { nesneTipi, kalinlik, ustResim: soru.ustResim });
+      
+      // Önce mevcut içeriği ve class'ları tamamen temizle
+      hedefIcerik.innerHTML = "";
       hedefIcerik.textContent = "";
-      hedefIcerik.style.display = "none";
+      hedefIcerik.className = ""; // renkYazi class'ını kaldır
+      
+      // Tüm stilleri sıfırla ve yeni stiller uygula
+      hedefIcerik.style.cssText = `
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: transparent !important;
+        text-shadow: none !important;
+        position: relative !important;
+        font-size: 0 !important;
+      `;
+      
+      // ÖNCE TEST SVG'SİNİ GÖSTER - GARANTİLİ GÖRÜNSÜN
+      let svgContent = testSVG();
+      console.log("🔍 Test SVG kullanılıyor (garantili görünürlük için)");
+      
+      // Sonra gerçek SVG'yi oluştur
+      const gercekSVG = nesneSVG(nesneTipi, kalinlik);
+      if (gercekSVG && gercekSVG.trim() !== "") {
+        svgContent = gercekSVG;
+        console.log("✅ Gerçek SVG oluşturuldu");
+      } else {
+        console.warn("⚠️ Gerçek SVG oluşturulamadı, test SVG kullanılıyor");
+      }
+      
+      console.log("🔍 SVG içeriği uzunluğu:", svgContent ? svgContent.length : 0);
+      
+      // SVG'yi direkt ekle
+      hedefIcerik.innerHTML = svgContent.trim();
+      console.log("✅ SVG içerik eklendi");
+      
+      // Hemen SVG elementini bul ve stillendir
+      const svgElement = hedefIcerik.querySelector("svg");
+      if (svgElement) {
+        console.log("✅ SVG elementi bulundu, stillendiriliyor...");
+        // SVG'yi container'a sığdır ve ince göster
+        svgElement.style.cssText = `
+          width: 120px !important;
+          height: auto !important;
+          max-width: 100% !important;
+          max-height: 100% !important;
+          transform: scaleY(0.4) !important;
+          transform-origin: center center !important;
+          display: block !important;
+          margin: 0 auto !important;
+          overflow: visible !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          position: relative !important;
+          z-index: 1 !important;
+        `;
+        console.log("✅ SVG elementi stillendirildi");
+      } else {
+        console.error("❌ SVG elementi bulunamadı!");
+        console.error("hedefIcerik.innerHTML uzunluğu:", hedefIcerik.innerHTML.length);
+        console.error("hedefIcerik.innerHTML:", hedefIcerik.innerHTML);
+        // Fallback: Text göster
+        hedefIcerik.textContent = "SVG YOK";
+        hedefIcerik.style.color = "#ff0000";
+        hedefIcerik.style.fontSize = "24px";
+      }
     } else if (soru.tip === "boyut" && soru.ustResim && soru.ustResim.uzunluk) {
       // Uzun-Kısa için: Üstte kısa resim göster
       hedef.style.backgroundColor = "#f4f6fb";
@@ -2616,14 +2959,14 @@ function yeniSoru() {
       // Kısa görünmesi için CSS ekle (scaleX ile daralt)
       hedefIcerik.style.transform = "scaleX(0.6) scaleY(1)";
       hedefIcerik.style.display = "inline-block";
-    } else if (soru.tip === "boyut" && soru.ustResim && soru.ustResim.kalinlik) {
-      // İnce-Kalın için: Üstte ince resim göster
+    } else if (soru.tip === "boyut" && soru.ustResim && soru.ustResim.boyut) {
+      // Büyük-Küçük için: Üstte küçük resim göster
       hedef.style.backgroundColor = "#f4f6fb";
       hedefIcerik.textContent = soru.ustResim.emoji;
       hedefIcerik.style.color = "#1b2d4a";
       hedefIcerik.style.fontSize = "48px";
-      // İnce görünmesi için CSS ekle (scaleY ile daralt)
-      hedefIcerik.style.transform = "scaleX(1) scaleY(0.6)";
+      // Küçük görünmesi için CSS ekle
+      hedefIcerik.style.transform = "scale(0.6)";
       hedefIcerik.style.display = "inline-block";
     } else if (soru.tip === "sira_dizilim") {
       // Sıra/dizilim için tüm dizilimi göster
@@ -2647,6 +2990,16 @@ function yeniSoru() {
   if (!alan) return;
   
   alan.innerHTML = "";
+  
+  // Seçenek sayısına göre container'a class ekle (responsive için)
+  alan.className = "secenek-container";
+  if (soru.secenekler.length === 2) {
+    alan.classList.add("secenek-2");
+  } else if (soru.secenekler.length === 3) {
+    alan.classList.add("secenek-3");
+  } else if (soru.secenekler.length === 4) {
+    alan.classList.add("secenek-4");
+  }
   
   soru.secenekler.forEach(secenek => {
     const btn = document.createElement("button");
@@ -2711,76 +3064,92 @@ function yeniSoru() {
       btn.innerHTML = `<div style="font-size:${emojiBoyut}; transform:${transform}; display:inline-block; width:${width}; height:${height}; line-height:${height}; overflow:hidden;">${secenek.emoji || ""}</div>`;
     } else if (soru.tip === "boyut" && soru.ustResim && soru.ustResim.kalinlik && secenek.kalinlik) {
       // İnce-Kalın için: Seçenekleri emoji olarak göster, kalınlıklarına göre ölçekle
+      // Responsive boyutlandırma - ekran boyutuna göre ayarla
+      const ekranGenisligi = window.innerWidth;
+      const ekranYuksekligi = window.innerHeight;
+      const isMobile = ekranGenisligi <= 480;
+      const isTablet = ekranGenisligi > 480 && ekranGenisligi <= 1024;
+      const isLarge = ekranGenisligi > 1920;
+      const isLandscape = ekranYuksekligi < 600 && ekranGenisligi > ekranYuksekligi;
+      
+      // Base boyutları ekran boyutuna göre ayarla - daha geniş
+      let baseEmojiSize = isMobile ? "52px" : isTablet ? "60px" : isLarge ? "80px" : "72px";
+      let baseWidth = isMobile ? "70px" : isTablet ? "85px" : isLarge ? "110px" : "100px";
+      let scaleFactor = isMobile ? 0.9 : isTablet ? 1.0 : isLarge ? 1.2 : 1.1;
+      
+      if (isLandscape) {
+        baseEmojiSize = "44px";
+        baseWidth = "60px";
+        scaleFactor = 0.75;
+      }
+      
       btn.style.backgroundColor = "#4a90e2";
-      let emojiBoyut = "48px";
+      btn.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
+      btn.style.overflow = "hidden"; // Buton overflow hidden, içerik taşmasın
+      
+      let emojiBoyut = baseEmojiSize;
       let transform = "scale(1)";
       let width = "auto";
       let height = "auto";
+      let borderStyle = "";
+      let borderRadius = "";
+      let butonMinHeight = "80px";
+      let butonPadding = 10; // Sayı olarak tut
       
       if (secenek.kalinlik === "kalin") {
-        // Kalın görünmesi için: yükseklik artır, genişlik normal
-        emojiBoyut = "48px";
-        transform = "scaleX(1) scaleY(2.5)";
-        width = "60px";
-        height = "150px";
+        // Kalın görünmesi için: yükseklik artır, genişlik normal - responsive ve genişletilmiş
+        emojiBoyut = baseEmojiSize;
+        transform = `scaleX(1) scaleY(${3.5 * scaleFactor})`;
+        width = baseWidth;
+        height = isMobile ? "180px" : isTablet ? "200px" : isLarge ? "260px" : isLandscape ? "140px" : "220px";
+        borderStyle = isMobile ? "2px solid #2e7d32" : "3px solid #2e7d32";
+        borderRadius = isMobile ? "10px" : "12px";
+        butonMinHeight = isMobile ? "200px" : isTablet ? "220px" : isLarge ? "280px" : isLandscape ? "160px" : "240px";
+        butonPadding = isMobile ? 12 : 18;
       } else if (secenek.kalinlik === "ince") {
-        // İnce görünmesi için: yükseklik azalt, genişlik normal
-        emojiBoyut = "48px";
-        transform = "scaleX(1) scaleY(0.6)";
-        width = "60px";
-        height = "50px";
+        // İnce görünmesi için: yükseklik azalt, genişlik normal - responsive
+        emojiBoyut = baseEmojiSize;
+        transform = `scaleX(1) scaleY(${0.35 * scaleFactor})`;
+        width = baseWidth;
+        height = isMobile ? "28px" : isTablet ? "32px" : isLarge ? "42px" : isLandscape ? "24px" : "35px";
+        borderStyle = isMobile ? "1.5px solid #ff6b6b" : "2px solid #ff6b6b";
+        borderRadius = isMobile ? "6px" : "8px";
+        butonMinHeight = "80px";
+        butonPadding = 10;
       } else if (secenek.kalinlik === "orta") {
-        // Orta görünmesi için
-        emojiBoyut = "48px";
-        transform = "scaleX(1) scaleY(1.2)";
-        width = "60px";
-        height = "80px";
+        // Orta görünmesi için - responsive
+        emojiBoyut = baseEmojiSize;
+        transform = `scaleX(1) scaleY(${1.5 * scaleFactor})`;
+        width = baseWidth;
+        height = isMobile ? "80px" : isTablet ? "90px" : isLarge ? "120px" : isLandscape ? "60px" : "100px";
+        borderStyle = isMobile ? "1.5px solid #ffa726" : "2px solid #ffa726";
+        borderRadius = isMobile ? "8px" : "10px";
+        butonMinHeight = isMobile ? "100px" : isTablet ? "110px" : isLarge ? "140px" : isLandscape ? "80px" : "120px";
+        butonPadding = 10;
       } else if (secenek.kalinlik === "cok_ince") {
-        // Çok ince görünmesi için
-        emojiBoyut = "48px";
-        transform = "scaleX(1) scaleY(0.4)";
-        width = "60px";
-        height = "40px";
+        // Çok ince görünmesi için - responsive
+        emojiBoyut = baseEmojiSize;
+        transform = `scaleX(1) scaleY(${0.25 * scaleFactor})`;
+        width = baseWidth;
+        height = isMobile ? "20px" : isTablet ? "22px" : isLarge ? "30px" : isLandscape ? "18px" : "25px";
+        borderStyle = isMobile ? "1px solid #e57373" : "2px solid #e57373";
+        borderRadius = isMobile ? "4px" : "6px";
+        butonMinHeight = "80px";
+        butonPadding = 10;
       }
       
-      // Sadece emoji göster, yazı yok
-      btn.innerHTML = `<div style="font-size:${emojiBoyut}; transform:${transform}; display:inline-block; width:${width}; height:${height}; line-height:${height}; overflow:hidden;">${secenek.emoji || ""}</div>`;
-    } else if (soru.tip === "boyut" && soru.ustResim && soru.ustResim.kalinlik && secenek.kalinlik) {
-      // İnce-Kalın için: Seçenekleri emoji olarak göster, kalınlıklarına göre ölçekle
-      btn.style.backgroundColor = "#4a90e2";
-      let emojiBoyut = "48px";
-      let transform = "scale(1)";
-      let width = "auto";
-      let height = "auto";
+      // Buton yüksekliğini içeriğe göre ayarla
+      btn.style.minHeight = butonMinHeight;
+      btn.style.height = "auto";
+      btn.style.padding = `${butonPadding}px`;
       
-      if (secenek.kalinlik === "kalin") {
-        // Kalın görünmesi için: yükseklik artır, genişlik normal
-        emojiBoyut = "48px";
-        transform = "scaleX(1) scaleY(2.5)";
-        width = "60px";
-        height = "150px";
-      } else if (secenek.kalinlik === "ince") {
-        // İnce görünmesi için: yükseklik azalt, genişlik normal
-        emojiBoyut = "48px";
-        transform = "scaleX(1) scaleY(0.6)";
-        width = "60px";
-        height = "50px";
-      } else if (secenek.kalinlik === "orta") {
-        // Orta görünmesi için
-        emojiBoyut = "48px";
-        transform = "scaleX(1) scaleY(1.2)";
-        width = "60px";
-        height = "80px";
-      } else if (secenek.kalinlik === "cok_ince") {
-        // Çok ince görünmesi için
-        emojiBoyut = "48px";
-        transform = "scaleX(1) scaleY(0.4)";
-        width = "60px";
-        height = "40px";
-      }
-      
-      // Sadece emoji göster, yazı yok
-      btn.innerHTML = `<div style="font-size:${emojiBoyut}; transform:${transform}; display:inline-block; width:${width}; height:${height}; line-height:${height}; overflow:hidden;">${secenek.emoji || ""}</div>`;
+      // SVG ile gerçekçi görsel - border ve overflow kontrolü, buton içinde kalması için
+      const svgContent = nesneSVG(secenek.nesneTipi, secenek.kalinlik);
+      const contentDiv = document.createElement("div");
+      contentDiv.style.cssText = `transform:${transform}; display:flex; align-items:center; justify-content:center; width:${width}; height:${height}; overflow:hidden; border:${borderStyle}; border-radius:${borderRadius}; background:rgba(255,255,255,0.1); box-shadow:0 2px 6px rgba(0,0,0,0.15); box-sizing:border-box; max-width:calc(100% - ${butonPadding * 2}px); max-height:calc(100% - ${butonPadding * 2}px);`;
+      contentDiv.innerHTML = svgContent;
+      btn.innerHTML = "";
+      btn.appendChild(contentDiv);
     } else {
       btn.style.backgroundColor = "#4a90e2";
       btn.innerHTML = `<div style="font-size:32px;">${secenek.emoji || ""}</div><div style="font-size:14px;margin-top:5px;">${secenek.ad}</div>`;

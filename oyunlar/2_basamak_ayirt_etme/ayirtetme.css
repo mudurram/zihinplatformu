@@ -124,6 +124,15 @@ body {
   text-shadow: 0 0 6px rgba(0,0,0,0.45);
 }
 
+/* SVG görselleri için özel stiller */
+#hedefIcerik svg {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  max-width: 100%;
+  max-height: 100%;
+}
+
 /* ============================================================
    SEÇENEKLER
 ============================================================ */
@@ -131,14 +140,21 @@ body {
   margin-top: 35px;
   display: flex;
   justify-content: center;
-  gap: 22px;
+  align-items: center;
+  gap: 15px;
   flex-wrap: wrap;
-  padding: 10px 25px;
+  padding: 10px 15px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .renk-btn {
-  width: 150px;
-  height: 80px;
+  min-width: 140px;
+  width: auto;
+  max-width: 100%;
+  flex: 1 1 auto;
+  min-height: 80px;
+  height: auto;
   border-radius: 14px;
   border: none;
   font-size: 20px;
@@ -147,6 +163,13 @@ body {
   color: white;
   transition: 0.25s;
   box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 12px;
+  position: relative;
 }
 
 .renk-btn:hover {
@@ -323,44 +346,58 @@ body {
 }
 
 /* ============================================================
-   RESPONSIVE
+   RESPONSIVE - TÜM PLATFORMLAR İÇİN
 ============================================================ */
-@media (max-width: 600px) {
+
+/* Mobil Telefonlar (Portrait) - 480px ve altı */
+@media (max-width: 480px) {
   .hedefKutu {
-    width: 220px;
+    width: 90%;
+    max-width: 220px;
     height: 100px;
   }
 
+  .secenek-container {
+    gap: 10px;
+    padding: 10px;
+  }
+
   .renk-btn {
-    width: 130px;
-    height: 70px;
+    min-width: calc(50% - 5px);
+    max-width: calc(50% - 5px);
+    min-height: 70px;
+    height: auto;
+    font-size: 16px;
+    padding: 10px;
   }
 
   .oyun-baslik {
-    font-size: 22px;
+    font-size: 20px;
+  }
+
+  .yonerge-alani {
+    margin: 15px 10px;
+    padding: 12px 15px;
+  }
+
+  .yonerge-alani p {
+    font-size: 16px;
   }
 
   .baslat-content {
-    padding: 40px 30px;
-    max-width: 90%;
+    padding: 30px 20px;
+    max-width: 95%;
   }
 
   .baslat-btn {
-    padding: 22px 35px;
-    font-size: 26px;
-  }
-
-  .baslat-icon {
-    font-size: 28px;
-  }
-
-  .baslat-text {
-    font-size: 26px;
+    padding: 20px 30px;
+    font-size: 24px;
   }
 
   .kategori-container {
     grid-template-columns: 1fr;
     padding: 10px;
+    gap: 15px;
   }
 
   .kategori-kart {
@@ -374,5 +411,201 @@ body {
 
   .kategori-ad {
     font-size: 16px;
+  }
+}
+
+/* Küçük Tabletler ve Büyük Telefonlar (Landscape) - 481px - 768px */
+@media (min-width: 481px) and (max-width: 768px) {
+  .hedefKutu {
+    width: 280px;
+    height: 110px;
+  }
+
+  .secenek-container {
+    gap: 12px;
+    padding: 10px 15px;
+  }
+
+  .renk-btn {
+    min-width: calc(50% - 6px);
+    max-width: calc(50% - 6px);
+    min-height: 75px;
+    height: auto;
+    font-size: 18px;
+    padding: 12px;
+  }
+
+  .oyun-baslik {
+    font-size: 24px;
+  }
+
+  .yonerge-alani {
+    margin: 18px auto;
+    padding: 14px 18px;
+  }
+
+  .yonerge-alani p {
+    font-size: 17px;
+  }
+}
+
+/* Tabletler ve Küçük Laptoplar - 769px - 1024px */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .hedefKutu {
+    width: 300px;
+    height: 120px;
+  }
+
+  .secenek-container {
+    gap: 15px;
+    padding: 10px 20px;
+  }
+
+  .renk-btn {
+    min-width: calc(33.333% - 10px);
+    max-width: calc(33.333% - 10px);
+    min-height: 80px;
+    height: auto;
+    font-size: 19px;
+    padding: 14px;
+  }
+
+  .oyun-baslik {
+    font-size: 26px;
+  }
+}
+
+/* Büyük Ekranlar ve Akıllı Tahtalar - 1025px - 1920px */
+@media (min-width: 1025px) and (max-width: 1920px) {
+  .hedefKutu {
+    width: 320px;
+    height: 130px;
+  }
+
+  .secenek-container {
+    gap: 18px;
+    padding: 10px 25px;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .renk-btn {
+    min-width: 160px;
+    max-width: 200px;
+    min-height: 85px;
+    height: auto;
+    font-size: 20px;
+    padding: 18px;
+  }
+
+  .oyun-baslik {
+    font-size: 28px;
+  }
+}
+
+/* Çok Büyük Ekranlar (4K, Ultra Geniş) - 1921px ve üzeri */
+@media (min-width: 1921px) {
+  .hedefKutu {
+    width: 360px;
+    height: 150px;
+  }
+
+  .secenek-container {
+    gap: 22px;
+    padding: 15px 30px;
+    max-width: 1800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .renk-btn {
+    min-width: 180px;
+    max-width: 220px;
+    min-height: 100px;
+    height: auto;
+    font-size: 22px;
+    padding: 20px;
+  }
+
+  .oyun-baslik {
+    font-size: 32px;
+  }
+
+  .yonerge-alani {
+    max-width: 800px;
+    padding: 20px 30px;
+  }
+
+  .yonerge-alani p {
+    font-size: 20px;
+  }
+}
+
+/* Landscape (Yatay) Modu için özel ayarlar */
+@media (max-height: 600px) and (orientation: landscape) {
+  .hedefKutu {
+    width: 240px;
+    height: 90px;
+    margin: 15px auto 10px;
+  }
+
+  .secenek-container {
+    margin-top: 20px;
+    gap: 10px;
+    padding: 8px 15px;
+  }
+
+  .renk-btn {
+    min-height: 60px;
+    height: auto;
+    min-width: 100px;
+    padding: 8px;
+  }
+
+  .yonerge-alani {
+    margin: 10px auto;
+    padding: 10px 15px;
+  }
+
+  .yonerge-alani p {
+    font-size: 16px;
+  }
+}
+
+/* 2 Seçenek için özel düzen */
+.secenek-container.secenek-2 .renk-btn {
+  min-width: calc(50% - 10px);
+  max-width: calc(50% - 10px);
+}
+
+/* 3 Seçenek için özel düzen */
+.secenek-container.secenek-3 .renk-btn {
+  min-width: calc(33.333% - 10px);
+  max-width: calc(33.333% - 10px);
+}
+
+/* 4 Seçenek için özel düzen */
+.secenek-container.secenek-4 .renk-btn {
+  min-width: calc(25% - 12px);
+  max-width: calc(25% - 12px);
+}
+
+@media (max-width: 768px) {
+  /* Mobilde 4 seçenek için 2x2 grid */
+  .secenek-container.secenek-4 .renk-btn {
+    min-width: calc(50% - 5px);
+    max-width: calc(50% - 5px);
+  }
+  
+  /* Mobilde 3 seçenek için 2+1 düzen */
+  .secenek-container.secenek-3 .renk-btn {
+    min-width: calc(50% - 5px);
+    max-width: calc(50% - 5px);
+  }
+  
+  .secenek-container.secenek-3 .renk-btn:last-child {
+    min-width: calc(100% - 5px);
+    max-width: calc(100% - 5px);
   }
 }

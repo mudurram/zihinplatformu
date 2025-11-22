@@ -1,0 +1,175 @@
+/* ============================================================
+   🎨 HIZLI TEPKİ SONUÇ EKRANI TASARIMI
+============================================================ */
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #c9e9ff, #f5d0ff);
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  padding-top: 70px;
+  user-select: none;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   SONUÇ CONTAINER
+============================================================ */
+.sonuc-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.sonuc-kart {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  border: 2px solid #4a90e2;
+}
+
+.sonuc-baslik {
+  font-size: 36px;
+  font-weight: bold;
+  color: #1b2d4a;
+  margin: 0 0 10px 0;
+}
+
+.oyun-adi {
+  font-size: 24px;
+  font-weight: 600;
+  color: #4a90e2;
+  margin: 0 0 30px 0;
+}
+
+/* ============================================================
+   İSTATİSTİKLER
+============================================================ */
+.sonuc-istatistikler {
+  text-align: left;
+  margin-bottom: 40px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.istatistik-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.istatistik-item:last-child {
+  border-bottom: none;
+}
+
+.istatistik-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1b2d4a;
+}
+
+.istatistik-deger {
+  font-size: 20px;
+  font-weight: bold;
+  color: #4a90e2;
+}
+
+.istatistik-deger.dogru {
+  color: #2ecc71;
+}
+
+.istatistik-deger.yanlis {
+  color: #e74c3c;
+}
+
+/* ============================================================
+   BUTONLAR
+============================================================ */
+.sonuc-butonlar {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.sonuc-btn {
+  padding: 18px 30px;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.tekrar-btn {
+  background: linear-gradient(135deg, #4a90e2, #357ABD);
+  color: white;
+}
+
+.tekrar-btn:hover {
+  background: linear-gradient(135deg, #357ABD, #2962a3);
+  transform: scale(1.02);
+}
+
+.farkli-btn {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: white;
+}
+
+.farkli-btn:hover {
+  background: linear-gradient(135deg, #8e44ad, #7d3c98);
+  transform: scale(1.02);
+}
+
+.menu-btn {
+  background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+  color: white;
+}
+
+.menu-btn:hover {
+  background: linear-gradient(135deg, #7f8c8d, #6c7a7d);
+  transform: scale(1.02);
+}
+
+.sonuc-btn:active {
+  transform: scale(0.98);
+}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media (max-width: 768px) {
+  .sonuc-kart {
+    padding: 25px;
+  }
+
+  .sonuc-baslik {
+    font-size: 28px;
+  }
+
+  .oyun-adi {
+    font-size: 20px;
+  }
+
+  .istatistik-label {
+    font-size: 16px;
+  }
+
+  .istatistik-deger {
+    font-size: 18px;
+  }
+
+  .sonuc-btn {
+    padding: 15px 25px;
+    font-size: 16px;
+  }
+}
+

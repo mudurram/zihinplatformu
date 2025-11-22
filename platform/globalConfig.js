@@ -303,21 +303,150 @@ export const GAME_MAP = {
       ]
     }
   },
-  hizli_tiklama: {
-    id: "hizli_tiklama",
-    ad: "Hızlı Tıklama",
+  hizli_tepki: {
+    id: "hizli_tepki",
+    ad: "Hızlı Tepki Oyunları",
     kategori: "Dikkat",
     alan: "attention",
     altBeceri: "hizli_tepki",
     moduller: ["attention", "executive"],
-    performansKeys: ["reaction_time", "processing_speed"],
-    path: "../oyunlar/hizli_tiklama/index.html",
+    performansKeys: ["reaction_time", "processing_speed", "inhibitory_control", "sustained_attention"],
+    path: "../oyunlar/hizli_tepki/menu.html",
     oyunOzelBeceriler: [
       { id: "tepki_hizi", ad: "Tepki Hızı" },
-      { id: "islem_hizi", ad: "İşlem Hızı" }
+      { id: "islem_hizi", ad: "İşlem Hızı" },
+      { id: "inhibisyon", ad: "İnhibisyon Kontrolü" },
+      { id: "surekli_dikkat", ad: "Sürdürülen Dikkat" }
     ],
-    hataTurleri: ["impulsivite"],
-    status: "planned"
+    hataTurleri: ["impulsivite", "dikkatsizlik"],
+    sonucMetrics: {
+      coklu_alan: {
+        attention: 0.95,
+        executive: 0.85
+      },
+      oyun_ozel: [
+        "reaction_time",
+        "processing_speed",
+        "inhibitory_control",
+        "sustained_attention"
+      ]
+    }
+  },
+  engel_baskilama: {
+    id: "engel_baskilama",
+    ad: "Engel Baskılama Oyunları",
+    kategori: "Dikkat",
+    alan: "attention",
+    altBeceri: "inhibisyon",
+    moduller: ["attention", "executive"],
+    performansKeys: ["inhibitory_control", "impulse_control", "response_inhibition", "cognitive_flexibility"],
+    path: "../oyunlar/engel_baskilama/menu.html",
+    oyunOzelBeceriler: [
+      { id: "inhibisyon_kontrolu", ad: "İnhibisyon Kontrolü" },
+      { id: "durtu_kontrolu", ad: "Dürtü Kontrolü" },
+      { id: "tepki_baskilama", ad: "Tepki Baskılama" },
+      { id: "bilişsel_esneklik", ad: "Bilişsel Esneklik" }
+    ],
+    hataTurleri: ["impulsivite", "dikkatsizlik"],
+    sonucMetrics: {
+      coklu_alan: {
+        attention: 0.9,
+        executive: 0.95
+      },
+      oyun_ozel: [
+        "inhibitory_control",
+        "impulse_control",
+        "response_inhibition",
+        "cognitive_flexibility"
+      ]
+    }
+  },
+  secici_dikkat: {
+    id: "secici_dikkat",
+    ad: "Seçici Dikkat Oyunları",
+    kategori: "Dikkat",
+    alan: "attention",
+    altBeceri: "secici_dikkat",
+    moduller: ["attention", "perception"],
+    performansKeys: ["selective_attention", "visual_search", "target_detection", "distractor_inhibition"],
+    path: "../oyunlar/secici_dikkat/menu.html",
+    oyunOzelBeceriler: [
+      { id: "secici_dikkat", ad: "Seçici Dikkat" },
+      { id: "gorsel_arama", ad: "Görsel Arama" },
+      { id: "hedef_tespit", ad: "Hedef Tespit" },
+      { id: "dikkat_dagitici_baskilama", ad: "Dikkat Dağıtıcı Baskılama" }
+    ],
+    hataTurleri: ["karistirma", "dikkat_dagitici"],
+    sonucMetrics: {
+      coklu_alan: {
+        attention: 0.95,
+        perception: 0.85
+      },
+      oyun_ozel: [
+        "selective_attention",
+        "visual_search",
+        "target_detection",
+        "distractor_inhibition"
+      ]
+    }
+  },
+  surdurulen_dikkat: {
+    id: "surdurulen_dikkat",
+    ad: "Sürdürülen Dikkat Oyunları",
+    kategori: "Dikkat",
+    alan: "attention",
+    altBeceri: "surekli_dikkat",
+    moduller: ["attention", "executive"],
+    performansKeys: ["sustained_attention", "vigilance", "attention_maintenance", "target_detection"],
+    path: "../oyunlar/surdurulen_dikkat/menu.html",
+    oyunOzelBeceriler: [
+      { id: "surekli_dikkat", ad: "Sürdürülen Dikkat" },
+      { id: "dikkat_surdurme", ad: "Dikkat Sürdürme" },
+      { id: "hedef_tespit", ad: "Hedef Tespit" },
+      { id: "dikkat_kacirma", ad: "Dikkat Kaçırma" }
+    ],
+    hataTurleri: ["kaçırma", "impulsivite", "dikkatsizlik"],
+    sonucMetrics: {
+      coklu_alan: {
+        attention: 0.95,
+        executive: 0.85
+      },
+      oyun_ozel: [
+        "sustained_attention",
+        "vigilance",
+        "attention_maintenance",
+        "target_detection"
+      ]
+    }
+  },
+  bolunmus_dikkat: {
+    id: "bolunmus_dikkat",
+    ad: "Bölünmüş Dikkat Oyunları",
+    kategori: "Dikkat",
+    alan: "attention",
+    altBeceri: "bolunmus_dikkat",
+    moduller: ["attention", "executive"],
+    performansKeys: ["divided_attention", "multitasking", "dual_task_performance", "attention_allocation"],
+    path: "../oyunlar/bolunmus_dikkat/menu.html",
+    oyunOzelBeceriler: [
+      { id: "bolunmus_dikkat", ad: "Bölünmüş Dikkat" },
+      { id: "cift_gorev", ad: "Çift Görev Performansı" },
+      { id: "dikkat_dagitimi", ad: "Dikkat Dağıtımı" },
+      { id: "eszamanli_islem", ad: "Eşzamanlı İşlem" }
+    ],
+    hataTurleri: ["kaçırma", "impulsivite", "dikkat_dagitimi"],
+    sonucMetrics: {
+      coklu_alan: {
+        attention: 0.95,
+        executive: 0.9
+      },
+      oyun_ozel: [
+        "divided_attention",
+        "multitasking",
+        "dual_task_performance",
+        "attention_allocation"
+      ]
+    }
   }
 };
 
@@ -438,7 +567,11 @@ export const GLOBAL = {
   OYUN_KODLARI: Object.freeze({
     RENK_ESLEME: "renk_esleme",
     AYIRT_ETME: "ayirt_etme",
-    HIZLI_TIKLAMA: "hizli_tiklama"
+    HIZLI_TEPKI: "hizli_tepki",
+    ENGEL_BASKILAMA: "engel_baskilama",
+    SECICI_DIKKAT: "secici_dikkat",
+    SURDURULEN_DIKKAT: "surdurulen_dikkat",
+    BOLUNMUS_DIKKAT: "bolunmus_dikkat"
   }),
 
   // -----------------------------------------------------------
@@ -447,7 +580,11 @@ export const GLOBAL = {
   OYUN_YOLLARI: {
     renk_esleme: GAME_MAP.renk_esleme.path,
     ayirt_etme: GAME_MAP.ayirt_etme.path,
-    hizli_tiklama: GAME_MAP.hizli_tiklama.path
+    hizli_tepki: GAME_MAP.hizli_tepki.path,
+    engel_baskilama: GAME_MAP.engel_baskilama.path,
+    secici_dikkat: GAME_MAP.secici_dikkat.path,
+    surdurulen_dikkat: GAME_MAP.surdurulen_dikkat.path,
+    bolunmus_dikkat: GAME_MAP.bolunmus_dikkat.path
   },
 
   // -----------------------------------------------------------
@@ -456,7 +593,11 @@ export const GLOBAL = {
   OYUN_ADLARI: {
     renk_esleme: GAME_MAP.renk_esleme.ad,
     ayirt_etme: GAME_MAP.ayirt_etme.ad,
-    hizli_tiklama: GAME_MAP.hizli_tiklama.ad
+    hizli_tepki: GAME_MAP.hizli_tepki.ad,
+    engel_baskilama: GAME_MAP.engel_baskilama.ad,
+    secici_dikkat: GAME_MAP.secici_dikkat.ad,
+    surdurulen_dikkat: GAME_MAP.surdurulen_dikkat.ad,
+    bolunmus_dikkat: GAME_MAP.bolunmus_dikkat.ad
   },
 
   // -----------------------------------------------------------

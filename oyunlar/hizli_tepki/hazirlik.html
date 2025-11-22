@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <title>Oyun Hazırlık | Zihin Platformu</title>
+
+  <!-- Stil -->
+  <link rel="stylesheet" href="hazirlik.css" />
+  
+  <!-- Platform Header CSS -->
+  <link rel="stylesheet" href="../../platform/style.css" />
+
+  <!-- GLOBAL CONFIG -->
+  <script type="module" src="../../platform/globalConfig.js"></script>
+  
+  <!-- Header Script -->
+  <script type="module" src="../../platform/header.js"></script>
+
+  <!-- Oyun Script -->
+  <script type="module" src="hazirlik.js" defer></script>
+
+</head>
+
+<body>
+
+  <!-- Header header.js tarafından otomatik eklenecek -->
+  
+  <!-- ========================================================= -->
+  <!-- 🔵 OYUN BİLGİ EKRANI -->
+  <!-- ========================================================= -->
+  <div class="hazirlik-container">
+    <div class="oyun-bilgi-kart">
+      <h1 id="oyunBaslik" class="oyun-baslik">Oyun Yükleniyor...</h1>
+      
+      <div class="bilgi-bolumu">
+        <div class="bilgi-item">
+          <strong>Amaç:</strong>
+          <p id="oyunAmac">Yükleniyor...</p>
+        </div>
+        
+        <div class="bilgi-item">
+          <strong>Nasıl oynanır?</strong>
+          <ul id="oyunNasil" class="nasil-liste">
+            <li>Yükleniyor...</li>
+          </ul>
+        </div>
+        
+        <div class="bilgi-item">
+          <strong>Süre:</strong>
+          <span class="sure-badge">30 saniye</span>
+        </div>
+      </div>
+      
+      <div class="basla-alani">
+        <button id="baslaBtn" class="basla-btn">
+          <span class="basla-icon">▶</span>
+          <span class="basla-text">Başla</span>
+        </button>
+        <p class="basla-aciklama">30 saniye boyunca olabildiğince hızlı ve doğru tepki ver.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 🔵 HAZIRLIK EKRANI (Geri Sayım) -->
+  <!-- ========================================================= -->
+  <div id="hazirlikEkrani" class="hazirlik-ekrani" style="display: none;">
+    <div class="hazirlik-icerik">
+      <h2 class="hazir-ol-text">Hazır ol</h2>
+      <div id="geriSayim" class="geri-sayim">3</div>
+    </div>
+  </div>
+
+</body>
+</html>
+

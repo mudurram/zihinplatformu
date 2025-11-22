@@ -1,0 +1,220 @@
+/* ============================================================
+   🎨 HIZLI TEPKİ HAZIRLIK EKRANI TASARIMI
+============================================================ */
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #c9e9ff, #f5d0ff);
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  padding-top: 70px;
+  user-select: none;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   HAZIRLIK CONTAINER
+============================================================ */
+.hazirlik-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.oyun-bilgi-kart {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  border: 2px solid #f39c12;
+}
+
+.oyun-baslik {
+  font-size: 32px;
+  font-weight: bold;
+  color: #1b2d4a;
+  margin: 0 0 30px 0;
+}
+
+/* ============================================================
+   BİLGİ BÖLÜMÜ
+============================================================ */
+.bilgi-bolumu {
+  text-align: left;
+  margin-bottom: 40px;
+}
+
+.bilgi-item {
+  margin-bottom: 25px;
+}
+
+.bilgi-item strong {
+  font-size: 18px;
+  color: #1b2d4a;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.bilgi-item p {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.nasil-liste {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.8;
+}
+
+.nasil-liste li {
+  margin-bottom: 8px;
+}
+
+.sure-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  background: #f39c12;
+  color: white;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* ============================================================
+   BAŞLA BUTONU
+============================================================ */
+.basla-alani {
+  text-align: center;
+}
+
+.basla-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto 15px;
+  padding: 25px 50px;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+  border: none;
+  border-radius: 18px;
+  font-size: 28px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(243, 156, 18, 0.35);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  letter-spacing: 1px;
+}
+
+.basla-btn:hover {
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  transform: scale(1.05);
+  box-shadow: 0 12px 32px rgba(243, 156, 18, 0.45);
+}
+
+.basla-btn:active {
+  transform: scale(0.98);
+}
+
+.basla-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.basla-text {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.basla-aciklama {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+  font-style: italic;
+}
+
+/* ============================================================
+   HAZIRLIK EKRANI (Geri Sayım)
+============================================================ */
+.hazirlik-ekrani {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.hazirlik-icerik {
+  text-align: center;
+  color: white;
+}
+
+.hazir-ol-text {
+  font-size: 48px;
+  font-weight: bold;
+  margin: 0 0 40px 0;
+  text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.geri-sayim {
+  font-size: 120px;
+  font-weight: bold;
+  color: #f39c12;
+  text-shadow: 0 6px 12px rgba(0,0,0,0.5);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media (max-width: 768px) {
+  .oyun-bilgi-kart {
+    padding: 25px;
+  }
+
+  .oyun-baslik {
+    font-size: 24px;
+  }
+
+  .basla-btn {
+    padding: 20px 30px;
+    font-size: 24px;
+  }
+
+  .basla-icon {
+    font-size: 28px;
+  }
+
+  .basla-text {
+    font-size: 24px;
+  }
+
+  .geri-sayim {
+    font-size: 80px;
+  }
+
+  .hazir-ol-text {
+    font-size: 36px;
+  }
+}
+

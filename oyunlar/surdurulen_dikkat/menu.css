@@ -1,0 +1,149 @@
+/* ============================================================
+   🎨 SÜRDÜRÜLEN DİKKAT OYUN LİSTESİ TASARIMI
+   Zihin Platformu Genel Tasarım ile %100 uyumlu
+============================================================ */
+
+/* ----- GENEL ----- */
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #c9e9ff, #f5d0ff);
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  padding-top: 70px;
+  user-select: none;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   BAŞLIK ALANI
+============================================================ */
+.baslik-alani {
+  margin: 30px auto;
+  max-width: 900px;
+  padding: 20px;
+}
+
+.ana-baslik {
+  font-size: 36px;
+  font-weight: bold;
+  color: #1b2d4a;
+  margin: 0 0 15px 0;
+}
+
+.aciklama-metni {
+  font-size: 18px;
+  color: #666;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   OYUN LİSTESİ
+============================================================ */
+.oyun-liste-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.oyun-kart {
+  background: white;
+  border-radius: 16px;
+  padding: 25px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.oyun-kart:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  border-color: #4a90e2;
+}
+
+.oyun-bilgi {
+  flex: 1;
+  text-align: left;
+}
+
+.oyun-adi {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1b2d4a;
+  margin: 0 0 8px 0;
+}
+
+.oyun-aciklama {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.oyna-btn {
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #4a90e2, #357ABD);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+  white-space: nowrap;
+}
+
+.oyna-btn:hover {
+  background: linear-gradient(135deg, #357ABD, #2962a3);
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
+}
+
+.oyna-btn:active {
+  transform: scale(0.98);
+}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media (max-width: 768px) {
+  .ana-baslik {
+    font-size: 28px;
+  }
+
+  .aciklama-metni {
+    font-size: 16px;
+  }
+
+  .oyun-kart {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 20px;
+  }
+
+  .oyna-btn {
+    width: 100%;
+    padding: 14px;
+  }
+
+  .oyun-adi {
+    font-size: 20px;
+  }
+
+  .oyun-aciklama {
+    font-size: 15px;
+  }
+}
+
